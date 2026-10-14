@@ -3,8 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>About MathVerse — College Mathematics Club</title>
-  
+  <title>About Us — MathVerse & The Mathematics Club</title>
+  <meta name="description" content="Discover our journey, core mission, faculty leadership, and executive student committee driving the Mathematics Club and MathVerse live arena.">
+
+  <!-- Google Fonts: Space Grotesk, Inter, JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700;800&display=swap" rel="stylesheet">
@@ -13,7 +15,7 @@
   <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
-  <!-- Ambient Cosmic Nebula -->
+  <!-- Ambient Cosmic Nebula Glows -->
   <div class="cosmic-nebula" aria-hidden="true">
     <div class="nebula-orb orb-violet"></div>
     <div class="nebula-orb orb-cyan"></div>
@@ -28,11 +30,13 @@
         <span class="brand-text">Math<span class="brand-accent">Verse</span></span>
       </a>
 
+      <!-- Desktop Nav Links -->
       <nav class="nav-menu" aria-label="Primary Navigation">
         <ul class="nav-links">
           <li><a href="index.html" class="nav-link">Home</a></li>
           <li><a href="about.html" class="nav-link active">About</a></li>
           <li><a href="events.html" class="nav-link">Events</a></li>
+          <li><a href="gallery.html" class="nav-link">Gallery</a></li>
           <li><a href="arena.html" class="nav-link">Arena</a></li>
           <li><a href="leaderboard.html" class="nav-link">Leaderboard</a></li>
           <li><a href="members.html" class="nav-link">Members</a></li>
@@ -42,12 +46,15 @@
         </ul>
       </nav>
 
+      <!-- Nav Actions -->
       <div class="nav-actions">
-        <div id="status-badge" class="status-badge status-disconnected" aria-live="polite">
+        <div id="status-badge" class="status-badge status-disconnected" title="Socket.IO real-time connection status" aria-live="polite">
           <span class="status-dot"></span>
           <span id="status-text" class="status-text">Disconnected</span>
         </div>
+
         <a href="contact.html" class="btn-nav-join">Join the Club</a>
+
         <button id="nav-toggle" class="nav-toggle" aria-label="Toggle navigation menu" aria-expanded="false" aria-controls="mobile-menu">
           <span class="toggle-line"></span>
           <span class="toggle-line"></span>
@@ -63,6 +70,7 @@
       <li><a href="index.html" class="mobile-link">Home</a></li>
       <li><a href="about.html" class="mobile-link active">About</a></li>
       <li><a href="events.html" class="mobile-link">Events</a></li>
+      <li><a href="gallery.html" class="mobile-link">Gallery</a></li>
       <li><a href="arena.html" class="mobile-link">Arena</a></li>
       <li><a href="leaderboard.html" class="mobile-link">Leaderboard</a></li>
       <li><a href="members.html" class="mobile-link">Members</a></li>
@@ -73,21 +81,99 @@
     <a href="contact.html" class="btn-nav-join" style="padding: 0.8rem 2rem; font-size: 1rem;">Join the Club</a>
   </div>
 
-  <!-- Main Content: Coming Soon Card -->
-  <main class="page-wrapper">
-    <div class="coming-soon-card">
-      <div class="coming-soon-halo" aria-hidden="true"></div>
-      <div class="coming-soon-glyph">ℵ₀</div>
-      <span class="coming-soon-badge">Origin & Heritage</span>
-      <h1 class="coming-soon-title">About MathVerse</h1>
-      <p class="coming-soon-desc">
-        We are crafting the definitive chronicle of our Mathematics Club — our charter, faculty leadership, research symposiums, and our vision for quantitative mastery across disciplines.
-      </p>
-      <a href="index.html" class="btn-primary">
-        <span>← Return to Universe</span>
-      </a>
+  <!-- Page Header -->
+  <section class="subpage-hero">
+    <div class="subpage-badge">Our Legacy & Vision</div>
+    <h1 class="subpage-title">The Story of <span class="gradient-text">MathVerse</span></h1>
+    <p class="subpage-description">
+      From a whiteboard circle in Science Hall to a real-time living universe of competitive mathematics, peer research, and intellectual camaraderie.
+    </p>
+  </section>
+
+  <!-- Story & Origins Section -->
+  <section class="story-section">
+    <div class="story-card">
+      <div class="story-grid">
+        <div>
+          <h2 class="story-lead">Mathematics as a Living, Expanding Cosmos.</h2>
+          <p id="about-story-text" class="story-text">
+            Founded in 2018 by seven undergraduate mathematicians and physicists in a chalkboard-walled corner of Room 402, our Mathematics Club began with informal puzzle hours and Putnam problem circles. Over eight years, it has transformed into a 500+ member student powerhouse.
+          </p>
+          <p class="story-text">
+            We believe mathematical intuition isn't a solitary talent—it thrives in community. Whether breaking down differential geometry, analyzing stochastic quantum models, or locking horns in a buzzer-lightning integration sprint, our members push each other to think bolder and deeper.
+          </p>
+        </div>
+        <div class="story-stats-box">
+          <div class="story-stat-item">
+            <div class="story-stat-icon">🏛️</div>
+            <div>
+              <div class="story-stat-val">2018</div>
+              <div class="story-stat-lbl">Founded in Room 402</div>
+            </div>
+          </div>
+          <div class="story-stat-item">
+            <div class="story-stat-icon">👥</div>
+            <div>
+              <div class="story-stat-val">520+</div>
+              <div class="story-stat-lbl">Active Student Members</div>
+            </div>
+          </div>
+          <div class="story-stat-item">
+            <div class="story-stat-icon">🏆</div>
+            <div>
+              <div class="story-stat-val">1st Place</div>
+              <div class="story-stat-lbl">National Math Olympiad 2022</div>
+            </div>
+          </div>
+          <div class="story-stat-item">
+            <div class="story-stat-icon">⚡</div>
+            <div>
+              <div class="story-stat-val">MathVerse</div>
+              <div class="story-stat-lbl">Proprietary Live Quiz Arena</div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
-  </main>
+  </section>
+
+  <!-- Core Mission Pillars -->
+  <section class="mission-section">
+    <div class="section-header">
+      <div class="section-eyebrow">Our Guiding Axioms</div>
+      <h2 class="section-title">The Four Pillars</h2>
+    </div>
+    <div id="about-mission-grid" class="mission-grid">
+      <!-- Rendered dynamically from data.js -->
+    </div>
+  </section>
+
+  <!-- Vertical Animated Timeline Section -->
+  <section class="timeline-section">
+    <div class="section-header">
+      <div class="section-eyebrow">Chronicles of Progress</div>
+      <h2 class="section-title">Milestones & History</h2>
+    </div>
+
+    <div class="timeline-container">
+      <div class="timeline-track"></div>
+      <div id="timeline-progress-bar" class="timeline-progress-bar"></div>
+      <div id="about-timeline-list">
+        <!-- Rendered dynamically from data.js -->
+      </div>
+    </div>
+  </section>
+
+  <!-- Executive Committee Team Section -->
+  <section class="team-section">
+    <div class="section-header">
+      <div class="section-eyebrow">Student Leadership</div>
+      <h2 class="section-title">The Executive Board</h2>
+    </div>
+    <div id="about-team-grid" class="team-grid">
+      <!-- Rendered dynamically from data.js with 3D Tilt -->
+    </div>
+  </section>
 
   <!-- Shared Global Footer -->
   <footer class="app-footer" role="contentinfo">
@@ -124,6 +210,7 @@
         <ul class="footer-nav-list">
           <li><a href="about.html" class="footer-nav-link">About Us</a></li>
           <li><a href="events.html" class="footer-nav-link">Club Events</a></li>
+          <li><a href="gallery.html" class="footer-nav-link">Math Art Gallery</a></li>
           <li><a href="members.html" class="footer-nav-link">Members</a></li>
           <li><a href="feedback.html" class="footer-nav-link">Feedback</a></li>
         </ul>
@@ -150,6 +237,9 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script>
+
+  <!-- Central Data Store & Application Scripts -->
+  <script src="/js/data.js"></script>
   <script src="/js/main.js"></script>
 </body>
 </html>

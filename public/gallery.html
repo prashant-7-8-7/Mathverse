@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mathematical Art Gallery — MathVerse</title>
+  <meta name="description" content="Explore procedural, geometric, and fractal mathematical artworks illustrating chaos theory, non-Euclidean geometry, and topology.">
+
+  <!-- Google Fonts: Space Grotesk, Inter, JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <!-- Ambient Cosmic Nebula Glows -->
+  <div class="cosmic-nebula" aria-hidden="true">
+    <div class="nebula-orb orb-violet"></div>
+    <div class="nebula-orb orb-cyan"></div>
+    <div class="nebula-orb orb-gold"></div>
+  </div>
+
+  <!-- Sticky Top Navigation -->
+  <header class="navbar" role="banner">
+    <div class="nav-container">
+      <a href="index.html" class="nav-brand" aria-label="MathVerse Home">
+        <span class="brand-glyph">∫</span>
+        <span class="brand-text">Math<span class="brand-accent">Verse</span></span>
+      </a>
+
+      <!-- Desktop Nav Links -->
+      <nav class="nav-menu" aria-label="Primary Navigation">
+        <ul class="nav-links">
+          <li><a href="index.html" class="nav-link">Home</a></li>
+          <li><a href="about.html" class="nav-link">About</a></li>
+          <li><a href="events.html" class="nav-link">Events</a></li>
+          <li><a href="gallery.html" class="nav-link active">Gallery</a></li>
+          <li><a href="arena.html" class="nav-link">Arena</a></li>
+          <li><a href="leaderboard.html" class="nav-link">Leaderboard</a></li>
+          <li><a href="members.html" class="nav-link">Members</a></li>
+          <li><a href="certificates.html" class="nav-link">Certificates</a></li>
+          <li><a href="feedback.html" class="nav-link">Feedback</a></li>
+          <li><a href="contact.html" class="nav-link">Contact</a></li>
+        </ul>
+      </nav>
+
+      <!-- Nav Actions -->
+      <div class="nav-actions">
+        <div id="status-badge" class="status-badge status-disconnected" title="Socket.IO real-time connection status" aria-live="polite">
+          <span class="status-dot"></span>
+          <span id="status-text" class="status-text">Disconnected</span>
+        </div>
+
+        <a href="contact.html" class="btn-nav-join">Join the Club</a>
+
+        <button id="nav-toggle" class="nav-toggle" aria-label="Toggle navigation menu" aria-expanded="false" aria-controls="mobile-menu">
+          <span class="toggle-line"></span>
+          <span class="toggle-line"></span>
+          <span class="toggle-line"></span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Mobile Drawer Menu -->
+  <div id="mobile-menu" class="mobile-menu" aria-hidden="true">
+    <ul class="mobile-links">
+      <li><a href="index.html" class="mobile-link">Home</a></li>
+      <li><a href="about.html" class="mobile-link">About</a></li>
+      <li><a href="events.html" class="mobile-link">Events</a></li>
+      <li><a href="gallery.html" class="mobile-link active">Gallery</a></li>
+      <li><a href="arena.html" class="mobile-link">Arena</a></li>
+      <li><a href="leaderboard.html" class="mobile-link">Leaderboard</a></li>
+      <li><a href="members.html" class="mobile-link">Members</a></li>
+      <li><a href="certificates.html" class="mobile-link">Certificates</a></li>
+      <li><a href="feedback.html" class="mobile-link">Feedback</a></li>
+      <li><a href="contact.html" class="mobile-link">Contact</a></li>
+    </ul>
+    <a href="contact.html" class="btn-nav-join" style="padding: 0.8rem 2rem; font-size: 1rem;">Join the Club</a>
+  </div>
+
+  <!-- Page Header -->
+  <section class="subpage-hero">
+    <div class="subpage-badge">Visual Form & Geometry</div>
+    <h1 class="subpage-title">Mathematical <span class="gradient-text">Art</span> Gallery</h1>
+    <p class="subpage-description">
+      Procedural vectors, chaotic attractors, hyperbolic geometry, and high-dimensional projections celebrating the aesthetic soul of mathematics.
+    </p>
+  </section>
+
+  <!-- Dynamic Masonry Gallery Grid -->
+  <main class="gallery-section">
+    <div id="gallery-grid" class="gallery-grid">
+      <!-- Rendered dynamically from data.js with procedural SVGs -->
+    </div>
+  </main>
+
+  <!-- Interactive Lightbox Modal -->
+  <div id="gallery-lightbox" class="lightbox-overlay" role="dialog" aria-modal="true" aria-labelledby="lightbox-title">
+    <div class="lightbox-content">
+      <div id="lightbox-visual-target" class="lightbox-visual">
+        <!-- Enlarged SVG artwork renders here -->
+      </div>
+
+      <div class="lightbox-details">
+        <div>
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem;">
+            <span id="lightbox-category" class="event-category-pill">Category</span>
+            <span id="lightbox-counter" style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-subtle);">1 of 8</span>
+          </div>
+
+          <h2 id="lightbox-title" style="font-family: var(--font-heading); font-size: 1.85rem; font-weight: 800; color: var(--text-pure); line-height: 1.2; margin-bottom: 0.85rem;">
+            Artwork Title
+          </h2>
+
+          <div style="margin-bottom: 1.25rem;">
+            <span id="lightbox-badge" style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--neon-gold); background: rgba(251, 191, 36, 0.1); border: 1px solid rgba(251, 191, 36, 0.3); padding: 0.25rem 0.65rem; border-radius: 999px;">
+              Badge
+            </span>
+          </div>
+
+          <p id="lightbox-desc" style="color: var(--text-muted); font-size: 0.98rem; line-height: 1.7;">
+            Artwork detailed explanation.
+          </p>
+        </div>
+
+        <div class="lightbox-nav-row">
+          <div style="display: flex; gap: 0.75rem;">
+            <button id="btn-lightbox-prev" class="btn-lightbox-nav" type="button" aria-label="Previous artwork">
+              <span>←</span> <span>Prev</span>
+            </button>
+            <button id="btn-lightbox-next" class="btn-lightbox-nav" type="button" aria-label="Next artwork">
+              <span>Next</span> <span>→</span>
+            </button>
+          </div>
+
+          <button id="lightbox-close-btn" class="btn-lightbox-nav" type="button" aria-label="Close lightbox">
+            <span>Close ✕</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Shared Global Footer -->
+  <footer class="app-footer" role="contentinfo">
+    <div class="footer-container">
+      <div class="footer-brand">
+        <div class="brand-logo">
+          <span class="brand-glyph">∫</span>
+          <span class="brand-text">Math<span class="brand-accent">Verse</span></span>
+        </div>
+        <p class="footer-tagline">
+          The official digital universe and live competition arena of the College Mathematics Club. Fostering pure rigor, applied mastery, and intellectual camaraderie.
+        </p>
+        <div class="footer-socials">
+          <a href="#" class="social-icon-btn" aria-label="GitHub">gh</a>
+          <a href="#" class="social-icon-btn" aria-label="Discord">dc</a>
+          <a href="#" class="social-icon-btn" aria-label="LinkedIn">in</a>
+          <a href="#" class="social-icon-btn" aria-label="Instagram">ig</a>
+          <a href="#" class="social-icon-btn" aria-label="Twitter">𝕏</a>
+        </div>
+      </div>
+
+      <div class="footer-col">
+        <h4 class="footer-column-title">Platform</h4>
+        <ul class="footer-nav-list">
+          <li><a href="index.html" class="footer-nav-link">Home</a></li>
+          <li><a href="arena.html" class="footer-nav-link">Live Arena</a></li>
+          <li><a href="leaderboard.html" class="footer-nav-link">Leaderboard</a></li>
+          <li><a href="certificates.html" class="footer-nav-link">Certificates</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4 class="footer-column-title">Community</h4>
+        <ul class="footer-nav-list">
+          <li><a href="about.html" class="footer-nav-link">About Us</a></li>
+          <li><a href="events.html" class="footer-nav-link">Club Events</a></li>
+          <li><a href="gallery.html" class="footer-nav-link">Math Art Gallery</a></li>
+          <li><a href="members.html" class="footer-nav-link">Members</a></li>
+          <li><a href="feedback.html" class="footer-nav-link">Feedback</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4 class="footer-column-title">Contact & Join</h4>
+        <ul class="footer-nav-list">
+          <li><a href="contact.html" class="footer-nav-link">Contact Desk</a></li>
+          <li><a href="contact.html" class="footer-nav-link">Join the Club</a></li>
+          <li><span class="footer-nav-link" style="color: var(--text-subtle);">Department of Mathematics</span></li>
+          <li><span class="footer-nav-link" style="color: var(--text-subtle);">Science Hall, Room 402</span></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <p>&copy; 2026 MathVerse &bull; College Mathematics Club. All mathematical rights reserved.</p>
+      <p>Crafted with rigor, curiosity, and code.</p>
+    </div>
+  </footer>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script>
+
+  <!-- Central Data Store & Application Scripts -->
+  <script src="/js/data.js"></script>
+  <script src="/js/main.js"></script>
+</body>
+</html>

@@ -46,6 +46,63 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_registrations_event ON registrations(event_id);
   CREATE INDEX IF NOT EXISTS idx_registrations_email_event ON registrations(email, event_id);
   CREATE INDEX IF NOT EXISTS idx_registrations_ticket ON registrations(ticket_code);
+
+  -- Live Quiz Arena Tables
+  CREATE TABLE IF NOT EXISTS quizzes (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
+
+  CREATE TABLE IF NOT EXISTS questions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    quiz_id INTEGER NOT NULL,
+    text TEXT NOT NULL,
+    options TEXT NOT NULL,
+    correct_index INTEGER NOT NULL,
+    time_limit_sec INTEGER DEFAULT 20,
+    points INTEGER DEFAULT 1000,
+    FOREIGN KEY(quiz_id) REFERENCES quizzes(id) ON DELETE CASCADE
+  );
+
+  CREATE TABLE IF NOT EXISTS sessions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    quiz_id INTEGER NOT NULL,
+    room_code TEXT NOT NULL,
+    event_id TEXT NULL,
+    started_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    ended_at DATETIME NULL,
+    FOREIGN KEY(quiz_id) REFERENCES quizzes(id)
+  );
+
+  CREATE TABLE IF NOT EXISTS session_players (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    session_id INTEGER NOT NULL,
+    name TEXT NOT NULL,
+    final_score INTEGER DEFAULT 0,
+    final_rank INTEGER DEFAULT 0,
+    joined_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY(session_id) REFERENCES sessions(id) ON DELETE CASCADE
+  );
+
+  CREATE TABLE IF NOT EXISTS answers (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    session_id INTEGER NOT NULL,
+    question_id INTEGER NOT NULL,
+    player_id INTEGER NOT NULL,
+    chosen_index INTEGER,
+    is_correct INTEGER,
+    time_ms INTEGER,
+    points_awarded INTEGER,
+    FOREIGN KEY(session_id) REFERENCES sessions(id) ON DELETE CASCADE,
+    FOREIGN KEY(question_id) REFERENCES questions(id),
+    FOREIGN KEY(player_id) REFERENCES session_players(id) ON DELETE CASCADE
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_questions_quiz ON questions(quiz_id);
+  CREATE INDEX IF NOT EXISTS idx_sessions_room ON sessions(room_code);
+  CREATE INDEX IF NOT EXISTS idx_session_players_session ON session_players(session_id);
+  CREATE INDEX IF NOT EXISTS idx_answers_session ON answers(session_id);
 `);
 
 // Seed events if table is empty
@@ -141,4 +198,92 @@ if (count === 0) {
   console.log('[DB] Initialized and seeded 6 events into MathVerse database.');
 }
 
+// Seed Demo Quiz "Euler Warm-Up" if quizzes table is empty
+const quizCountStmt = db.prepare('SELECT COUNT(*) as count FROM quizzes');
+const { count: quizCount } = quizCountStmt.get();
+
+if (quizCount === 0) {
+  const insertQuizStmt = db.prepare('INSERT INTO quizzes (title) VALUES (?)');
+  const insertQuestionStmt = db.prepare(`
+    INSERT INTO questions (quiz_id, text, options, correct_index, time_limit_sec, points)
+    VALUES (?, ?, ?, ?, ?, ?)
+  `);
+
+  const seedTransaction = db.transaction(() => {
+    const quizInfo = insertQuizStmt.run('Euler Warm-Up');
+    const quizId = quizInfo.lastInsertRowid;
+
+    const demoQuestions = [
+      {
+        text: "Which celebrated formula is known as Euler's identity, linking $e$, $i$, $\\pi$, $1$, and $0$?",
+        options: JSON.stringify([
+          "$e^{i\\pi} + 1 = 0$",
+          "$e^{i\\pi} - 1 = 0$",
+          "$e^{2\\pi i} + 1 = 0$",
+          "\\ln(i) = \\pi"
+        ]),
+        correct_index: 0,
+        time_limit_sec: 20,
+        points: 1000
+      },
+      {
+        text: "What is the closed-form exact value of the Basel Problem sum: $\\sum_{n=1}^{\\infty} \\frac{1}{n^2}$?",
+        options: JSON.stringify([
+          "$\\frac{\\pi}{4}$",
+          "$\\frac{\\pi^2}{6}$",
+          "$\\frac{\\pi^2}{8}$",
+          "$\\frac{\\pi^4}{90}$"
+        ]),
+        correct_index: 1,
+        time_limit_sec: 20,
+        points: 1000
+      },
+      {
+        text: "Using the Fundamental Theorem of Calculus, evaluate $\\frac{d}{dx} \\left( \\int_0^x e^{-t^2} dt \\right)$:",
+        options: JSON.stringify([
+          "$2x e^{-x^2}$",
+          "$-2x e^{-x^2}$",
+          "$e^{-x^2}$",
+          "$\\frac{\\sqrt{\\pi}}{2} e^{-x^2}$"
+        ]),
+        correct_index: 2,
+        time_limit_sec: 20,
+        points: 1000
+      },
+      {
+        text: "For any convex planar polyhedron with $V$ vertices, $E$ edges, and $F$ faces, Euler's polyhedron characteristic states:",
+        options: JSON.stringify([
+          "$V - E + F = 2$",
+          "$V + E - F = 2$",
+          "$V - E - F = 2$",
+          "$V + E + F = 1$"
+        ]),
+        correct_index: 0,
+        time_limit_sec: 20,
+        points: 1000
+      },
+      {
+        text: "Compute the fundamental trigonometric limit: $\\lim_{x \\to 0} \\frac{\\sin(3x)}{x}$:",
+        options: JSON.stringify([
+          "$0$",
+          "$1$",
+          "Does not exist",
+          "$3$"
+        ]),
+        correct_index: 3,
+        time_limit_sec: 20,
+        points: 1000
+      }
+    ];
+
+    for (const q of demoQuestions) {
+      insertQuestionStmt.run(quizId, q.text, q.options, q.correct_index, q.time_limit_sec, q.points);
+    }
+  });
+
+  seedTransaction();
+  console.log('[DB] Seeded demo quiz "Euler Warm-Up" with 5 math questions.');
+}
+
 module.exports = db;
+

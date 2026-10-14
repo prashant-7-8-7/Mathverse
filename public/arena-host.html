@@ -1,0 +1,1347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Host Live Quiz Arena — MathVerse</title>
+  <meta name="description" content="Host and manage real-time synchronized math competitions with live KaTeX rendering, automated speed scoring, and tournament telemetry.">
+
+  <!-- Google Fonts: Space Grotesk, Inter, JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- KaTeX CDN -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <!-- Ambient Cosmic Nebula Glows -->
+  <div class="cosmic-nebula" aria-hidden="true">
+    <div class="nebula-orb orb-violet"></div>
+    <div class="nebula-orb orb-cyan"></div>
+    <div class="nebula-orb orb-gold"></div>
+  </div>
+
+  <!-- Sticky Top Navigation -->
+  <header class="navbar" role="banner">
+    <div class="nav-container">
+      <a href="index.html" class="nav-brand" aria-label="MathVerse Home">
+        <span class="brand-glyph">∫</span>
+        <span class="brand-text">Math<span class="brand-accent">Verse</span></span>
+      </a>
+
+      <!-- Desktop Nav Links -->
+      <nav class="nav-menu" aria-label="Primary Navigation">
+        <ul class="nav-links">
+          <li><a href="index.html" class="nav-link">Home</a></li>
+          <li><a href="about.html" class="nav-link">About</a></li>
+          <li><a href="events.html" class="nav-link">Events</a></li>
+          <li><a href="gallery.html" class="nav-link">Gallery</a></li>
+          <li><a href="arena.html" class="nav-link active">Arena</a></li>
+          <li><a href="leaderboard.html" class="nav-link">Leaderboard</a></li>
+          <li><a href="members.html" class="nav-link">Members</a></li>
+          <li><a href="certificates.html" class="nav-link">Certificates</a></li>
+          <li><a href="feedback.html" class="nav-link">Feedback</a></li>
+          <li><a href="contact.html" class="nav-link">Contact</a></li>
+        </ul>
+      </nav>
+
+      <!-- Nav Actions -->
+      <div class="nav-actions">
+        <div id="status-badge" class="status-badge status-disconnected" title="Socket.IO connection status" aria-live="polite">
+          <span class="status-dot"></span>
+          <span id="status-text" class="status-text">Disconnected</span>
+        </div>
+
+        <button id="host-audio-toggle" class="audio-toggle-btn" type="button" title="Toggle sound effects">
+          🔊
+        </button>
+
+        <a href="contact.html" class="btn-nav-join">Join the Club</a>
+
+        <button id="nav-toggle" class="nav-toggle" aria-label="Toggle navigation menu" aria-expanded="false" aria-controls="mobile-menu">
+          <span class="toggle-line"></span>
+          <span class="toggle-line"></span>
+          <span class="toggle-line"></span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Mobile Drawer Menu -->
+  <div id="mobile-menu" class="mobile-menu" aria-hidden="true">
+    <ul class="mobile-links">
+      <li><a href="index.html" class="mobile-link">Home</a></li>
+      <li><a href="about.html" class="mobile-link">About</a></li>
+      <li><a href="events.html" class="mobile-link">Events</a></li>
+      <li><a href="gallery.html" class="mobile-link">Gallery</a></li>
+      <li><a href="arena.html" class="mobile-link active">Arena</a></li>
+      <li><a href="leaderboard.html" class="mobile-link">Leaderboard</a></li>
+      <li><a href="members.html" class="mobile-link">Members</a></li>
+      <li><a href="certificates.html" class="mobile-link">Certificates</a></li>
+      <li><a href="feedback.html" class="mobile-link">Feedback</a></li>
+      <li><a href="contact.html" class="mobile-link">Contact</a></li>
+    </ul>
+  </div>
+
+  <!-- Confetti Canvas for Grand Finale -->
+  <canvas id="confetti-canvas" style="position: fixed; inset: 0; pointer-events: none; z-index: 99; width: 100vw; height: 100vh; display: none;"></canvas>
+
+  <!-- Main Host Application Wrapper -->
+  <main class="page-wrapper" style="flex-direction: column;">
+    
+    <!-- ====================================================================
+         STAGE 0: Admin Password Gate (Host Protection)
+         ==================================================================== -->
+    <section id="host-view-auth" class="admin-login-wrapper" style="display: none;">
+      <div class="admin-login-card">
+        <div style="width: 60px; height: 60px; margin: 0 auto 1.5rem; border-radius: 18px; background: rgba(139, 92, 246, 0.15); border: 1px solid rgba(139, 92, 246, 0.4); display: flex; align-items: center; justify-content: center; font-size: 1.8rem; box-shadow: 0 0 25px var(--neon-violet-glow);">
+          ⚡
+        </div>
+        <div class="subpage-badge" style="margin-bottom: 0.5rem;">Arena Host Authorization</div>
+        <h1 style="font-family: var(--font-heading); font-size: 2rem; color: var(--text-pure); margin-bottom: 0.5rem;">
+          Host <span class="gradient-text">Control Center</span>
+        </h1>
+        <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 1.75rem;">
+          Enter the master administrator keyphrase to launch live sessions and build competition problem sets.
+        </p>
+
+        <div id="host-auth-error" style="display: none; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); border-radius: 12px; padding: 0.85rem; color: #fca5a5; font-size: 0.88rem; margin-bottom: 1.25rem; text-align: left;">
+          Invalid password. Please verify master credentials.
+        </div>
+
+        <form id="host-auth-form" novalidate>
+          <div class="form-group" style="text-align: left; margin-bottom: 1.5rem;">
+            <label for="host-password-input" class="form-label">Master Password</label>
+            <input type="password" id="host-password-input" class="form-input" placeholder="Enter master password..." required autocomplete="current-password">
+          </div>
+          <button type="submit" class="btn-primary" style="width: 100%; justify-content: center;">
+            <span>Unlock Arena Host</span>
+            <span aria-hidden="true">→</span>
+          </button>
+        </form>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         STAGE 1: Quiz Manager & Live Builder
+         ==================================================================== -->
+    <section id="host-view-manager" class="arena-host-wrapper" style="display: none;">
+      
+      <!-- Top Bar -->
+      <div class="admin-top-bar">
+        <div>
+          <div class="subpage-badge" style="margin-bottom: 0.5rem;">Live Competition Hub</div>
+          <h1 style="font-family: var(--font-heading); font-size: 2.2rem; color: var(--text-pure); margin: 0;">
+            Quiz Arena <span class="gradient-text">Studio</span>
+          </h1>
+        </div>
+
+        <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
+          <button id="btn-show-builder" type="button" class="btn-primary">
+            <span>+ Create New Quiz</span>
+          </button>
+          <a href="arena.html" target="_blank" class="btn-secondary" title="Preview player view in new tab">
+            <span>Open Player Arena ↗</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- VIEW 1A: Saved Quizzes List -->
+      <div id="quiz-list-container">
+        <h3 style="font-family: var(--font-heading); font-size: 1.35rem; color: var(--text-pure); margin-bottom: 1.25rem;">
+          Saved Competition Quizzes
+        </h3>
+        <div id="quiz-cards-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 1.5rem;">
+          <!-- Loaded dynamically -->
+        </div>
+      </div>
+
+      <!-- VIEW 1B: Quiz Editor Form (Hidden by default) -->
+      <div id="quiz-builder-container" style="display: none; background: var(--space-surface); backdrop-filter: var(--glass-blur); border: 1px solid var(--space-border); border-radius: 24px; padding: 2.5rem; margin-top: 1rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 1rem;">
+          <div>
+            <h2 id="builder-mode-title" style="font-family: var(--font-heading); font-size: 1.7rem; color: var(--text-pure); margin: 0;">
+              Create New Competition Quiz
+            </h2>
+            <p style="font-size: 0.9rem; color: var(--text-muted); margin-top: 0.25rem;">
+              Craft questions with LaTeX math formatting ($...$), custom time limits, and point values.
+            </p>
+          </div>
+          <button id="btn-cancel-builder" type="button" class="btn-secondary">
+            <span>Cancel</span>
+          </button>
+        </div>
+
+        <form id="quiz-builder-form" novalidate>
+          <input type="hidden" id="builder-quiz-id" value="">
+
+          <div class="form-group" style="margin-bottom: 2rem;">
+            <label for="builder-quiz-title" class="form-label" style="font-size: 1.05rem;">Quiz Title *</label>
+            <input type="text" id="builder-quiz-title" class="form-input" placeholder="e.g. Euler Speed Integration Cup" required style="font-size: 1.1rem; padding: 0.9rem 1.2rem;">
+          </div>
+
+          <!-- Dynamic Questions List -->
+          <div id="builder-questions-list">
+            <!-- Rendered dynamically -->
+          </div>
+
+          <div style="display: flex; gap: 1rem; align-items: center; margin-top: 2rem; flex-wrap: wrap;">
+            <button id="btn-add-question" type="button" class="btn-secondary">
+              <span>+ Add Another Question</span>
+            </button>
+            <button id="btn-save-quiz" type="submit" class="btn-primary" style="margin-left: auto;">
+              <span>💾 Save Quiz to Arena</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         STAGE 2: Host Lobby Screen (Big Room Code & QR Code)
+         ==================================================================== -->
+    <section id="host-view-lobby" class="arena-host-wrapper" style="display: none;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+        <div>
+          <span class="subpage-badge">Session Ready</span>
+          <h2 id="lobby-quiz-title" style="font-family: var(--font-heading); font-size: 2rem; color: var(--text-pure); margin: 0.25rem 0 0;">
+            Euler Warm-Up
+          </h2>
+        </div>
+        <div style="display: flex; gap: 0.75rem;">
+          <button id="btn-abort-lobby" type="button" class="btn-secondary" style="border-color: rgba(239, 68, 68, 0.4); color: #fca5a5;">
+            <span>✕ Cancel Session</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="host-lobby-container">
+        <!-- Left: Code & QR Code -->
+        <div style="background: var(--space-surface); backdrop-filter: var(--glass-blur); border: 1px solid var(--space-border); border-radius: 28px; padding: 2.5rem 2rem; text-align: center; box-shadow: var(--glass-shadow);">
+          <p style="font-size: 0.95rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; font-family: var(--font-mono);">
+            Join at MathVerse Arena &bull; Room Key
+          </p>
+          <div id="lobby-room-code" class="room-code-badge">
+            ------
+          </div>
+
+          <div class="lobby-qr-frame">
+            <img id="lobby-qr-image" src="" alt="Arena Room QR Code">
+          </div>
+
+          <p style="font-size: 0.9rem; color: var(--text-muted); margin-top: 0.5rem;">
+            Scan QR code or open <a id="lobby-join-link" href="#" target="_blank" style="color: var(--neon-cyan); text-decoration: underline;">arena.html</a>
+          </p>
+        </div>
+
+        <!-- Right: Joined Players Roster -->
+        <div style="background: var(--space-surface); backdrop-filter: var(--glass-blur); border: 1px solid var(--space-border); border-radius: 28px; padding: 2.5rem 2rem; display: flex; flex-direction: column; justify-content: space-between; min-height: 440px; box-shadow: var(--glass-shadow);">
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 0.75rem;">
+              <h3 style="font-family: var(--font-heading); font-size: 1.4rem; color: var(--text-pure); margin: 0;">
+                Connected Players
+              </h3>
+              <span id="lobby-player-count-badge" class="ticket-badge" style="font-size: 0.85rem;">
+                0 Joined
+              </span>
+            </div>
+
+            <!-- Animated Name Bubbles -->
+            <div id="lobby-players-grid" class="player-bubbles-grid">
+              <div id="lobby-no-players" style="color: var(--text-muted); font-size: 0.95rem; padding: 2rem 1rem; text-align: center; width: 100%;">
+                <div style="font-size: 2rem; margin-bottom: 0.5rem; animation: floatSlow 2s infinite ease-in-out;">⏳</div>
+                Waiting for competitors to enter the arena...
+              </div>
+            </div>
+          </div>
+
+          <div style="margin-top: 2rem;">
+            <button id="btn-host-start-game" type="button" class="btn-primary" style="width: 100%; justify-content: center; font-size: 1.2rem; padding: 1.1rem;" disabled>
+              <span>🚀 Launch Live Quiz (Waiting for Players)</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         STAGE 3: Live Question View (Big Screen Presentation)
+         ==================================================================== -->
+    <section id="host-view-question" class="arena-host-wrapper" style="display: none; max-width: 1200px;">
+      
+      <!-- Top Status Strip -->
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+        <div>
+          <span id="host-q-index-badge" class="subpage-badge" style="font-size: 0.9rem;">Question 1 of 5</span>
+          <span id="host-q-points-badge" style="font-family: var(--font-mono); font-size: 0.9rem; color: var(--neon-gold); margin-left: 0.75rem;">⚡ 1000 pts</span>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 2rem;">
+          <!-- Circular SVG Countdown -->
+          <div class="countdown-svg-wrap">
+            <svg class="countdown-svg" viewBox="0 0 100 100">
+              <circle class="countdown-svg-circle" cx="50" cy="50" r="45"></circle>
+              <circle id="host-timer-circle" class="countdown-svg-progress" cx="50" cy="50" r="45"></circle>
+            </svg>
+            <div id="host-timer-digit" class="countdown-digit">20</div>
+          </div>
+
+          <!-- Answer counter telemetry -->
+          <div style="background: rgba(14, 20, 48, 0.8); border: 1px solid var(--space-border); border-radius: 16px; padding: 0.75rem 1.25rem; text-align: center;">
+            <div style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Answered</div>
+            <div id="host-answers-telemetry" style="font-family: var(--font-heading); font-size: 1.6rem; font-weight: 800; color: var(--neon-cyan);">
+              0 / 0
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Question Text Billboard -->
+      <div style="background: var(--space-surface); backdrop-filter: var(--glass-blur); border: 1px solid var(--space-border); border-radius: 24px; padding: 2.5rem 2rem; box-shadow: var(--glass-shadow); margin-bottom: 2rem; text-align: center;">
+        <h2 id="host-question-text" style="font-family: var(--font-heading); font-size: clamp(1.6rem, 3.5vw, 2.4rem); color: var(--text-pure); margin: 0; line-height: 1.4;">
+          <!-- KaTeX Question text -->
+        </h2>
+      </div>
+
+      <!-- 4 Option Cards Billboard -->
+      <div id="host-options-grid" class="host-options-grid">
+        <!-- Rendered dynamically -->
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         STAGE 4: Question Results & Distribution Bar Chart
+         ==================================================================== -->
+    <section id="host-view-results" class="arena-host-wrapper" style="display: none; max-width: 1200px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+        <div>
+          <span class="subpage-badge" style="background: rgba(16, 185, 129, 0.15); border-color: rgba(16, 185, 129, 0.4); color: #6ee7b7;">Round Complete</span>
+          <h2 id="host-results-q-title" style="font-family: var(--font-heading); font-size: 1.8rem; color: var(--text-pure); margin: 0.4rem 0 0;">
+            Question Results
+          </h2>
+        </div>
+
+        <button id="btn-host-next-question" type="button" class="btn-primary" style="font-size: 1.1rem; padding: 0.9rem 1.8rem;">
+          <span id="btn-next-q-text">Next Question</span>
+          <span aria-hidden="true">→</span>
+        </button>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; align-items: flex-start;">
+        <!-- Left: Answer Distribution Chart & Correct Option -->
+        <div style="background: var(--space-surface); backdrop-filter: var(--glass-blur); border: 1px solid var(--space-border); border-radius: 24px; padding: 2rem; box-shadow: var(--glass-shadow);">
+          <h3 style="font-family: var(--font-heading); font-size: 1.3rem; color: var(--text-pure); margin-bottom: 0.5rem;">
+            Answer Distribution
+          </h3>
+          <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 1.5rem;">
+            Total breakdown of player selections across the 4 options:
+          </p>
+
+          <!-- Distribution Chart Bars -->
+          <div class="dist-chart-container">
+            <div class="dist-bar-wrapper">
+              <span id="dist-count-0" class="dist-bar-count">0</span>
+              <div class="dist-bar-track">
+                <div id="dist-bar-0" class="dist-bar-fill bar-0"></div>
+              </div>
+              <span class="dist-bar-label">A</span>
+            </div>
+
+            <div class="dist-bar-wrapper">
+              <span id="dist-count-1" class="dist-bar-count">0</span>
+              <div class="dist-bar-track">
+                <div id="dist-bar-1" class="dist-bar-fill bar-1"></div>
+              </div>
+              <span class="dist-bar-label">B</span>
+            </div>
+
+            <div class="dist-bar-wrapper">
+              <span id="dist-count-2" class="dist-bar-count">0</span>
+              <div class="dist-bar-track">
+                <div id="dist-bar-2" class="dist-bar-fill bar-2"></div>
+              </div>
+              <span class="dist-bar-label">C</span>
+            </div>
+
+            <div class="dist-bar-wrapper">
+              <span id="dist-count-3" class="dist-bar-count">0</span>
+              <div class="dist-bar-track">
+                <div id="dist-bar-3" class="dist-bar-fill bar-3"></div>
+              </div>
+              <span class="dist-bar-label">D</span>
+            </div>
+          </div>
+
+          <div style="margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid rgba(255, 255, 255, 0.08);">
+            <div style="font-family: var(--font-mono); font-size: 0.8rem; text-transform: uppercase; color: #10b981; margin-bottom: 0.4rem;">
+              ✓ Correct Solution
+            </div>
+            <div id="host-results-correct-text" style="font-size: 1.15rem; color: var(--text-pure); font-weight: 600;">
+              <!-- KaTeX correct answer -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Animated Top-5 Leaderboard -->
+        <div style="background: var(--space-surface); backdrop-filter: var(--glass-blur); border: 1px solid var(--space-border); border-radius: 24px; padding: 2rem; box-shadow: var(--glass-shadow);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+            <h3 style="font-family: var(--font-heading); font-size: 1.3rem; color: var(--text-pure); margin: 0;">
+              Leaderboard Top 5
+            </h3>
+            <span class="ticket-badge" style="font-size: 0.75rem;">Live Points</span>
+          </div>
+
+          <div id="host-leaderboard-list" class="arena-leaderboard">
+            <!-- Rendered dynamically -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         STAGE 5: Final Podium & Grand Ceremony
+         ==================================================================== -->
+    <section id="host-view-podium" class="arena-host-wrapper" style="display: none; max-width: 1100px; text-align: center;">
+      <div style="margin-bottom: 2rem;">
+        <div class="subpage-badge" style="margin-bottom: 0.5rem;">Tournament Concluded</div>
+        <h1 style="font-family: var(--font-heading); font-size: 2.8rem; color: var(--text-pure); margin: 0;">
+          Arena <span class="gradient-text">Champions</span>
+        </h1>
+        <p style="color: var(--text-muted); font-size: 1.05rem; margin-top: 0.5rem;">
+          Speed calculus, numerical rigor, and mental agility triumphant.
+        </p>
+      </div>
+
+      <!-- 3D Olympic Podium -->
+      <div class="podium-wrap">
+        <!-- 2nd Place -->
+        <div class="podium-column">
+          <div class="podium-user-badge">
+            <div class="podium-trophy">🥈</div>
+            <div id="podium-name-2" class="podium-name">—</div>
+            <div id="podium-score-2" class="podium-score">0 pts</div>
+          </div>
+          <div class="podium-block podium-2">2</div>
+        </div>
+
+        <!-- 1st Place (Winner) -->
+        <div class="podium-column">
+          <div class="podium-user-badge">
+            <div class="podium-trophy">👑</div>
+            <div id="podium-name-1" class="podium-name" style="font-size: 1.3rem; color: var(--neon-gold);">—</div>
+            <div id="podium-score-1" class="podium-score" style="font-size: 1.1rem;">0 pts</div>
+          </div>
+          <div class="podium-block podium-1">1</div>
+        </div>
+
+        <!-- 3rd Place -->
+        <div class="podium-column">
+          <div class="podium-user-badge">
+            <div class="podium-trophy">🥉</div>
+            <div id="podium-name-3" class="podium-name">—</div>
+            <div id="podium-score-3" class="podium-score">0 pts</div>
+          </div>
+          <div class="podium-block podium-3">3</div>
+        </div>
+      </div>
+
+      <!-- Full Standings Table -->
+      <div style="background: var(--space-surface); backdrop-filter: var(--glass-blur); border: 1px solid var(--space-border); border-radius: 24px; padding: 2rem; max-width: 800px; margin: 2rem auto; text-align: left; box-shadow: var(--glass-shadow);">
+        <h3 style="font-family: var(--font-heading); font-size: 1.3rem; color: var(--text-pure); margin-bottom: 1.25rem;">
+          Final Standings
+        </h3>
+        <div id="host-full-rankings-list" class="arena-leaderboard">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+
+      <div style="margin-top: 2rem;">
+        <button id="btn-podium-restart" type="button" class="btn-primary" style="font-size: 1.1rem; padding: 0.9rem 2.2rem;">
+          <span>← Return to Quiz Studio</span>
+        </button>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Shared Global Footer -->
+  <footer class="app-footer" role="contentinfo">
+    <div class="footer-container">
+      <div class="footer-brand">
+        <div class="brand-logo">
+          <span class="brand-glyph">∫</span>
+          <span class="brand-text">Math<span class="brand-accent">Verse</span></span>
+        </div>
+        <p class="footer-tagline">
+          The official digital universe and live competition arena of the College Mathematics Club. Fostering pure rigor, applied mastery, and intellectual camaraderie.
+        </p>
+        <div class="footer-socials">
+          <a href="#" class="social-icon-btn" aria-label="GitHub">gh</a>
+          <a href="#" class="social-icon-btn" aria-label="Discord">dc</a>
+          <a href="#" class="social-icon-btn" aria-label="LinkedIn">in</a>
+          <a href="#" class="social-icon-btn" aria-label="Instagram">ig</a>
+          <a href="#" class="social-icon-btn" aria-label="Twitter">𝕏</a>
+        </div>
+      </div>
+
+      <div class="footer-col">
+        <h4 class="footer-column-title">Platform</h4>
+        <ul class="footer-nav-list">
+          <li><a href="index.html" class="footer-nav-link">Home</a></li>
+          <li><a href="arena.html" class="footer-nav-link">Live Arena</a></li>
+          <li><a href="leaderboard.html" class="footer-nav-link">Leaderboard</a></li>
+          <li><a href="certificates.html" class="footer-nav-link">Certificates</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4 class="footer-column-title">Community</h4>
+        <ul class="footer-nav-list">
+          <li><a href="about.html" class="footer-nav-link">About Us</a></li>
+          <li><a href="events.html" class="footer-nav-link">Club Events</a></li>
+          <li><a href="gallery.html" class="footer-nav-link">Math Art Gallery</a></li>
+          <li><a href="members.html" class="footer-nav-link">Members</a></li>
+          <li><a href="feedback.html" class="footer-nav-link">Feedback</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4 class="footer-column-title">Contact & Join</h4>
+        <ul class="footer-nav-list">
+          <li><a href="contact.html" class="footer-nav-link">Contact Desk</a></li>
+          <li><a href="contact.html" class="footer-nav-link">Join the Club</a></li>
+          <li><span class="footer-nav-link" style="color: var(--text-subtle);">Department of Mathematics</span></li>
+          <li><span class="footer-nav-link" style="color: var(--text-subtle);">Science Hall, Room 402</span></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <p>&copy; 2026 MathVerse &bull; College Mathematics Club. All mathematical rights reserved.</p>
+      <p>Crafted with rigor, curiosity, and code. &bull; <a href="admin.html" class="footer-admin-link">Admin</a></p>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script>
+
+  <script src="/js/data.js"></script>
+  <script src="/js/main.js"></script>
+  <script src="/js/arena-audio.js"></script>
+
+  <!-- Arena Host Logic -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const STORAGE_KEY = 'mathverse_admin_token';
+      let adminToken = sessionStorage.getItem(STORAGE_KEY);
+      let socket = null;
+      let currentRoomCode = null;
+      let currentSessionId = null;
+      let currentQuestionTotal = 5;
+
+      // Audio Mute Button
+      const audioBtn = document.getElementById('host-audio-toggle');
+      if (window.ArenaAudio) {
+        window.ArenaAudio.initMuteButton(audioBtn);
+      }
+
+      // Views
+      const viewAuth = document.getElementById('host-view-auth');
+      const viewManager = document.getElementById('host-view-manager');
+      const viewLobby = document.getElementById('host-view-lobby');
+      const viewQuestion = document.getElementById('host-view-question');
+      const viewResults = document.getElementById('host-view-results');
+      const viewPodium = document.getElementById('host-view-podium');
+
+      function showStage(stage) {
+        [viewAuth, viewManager, viewLobby, viewQuestion, viewResults, viewPodium].forEach(v => {
+          if (v) v.style.display = 'none';
+        });
+        if (stage) stage.style.display = (stage === viewAuth ? 'flex' : 'block');
+      }
+
+      // Check Authentication
+      if (adminToken) {
+        verifyAdminToken();
+      } else {
+        showStage(viewAuth);
+      }
+
+      // Auth form
+      const authForm = document.getElementById('host-auth-form');
+      const passwordInput = document.getElementById('host-password-input');
+      const authError = document.getElementById('host-auth-error');
+
+      authForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        authError.style.display = 'none';
+        const password = passwordInput.value.trim();
+        if (!password) return;
+
+        try {
+          const res = await fetch('/api/admin/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ password })
+          });
+          const data = await res.json();
+          if (!res.ok || !data.success) {
+            authError.textContent = data.error || 'Invalid password.';
+            authError.style.display = 'block';
+            return;
+          }
+          adminToken = data.token;
+          sessionStorage.setItem(STORAGE_KEY, adminToken);
+          initSocket();
+          loadQuizzes();
+          showStage(viewManager);
+        } catch (err) {
+          authError.textContent = 'Network error authenticating.';
+          authError.style.display = 'block';
+        }
+      });
+
+      async function verifyAdminToken() {
+        try {
+          const res = await fetch('/api/admin/stats', {
+            headers: { 'x-admin-token': adminToken }
+          });
+          if (res.ok) {
+            initSocket();
+            loadQuizzes();
+            showStage(viewManager);
+          } else {
+            sessionStorage.removeItem(STORAGE_KEY);
+            adminToken = null;
+            showStage(viewAuth);
+          }
+        } catch (e) {
+          showStage(viewAuth);
+        }
+      }
+
+      // Socket initialization
+      function initSocket() {
+        if (socket) return;
+        if (typeof io === 'undefined') return;
+        socket = io();
+
+        // Host socket listeners
+        socket.on('host:room_state', (state) => {
+          updateLobbyPlayers(state.players || []);
+        });
+
+        socket.on('host:player_joined', (data) => {
+          if (window.ArenaAudio) window.ArenaAudio.playLock();
+        });
+
+        socket.on('room:player_list_update', (data) => {
+          updateLobbyPlayers(data.players || []);
+        });
+
+        socket.on('host:answer_count_update', ({ answered_count, total_players }) => {
+          const el = document.getElementById('host-answers-telemetry');
+          if (el) el.textContent = `${answered_count} / ${total_players}`;
+          if (window.ArenaAudio) window.ArenaAudio.playLock();
+        });
+
+        socket.on('host:question_start', (data) => {
+          renderHostQuestion(data);
+          showStage(viewQuestion);
+          if (window.ArenaAudio) window.ArenaAudio.playTick();
+        });
+
+        socket.on('question:tick', ({ time_remaining }) => {
+          updateHostTimer(time_remaining);
+          if (time_remaining <= 5 && time_remaining > 0) {
+            if (window.ArenaAudio) window.ArenaAudio.playUrgentTick();
+          } else if (time_remaining > 5) {
+            if (window.ArenaAudio) window.ArenaAudio.playTick();
+          }
+        });
+
+        socket.on('host:question_results', (data) => {
+          renderHostResults(data);
+          showStage(viewResults);
+          if (window.ArenaAudio) window.ArenaAudio.playCorrect();
+        });
+
+        socket.on('host:game_over', (data) => {
+          renderFinalPodium(data);
+          showStage(viewPodium);
+          triggerConfetti();
+          if (window.ArenaAudio) window.ArenaAudio.playFanfare();
+        });
+      }
+
+      // Helper: Render LaTeX with KaTeX safely
+      function renderKaTeX(text, targetEl) {
+        if (!targetEl) return;
+        if (!text) {
+          targetEl.innerHTML = '';
+          return;
+        }
+
+        // Replace $...$ blocks with rendered KaTeX spans
+        try {
+          const regex = /\$([^\$]+)\$/g;
+          const rendered = text.replace(regex, (match, math) => {
+            try {
+              return katex.renderToString(math, { throwOnError: false, displayMode: false });
+            } catch (err) {
+              return match;
+            }
+          });
+          targetEl.innerHTML = rendered;
+        } catch (e) {
+          targetEl.textContent = text;
+        }
+      }
+
+      /* ====================================================================
+         Quiz Manager & Builder Functions
+         ==================================================================== */
+      const quizCardsGrid = document.getElementById('quiz-cards-grid');
+      const quizListContainer = document.getElementById('quiz-list-container');
+      const quizBuilderContainer = document.getElementById('quiz-builder-container');
+      const btnShowBuilder = document.getElementById('btn-show-builder');
+      const btnCancelBuilder = document.getElementById('btn-cancel-builder');
+      const btnAddQuestion = document.getElementById('btn-add-question');
+      const quizBuilderForm = document.getElementById('quiz-builder-form');
+      const builderQuestionsList = document.getElementById('builder-questions-list');
+      const builderQuizIdInput = document.getElementById('builder-quiz-id');
+      const builderQuizTitleInput = document.getElementById('builder-quiz-title');
+      const builderModeTitle = document.getElementById('builder-mode-title');
+
+      let savedQuizzes = [];
+
+      async function loadQuizzes() {
+        try {
+          const res = await fetch('/api/quizzes');
+          const data = await res.json();
+          if (!data.success) return;
+          savedQuizzes = data.quizzes || [];
+          renderQuizCards(savedQuizzes);
+        } catch (err) {
+          console.error('[loadQuizzes error]', err);
+        }
+      }
+
+      function renderQuizCards(quizzes) {
+        if (!quizCardsGrid) return;
+        if (quizzes.length === 0) {
+          quizCardsGrid.innerHTML = `
+            <div style="grid-column: 1 / -1; text-align: center; padding: 3rem 1rem; color: var(--text-muted);">
+              No competition quizzes created yet. Click "+ Create New Quiz" to start!
+            </div>
+          `;
+          return;
+        }
+
+        quizCardsGrid.innerHTML = quizzes.map(q => `
+          <div class="admin-stat-card" style="padding: 1.75rem; display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+              <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
+                <span class="ticket-badge" style="font-size: 0.725rem;">${q.question_count} Questions</span>
+                <span style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-subtle);">
+                  ${new Date(q.created_at).toLocaleDateString()}
+                </span>
+              </div>
+              <h3 style="font-family: var(--font-heading); font-size: 1.4rem; color: var(--text-pure); margin: 0 0 0.5rem;">
+                ${q.title}
+              </h3>
+            </div>
+
+            <div style="display: flex; gap: 0.5rem; margin-top: 1.5rem; flex-wrap: wrap;">
+              <button type="button" class="btn-primary btn-host-quiz" data-id="${q.id}" style="padding: 0.6rem 1.1rem; font-size: 0.9rem;">
+                <span>⚡ Host Live Session</span>
+              </button>
+              <button type="button" class="btn-secondary btn-edit-quiz" data-id="${q.id}" style="padding: 0.6rem 0.9rem; font-size: 0.9rem;">
+                <span>✏️ Edit</span>
+              </button>
+              <button type="button" class="btn-secondary btn-del-quiz" data-id="${q.id}" style="padding: 0.6rem 0.8rem; font-size: 0.9rem; border-color: rgba(239, 68, 68, 0.35); color: #fca5a5;">
+                <span>🗑️</span>
+              </button>
+            </div>
+          </div>
+        `).join('');
+
+        // Attach action handlers
+        quizCardsGrid.querySelectorAll('.btn-host-quiz').forEach(b => {
+          b.addEventListener('click', () => hostSession(b.getAttribute('data-id')));
+        });
+        quizCardsGrid.querySelectorAll('.btn-edit-quiz').forEach(b => {
+          b.addEventListener('click', () => openQuizEditor(b.getAttribute('data-id')));
+        });
+        quizCardsGrid.querySelectorAll('.btn-del-quiz').forEach(b => {
+          b.addEventListener('click', () => deleteQuiz(b.getAttribute('data-id')));
+        });
+      }
+
+      // Launch session
+      async function hostSession(quizId) {
+        try {
+          const res = await fetch('/api/arena/create-session', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-admin-token': adminToken
+            },
+            body: JSON.stringify({ quiz_id: quizId })
+          });
+
+          const data = await res.json();
+          if (!res.ok || !data.success) {
+            alert(data.error || 'Failed to start arena session.');
+            return;
+          }
+
+          currentRoomCode = data.room_code;
+          currentSessionId = data.session_id;
+          currentQuestionTotal = data.question_count;
+
+          document.getElementById('lobby-quiz-title').textContent = data.quiz_title;
+          document.getElementById('lobby-room-code').textContent = data.room_code;
+          document.getElementById('lobby-qr-image').src = data.qr_code;
+          const joinLink = document.getElementById('lobby-join-link');
+          joinLink.href = data.join_url;
+          joinLink.textContent = data.join_url;
+
+          // Connect Socket as host
+          socket.emit('host:attach', { room_code: currentRoomCode, token: adminToken });
+
+          showStage(viewLobby);
+        } catch (err) {
+          alert('Network communication error launching arena.');
+        }
+      }
+
+      // Lobby UI: Update player roster
+      function updateLobbyPlayers(players) {
+        const grid = document.getElementById('lobby-players-grid');
+        const countBadge = document.getElementById('lobby-player-count-badge');
+        const startBtn = document.getElementById('btn-host-start-game');
+
+        countBadge.textContent = `${players.length} Joined`;
+
+        if (players.length === 0) {
+          grid.innerHTML = `
+            <div id="lobby-no-players" style="color: var(--text-muted); font-size: 0.95rem; padding: 2rem 1rem; text-align: center; width: 100%;">
+              <div style="font-size: 2rem; margin-bottom: 0.5rem; animation: floatSlow 2s infinite ease-in-out;">⏳</div>
+              Waiting for competitors to enter the arena...
+            </div>
+          `;
+          startBtn.disabled = true;
+          startBtn.innerHTML = '<span>🚀 Launch Live Quiz (Waiting for Players)</span>';
+          return;
+        }
+
+        grid.innerHTML = players.map(p => {
+          const initials = p.name.split(' ').map(s => s[0]).join('').slice(0, 2).toUpperCase();
+          return `
+            <div class="player-bubble">
+              <span class="player-bubble-avatar">${initials}</span>
+              <span>${p.name}</span>
+            </div>
+          `;
+        }).join('');
+
+        startBtn.disabled = false;
+        startBtn.innerHTML = `<span>🚀 Launch Live Quiz (${players.length} Player${players.length === 1 ? '' : 's'})</span>`;
+      }
+
+      // Host start game button
+      document.getElementById('btn-host-start-game').addEventListener('click', () => {
+        if (!currentRoomCode) return;
+        socket.emit('host:start_game', { room_code: currentRoomCode });
+      });
+
+      // Abort lobby button
+      document.getElementById('btn-abort-lobby').addEventListener('click', () => {
+        if (confirm('Are you sure you want to cancel this live arena session?')) {
+          showStage(viewManager);
+        }
+      });
+
+      /* ====================================================================
+         Question View Presentation
+         ==================================================================== */
+      let questionTimeLimit = 20;
+
+      function renderHostQuestion(data) {
+        const q = data.question;
+        questionTimeLimit = q.time_limit_sec || 20;
+
+        document.getElementById('host-q-index-badge').textContent = `Question ${data.question_index + 1} of ${data.total_questions}`;
+        document.getElementById('host-q-points-badge').textContent = `⚡ ${q.points || 1000} pts`;
+        document.getElementById('host-answers-telemetry').textContent = `0 / ${data.total_players}`;
+
+        // Render Question Text
+        renderKaTeX(q.text, document.getElementById('host-question-text'));
+
+        // Reset Timer Circle
+        updateHostTimer(questionTimeLimit);
+
+        // Render 4 Big Option Cards
+        const grid = document.getElementById('host-options-grid');
+        const letters = ['A', 'B', 'C', 'D'];
+        grid.innerHTML = q.options.map((opt, i) => `
+          <div class="host-option-card opt-color-${i}" id="host-opt-card-${i}">
+            <div class="opt-letter">${letters[i]}</div>
+            <div id="host-opt-text-${i}" style="flex: 1;"></div>
+          </div>
+        `).join('');
+
+        q.options.forEach((opt, i) => {
+          renderKaTeX(opt, document.getElementById(`host-opt-text-${i}`));
+        });
+      }
+
+      function updateHostTimer(seconds) {
+        const digitEl = document.getElementById('host-timer-digit');
+        const circleEl = document.getElementById('host-timer-circle');
+        if (!digitEl || !circleEl) return;
+
+        digitEl.textContent = String(Math.max(0, seconds));
+
+        // SVG circle radius 45 -> circumference = 2 * PI * 45 = 282.74
+        const circumference = 282.74;
+        const progress = Math.max(0, seconds) / questionTimeLimit;
+        const offset = circumference * (1 - progress);
+        circleEl.style.strokeDashoffset = offset;
+
+        if (seconds <= 5) {
+          circleEl.classList.add('urgent');
+        } else {
+          circleEl.classList.remove('urgent');
+        }
+      }
+
+      /* ====================================================================
+         Results View & Distribution Bar Chart
+         ==================================================================== */
+      function renderHostResults(data) {
+        document.getElementById('host-results-q-title').textContent = `Results: Question ${data.question_index + 1} of ${data.total_questions}`;
+
+        // Highlight correct option and dim others
+        const cards = document.querySelectorAll('.host-option-card');
+        cards.forEach((c, idx) => {
+          if (idx === data.correct_index) {
+            c.classList.add('revealed-correct');
+          } else {
+            c.classList.add('revealed-dimmed');
+          }
+        });
+
+        // Distribution Bar Chart
+        const dist = data.answer_distribution || [0, 0, 0, 0];
+        const maxVotes = Math.max(1, ...dist);
+
+        dist.forEach((count, i) => {
+          const countEl = document.getElementById(`dist-count-${i}`);
+          const barEl = document.getElementById(`dist-bar-${i}`);
+          if (countEl) countEl.textContent = count;
+          if (barEl) {
+            const heightPct = Math.round((count / maxVotes) * 100);
+            barEl.style.height = `${heightPct}%`;
+          }
+        });
+
+        // Render Leaderboard Top 5
+        const lbList = document.getElementById('host-leaderboard-list');
+        const top5 = data.leaderboard || [];
+
+        if (top5.length === 0) {
+          lbList.innerHTML = '<div style="color: var(--text-muted); text-align: center; padding: 2rem;">No scores recorded yet.</div>';
+        } else {
+          lbList.innerHTML = top5.map(p => `
+            <div class="arena-lb-row">
+              <div class="arena-lb-left">
+                <span class="arena-lb-rank">#${p.rank}</span>
+                <div>
+                  <div class="arena-lb-name">${p.name}</div>
+                  <div style="font-size: 0.82rem; color: var(--text-muted);">
+                    ${p.is_correct ? `<span style="color: #10b981;">+${p.points_awarded} pts</span>` : '<span style="color: #ef4444;">Missed</span>'}
+                    ${p.streak > 1 ? `<span style="color: var(--neon-gold); margin-left: 0.5rem;">🔥 ${p.streak}x streak</span>` : ''}
+                  </div>
+                </div>
+              </div>
+              <div class="arena-lb-score">${p.score.toLocaleString()}</div>
+            </div>
+          `).join('');
+        }
+
+        // Configure Next Button
+        const nextBtn = document.getElementById('btn-host-next-question');
+        const nextText = document.getElementById('btn-next-q-text');
+
+        if (data.is_last_question) {
+          nextText.textContent = 'View Final Podium 🏆';
+        } else {
+          nextText.textContent = `Next Question (${data.question_index + 2}/${data.total_questions}) →`;
+        }
+      }
+
+      document.getElementById('btn-host-next-question').addEventListener('click', () => {
+        if (!currentRoomCode) return;
+        socket.emit('host:next_question', { room_code: currentRoomCode });
+      });
+
+      /* ====================================================================
+         Podium & Confetti Finale
+         ==================================================================== */
+      function renderFinalPodium(data) {
+        const p1 = (data.podium && data.podium[0]) || { name: '—', score: 0 };
+        const p2 = (data.podium && data.podium[1]) || { name: '—', score: 0 };
+        const p3 = (data.podium && data.podium[2]) || { name: '—', score: 0 };
+
+        document.getElementById('podium-name-1').textContent = p1.name;
+        document.getElementById('podium-score-1').textContent = `${p1.score.toLocaleString()} pts`;
+
+        document.getElementById('podium-name-2').textContent = p2.name;
+        document.getElementById('podium-score-2').textContent = `${p2.score.toLocaleString()} pts`;
+
+        document.getElementById('podium-name-3').textContent = p3.name;
+        document.getElementById('podium-score-3').textContent = `${p3.score.toLocaleString()} pts`;
+
+        // Full rankings
+        const fullList = document.getElementById('host-full-rankings-list');
+        const allRankings = data.full_rankings || [];
+        fullList.innerHTML = allRankings.map((p, i) => `
+          <div class="arena-lb-row">
+            <div class="arena-lb-left">
+              <span class="arena-lb-rank" style="color: ${i === 0 ? 'var(--neon-gold)' : (i === 1 ? '#cbd5e1' : (i === 2 ? '#f97316' : 'var(--text-muted)'))};">
+                #${p.rank || (i + 1)}
+              </span>
+              <span class="arena-lb-name">${p.name}</span>
+            </div>
+            <div class="arena-lb-score">${p.score.toLocaleString()} pts</div>
+          </div>
+        `).join('');
+      }
+
+      document.getElementById('btn-podium-restart').addEventListener('click', () => {
+        loadQuizzes();
+        showStage(viewManager);
+        stopConfetti();
+      });
+
+      // Canvas Confetti
+      let confettiAnimationId = null;
+      function triggerConfetti() {
+        const canvas = document.getElementById('confetti-canvas');
+        if (!canvas) return;
+        canvas.style.display = 'block';
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const particles = [];
+        const colors = ['#22d3ee', '#8b5cf6', '#fbbf24', '#f43f5e', '#10b981'];
+
+        for (let i = 0; i < 150; i++) {
+          particles.push({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height - canvas.height,
+            r: Math.random() * 6 + 3,
+            d: Math.random() * 150 + 10,
+            color: colors[Math.floor(Math.random() * colors.length)],
+            tilt: Math.floor(Math.random() * 10) - 10,
+            tiltAngleInc: (Math.random() * 0.07) + 0.05,
+            tiltAngle: 0
+          });
+        }
+
+        let angle = 0;
+        function draw() {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          angle += 0.01;
+          for (let i = 0; i < particles.length; i++) {
+            const p = particles[i];
+            p.tiltAngle += p.tiltAngleInc;
+            p.y += (Math.cos(angle + p.d) + 1 + p.r / 2) * 1.5;
+            p.x += Math.sin(angle);
+            p.tilt = Math.sin(p.tiltAngle) * 15;
+
+            ctx.beginPath();
+            ctx.lineWidth = p.r;
+            ctx.strokeStyle = p.color;
+            ctx.moveTo(p.x + p.tilt + p.r / 2, p.y);
+            ctx.lineTo(p.x + p.tilt, p.y + p.tilt + p.r / 2);
+            ctx.stroke();
+
+            if (p.y > canvas.height) {
+              p.x = Math.random() * canvas.width;
+              p.y = -20;
+            }
+          }
+          confettiAnimationId = requestAnimationFrame(draw);
+        }
+        draw();
+      }
+
+      function stopConfetti() {
+        if (confettiAnimationId) cancelAnimationFrame(confettiAnimationId);
+        const canvas = document.getElementById('confetti-canvas');
+        if (canvas) canvas.style.display = 'none';
+      }
+
+      /* ====================================================================
+         Quiz Builder Interactive Editor
+         ==================================================================== */
+      btnShowBuilder.addEventListener('click', () => {
+        openQuizEditor(null);
+      });
+
+      btnCancelBuilder.addEventListener('click', () => {
+        quizBuilderContainer.style.display = 'none';
+        quizListContainer.style.display = 'block';
+      });
+
+      function openQuizEditor(quizId) {
+        quizListContainer.style.display = 'none';
+        quizBuilderContainer.style.display = 'block';
+        builderQuestionsList.innerHTML = '';
+
+        if (!quizId) {
+          // New quiz
+          builderModeTitle.textContent = 'Create New Competition Quiz';
+          builderQuizIdInput.value = '';
+          builderQuizTitleInput.value = '';
+          addQuestionCardToBuilder({
+            text: 'Compute the integral: $\\int x e^x dx$',
+            options: ['$x e^x - e^x + C$', '$e^x + C$', '$\\frac{x^2}{2} e^x + C$', '$x^2 e^x + C$'],
+            correct_index: 0,
+            time_limit_sec: 20,
+            points: 1000
+          });
+        } else {
+          // Edit existing quiz
+          fetch(`/api/quizzes/${quizId}`).then(r => r.json()).then(data => {
+            if (!data.success) return;
+            const q = data.quiz;
+            builderModeTitle.textContent = `Edit Quiz: ${q.title}`;
+            builderQuizIdInput.value = q.id;
+            builderQuizTitleInput.value = q.title;
+
+            if (Array.isArray(q.questions) && q.questions.length > 0) {
+              q.questions.forEach(item => addQuestionCardToBuilder(item));
+            } else {
+              addQuestionCardToBuilder();
+            }
+          });
+        }
+      }
+
+      btnAddQuestion.addEventListener('click', () => {
+        addQuestionCardToBuilder();
+      });
+
+      function addQuestionCardToBuilder(init) {
+        const cardIndex = builderQuestionsList.children.length;
+        const qData = init || {
+          text: '',
+          options: ['', '', '', ''],
+          correct_index: 0,
+          time_limit_sec: 20,
+          points: 1000
+        };
+
+        const card = document.createElement('div');
+        card.className = 'builder-question-card';
+        card.innerHTML = `
+          <div class="builder-q-header">
+            <span style="font-family: var(--font-heading); font-size: 1.1rem; font-weight: 700; color: var(--neon-cyan);">
+              Question <span class="q-num-label">${cardIndex + 1}</span>
+            </span>
+            <button type="button" class="btn-remove-q" style="background: transparent; border: none; color: #fca5a5; cursor: pointer; font-size: 0.9rem;">
+              ✕ Remove
+            </button>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 1rem;">
+            <label class="form-label">Question Text (KaTeX syntax like $e^{i\\pi}+1=0$ supported)</label>
+            <textarea class="form-input q-text-input" rows="2" placeholder="e.g. Evaluate the limit: $\\lim_{x \\to 0} \\frac{\\sin(x)}{x}$" required>${qData.text || ''}</textarea>
+            <div class="math-preview-box q-text-preview"></div>
+          </div>
+
+          <div style="display: flex; gap: 1.5rem; margin-bottom: 1rem; flex-wrap: wrap;">
+            <div style="flex: 1; min-width: 140px;">
+              <label class="form-label">Time Limit</label>
+              <select class="form-select q-time-input">
+                <option value="10" ${qData.time_limit_sec === 10 ? 'selected' : ''}>10 seconds</option>
+                <option value="15" ${qData.time_limit_sec === 15 ? 'selected' : ''}>15 seconds</option>
+                <option value="20" ${(!qData.time_limit_sec || qData.time_limit_sec === 20) ? 'selected' : ''}>20 seconds (Default)</option>
+                <option value="30" ${qData.time_limit_sec === 30 ? 'selected' : ''}>30 seconds</option>
+                <option value="45" ${qData.time_limit_sec === 45 ? 'selected' : ''}>45 seconds</option>
+                <option value="60" ${qData.time_limit_sec === 60 ? 'selected' : ''}>60 seconds</option>
+              </select>
+            </div>
+            <div style="flex: 1; min-width: 140px;">
+              <label class="form-label">Points</label>
+              <input type="number" class="form-input q-points-input" value="${qData.points || 1000}" min="100" max="5000" step="100">
+            </div>
+          </div>
+
+          <div>
+            <label class="form-label">Options (Mark radio button for the correct answer)</label>
+            <div class="builder-options-grid">
+              ${[0, 1, 2, 3].map(optIdx => `
+                <div class="builder-option-row ${qData.correct_index === optIdx ? 'is-correct' : ''}">
+                  <input type="radio" name="correct_opt_${cardIndex}" value="${optIdx}" ${qData.correct_index === optIdx ? 'checked' : ''} class="q-correct-radio">
+                  <div style="flex: 1;">
+                    <input type="text" class="form-input q-opt-input" placeholder="Option ${['A', 'B', 'C', 'D'][optIdx]}" value="${qData.options[optIdx] || ''}" required style="padding: 0.5rem 0.75rem;">
+                    <div class="math-preview-box q-opt-preview" style="font-size: 0.85rem; min-height: 32px; padding: 0.4rem 0.6rem;"></div>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+
+        builderQuestionsList.appendChild(card);
+
+        // Hook up live KaTeX previews
+        const textInput = card.querySelector('.q-text-input');
+        const textPreview = card.querySelector('.q-text-preview');
+        const updateTextPreview = () => renderKaTeX(textInput.value, textPreview);
+        textInput.addEventListener('input', updateTextPreview);
+        updateTextPreview();
+
+        const optInputs = card.querySelectorAll('.q-opt-input');
+        const optPreviews = card.querySelectorAll('.q-opt-preview');
+        optInputs.forEach((input, i) => {
+          const updateOpt = () => renderKaTeX(input.value, optPreviews[i]);
+          input.addEventListener('input', updateOpt);
+          updateOpt();
+        });
+
+        // Radio button toggle highlight
+        const radios = card.querySelectorAll('.q-correct-radio');
+        const rows = card.querySelectorAll('.builder-option-row');
+        radios.forEach((r, i) => {
+          r.addEventListener('change', () => {
+            rows.forEach(row => row.classList.remove('is-correct'));
+            if (r.checked) rows[i].classList.add('is-correct');
+          });
+        });
+
+        // Remove card handler
+        card.querySelector('.btn-remove-q').addEventListener('click', () => {
+          if (builderQuestionsList.children.length <= 1) {
+            alert('A quiz must have at least one question.');
+            return;
+          }
+          card.remove();
+          // Re-index labels
+          builderQuestionsList.querySelectorAll('.builder-question-card').forEach((c, idx) => {
+            c.querySelector('.q-num-label').textContent = idx + 1;
+            c.querySelectorAll('.q-correct-radio').forEach(r => r.name = `correct_opt_${idx}`);
+          });
+        });
+      }
+
+      // Save Quiz (POST / PUT)
+      quizBuilderForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const quizId = builderQuizIdInput.value;
+        const title = builderQuizTitleInput.value.trim();
+        if (!title) {
+          alert('Please provide a quiz title.');
+          return;
+        }
+
+        const cards = builderQuestionsList.querySelectorAll('.builder-question-card');
+        if (cards.length === 0) {
+          alert('Please add at least one question.');
+          return;
+        }
+
+        const questions = [];
+        for (const c of cards) {
+          const text = c.querySelector('.q-text-input').value.trim();
+          if (!text) {
+            alert('Please fill out all question texts.');
+            return;
+          }
+          const timeLimit = parseInt(c.querySelector('.q-time-input').value) || 20;
+          const points = parseInt(c.querySelector('.q-points-input').value) || 1000;
+          const optInputs = c.querySelectorAll('.q-opt-input');
+          const options = [];
+          for (const o of optInputs) {
+            const val = o.value.trim();
+            if (!val) {
+              alert('Please fill in all 4 options for each question.');
+              return;
+            }
+            options.push(val);
+          }
+
+          let correctIdx = 0;
+          const checkedRadio = c.querySelector('.q-correct-radio:checked');
+          if (checkedRadio) correctIdx = parseInt(checkedRadio.value);
+
+          questions.push({
+            text,
+            options,
+            correct_index: correctIdx,
+            time_limit_sec: timeLimit,
+            points
+          });
+        }
+
+        try {
+          const url = quizId ? `/api/quizzes/${quizId}` : '/api/quizzes';
+          const method = quizId ? 'PUT' : 'POST';
+
+          const res = await fetch(url, {
+            method,
+            headers: {
+              'Content-Type': 'application/json',
+              'x-admin-token': adminToken
+            },
+            body: JSON.stringify({ title, questions })
+          });
+
+          const data = await res.json();
+          if (!res.ok || !data.success) {
+            alert(data.error || 'Failed to save quiz.');
+            return;
+          }
+
+          alert('Quiz successfully saved!');
+          quizBuilderContainer.style.display = 'none';
+          quizListContainer.style.display = 'block';
+          loadQuizzes();
+        } catch (err) {
+          alert('Network communication error saving quiz.');
+        }
+      });
+
+      // Delete Quiz
+      async function deleteQuiz(id) {
+        if (!confirm('Are you sure you want to permanently delete this quiz?')) return;
+        try {
+          const res = await fetch(`/api/quizzes/${id}`, {
+            method: 'DELETE',
+            headers: { 'x-admin-token': adminToken }
+          });
+          const data = await res.json();
+          if (!res.ok || !data.success) {
+            alert(data.error || 'Failed to delete quiz.');
+            return;
+          }
+          loadQuizzes();
+        } catch (e) {
+          alert('Error deleting quiz.');
+        }
+      }
+    });
+  </script>
+</body>
+</html>

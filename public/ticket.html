@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Digital Event Ticket Pass — MathVerse</title>
+  <meta name="description" content="View and verify your official MathVerse event entry pass and QR check-in credential.">
+
+  <!-- Google Fonts: Space Grotesk, Inter, JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <!-- Ambient Cosmic Nebula Glows -->
+  <div class="cosmic-nebula" aria-hidden="true">
+    <div class="nebula-orb orb-violet"></div>
+    <div class="nebula-orb orb-cyan"></div>
+    <div class="nebula-orb orb-gold"></div>
+  </div>
+
+  <!-- Sticky Top Navigation -->
+  <header class="navbar" role="banner">
+    <div class="nav-container">
+      <a href="index.html" class="nav-brand" aria-label="MathVerse Home">
+        <span class="brand-glyph">∫</span>
+        <span class="brand-text">Math<span class="brand-accent">Verse</span></span>
+      </a>
+
+      <!-- Desktop Nav Links -->
+      <nav class="nav-menu" aria-label="Primary Navigation">
+        <ul class="nav-links">
+          <li><a href="index.html" class="nav-link">Home</a></li>
+          <li><a href="about.html" class="nav-link">About</a></li>
+          <li><a href="events.html" class="nav-link active">Events</a></li>
+          <li><a href="gallery.html" class="nav-link">Gallery</a></li>
+          <li><a href="arena.html" class="nav-link">Arena</a></li>
+          <li><a href="leaderboard.html" class="nav-link">Leaderboard</a></li>
+          <li><a href="members.html" class="nav-link">Members</a></li>
+          <li><a href="certificates.html" class="nav-link">Certificates</a></li>
+          <li><a href="feedback.html" class="nav-link">Feedback</a></li>
+          <li><a href="contact.html" class="nav-link">Contact</a></li>
+        </ul>
+      </nav>
+
+      <!-- Nav Actions -->
+      <div class="nav-actions">
+        <div id="status-badge" class="status-badge status-disconnected" title="Socket.IO real-time connection status" aria-live="polite">
+          <span class="status-dot"></span>
+          <span id="status-text" class="status-text">Disconnected</span>
+        </div>
+
+        <a href="contact.html" class="btn-nav-join">Join the Club</a>
+
+        <button id="nav-toggle" class="nav-toggle" aria-label="Toggle navigation menu" aria-expanded="false" aria-controls="mobile-menu">
+          <span class="toggle-line"></span>
+          <span class="toggle-line"></span>
+          <span class="toggle-line"></span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Mobile Drawer Menu -->
+  <div id="mobile-menu" class="mobile-menu" aria-hidden="true">
+    <ul class="mobile-links">
+      <li><a href="index.html" class="mobile-link">Home</a></li>
+      <li><a href="about.html" class="mobile-link">About</a></li>
+      <li><a href="events.html" class="mobile-link active">Events</a></li>
+      <li><a href="gallery.html" class="mobile-link">Gallery</a></li>
+      <li><a href="arena.html" class="mobile-link">Arena</a></li>
+      <li><a href="leaderboard.html" class="mobile-link">Leaderboard</a></li>
+      <li><a href="members.html" class="mobile-link">Members</a></li>
+      <li><a href="certificates.html" class="mobile-link">Certificates</a></li>
+      <li><a href="feedback.html" class="mobile-link">Feedback</a></li>
+      <li><a href="contact.html" class="mobile-link">Contact</a></li>
+    </ul>
+    <a href="contact.html" class="btn-nav-join" style="padding: 0.8rem 2rem; font-size: 1rem;">Join the Club</a>
+  </div>
+
+  <!-- Main Ticket Verification Container -->
+  <main class="page-wrapper" style="flex-direction: column; min-height: calc(100vh - 180px);">
+    <div class="ticket-pass-wrapper" style="width: 100%; max-width: 680px;">
+      
+      <!-- Loading State -->
+      <div id="ticket-loading" style="text-align: center; padding: 4rem 1.5rem;">
+        <div style="font-size: 2.5rem; margin-bottom: 1rem; animation: floatSlow 2s infinite ease-in-out;">🎟️</div>
+        <h3 style="font-family: var(--font-heading); color: var(--text-pure); margin-bottom: 0.5rem;">
+          Verifying Digital Credential...
+        </h3>
+        <p style="color: var(--text-muted); font-size: 0.95rem;">Retrieving registered pass from MathVerse database.</p>
+      </div>
+
+      <!-- Error State -->
+      <div id="ticket-error" style="display: none; background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.35); border-radius: 24px; padding: 3rem 2rem; text-align: center;">
+        <div style="font-size: 2.5rem; margin-bottom: 1rem;">⚠️</div>
+        <h3 style="font-family: var(--font-heading); font-size: 1.6rem; color: #fca5a5; margin-bottom: 0.5rem;">
+          Ticket Not Found
+        </h3>
+        <p id="ticket-error-msg" style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 2rem;">
+          The specified ticket code does not exist or has expired.
+        </p>
+
+        <!-- Search Bar for Ticket Code -->
+        <div style="max-width: 380px; margin: 0 auto 1.5rem; display: flex; gap: 0.5rem;">
+          <input type="text" id="manual-ticket-input" class="form-input" placeholder="e.g. MV-2026-A1B2C3" style="text-transform: uppercase;">
+          <button id="btn-search-ticket" type="button" class="btn-primary" style="padding: 0.8rem 1.25rem;">Find</button>
+        </div>
+
+        <a href="events.html" class="btn-secondary">
+          <span>← Back to Events</span>
+        </a>
+      </div>
+
+      <!-- Ticket Pass Display -->
+      <div id="ticket-display" style="display: none;">
+        <div id="ticket-card-element" class="ticket-pass">
+          <div class="ticket-header">
+            <div class="ticket-brand">
+              <span class="brand-glyph" style="width: 28px; height: 28px; font-size: 1rem;">∫</span>
+              <span>MathVerse Entry Pass</span>
+            </div>
+            <span id="ticket-category-tag" class="ticket-badge">Tournament</span>
+          </div>
+
+          <div class="ticket-body">
+            <div>
+              <h2 id="ticket-event-title" class="ticket-event-name">Event Title</h2>
+              
+              <div class="ticket-meta-grid">
+                <div class="ticket-meta-item">
+                  <label>Attendee Name</label>
+                  <p id="ticket-name">—</p>
+                </div>
+                <div class="ticket-meta-item">
+                  <label>Enrollment ID</label>
+                  <p id="ticket-enrollment">—</p>
+                </div>
+                <div class="ticket-meta-item">
+                  <label>Date & Time</label>
+                  <p id="ticket-datetime">—</p>
+                </div>
+                <div class="ticket-meta-item">
+                  <label>Venue</label>
+                  <p id="ticket-venue">—</p>
+                </div>
+                <div class="ticket-meta-item">
+                  <label>Department / Branch</label>
+                  <p id="ticket-branch">—</p>
+                </div>
+                <div class="ticket-meta-item">
+                  <label>Academic Year</label>
+                  <p id="ticket-year">—</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- QR Code Section -->
+            <div class="ticket-qr-box">
+              <img id="ticket-qr-image" class="ticket-qr-img" src="" alt="Ticket QR Check-in Code">
+              <div id="ticket-code-text" class="ticket-code-label">MV-2026-XXXXXX</div>
+            </div>
+          </div>
+
+          <div class="ticket-footer">
+            <span>Official pass issued by Mathematics Club &bull; MathVerse</span>
+            <span id="ticket-timestamp" style="font-family: var(--font-mono);">Issued: —</span>
+          </div>
+        </div>
+
+        <!-- Ticket Actions -->
+        <div class="ticket-actions-row">
+          <button id="btn-download-ticket" type="button" class="btn-primary">
+            <span>📥 Download Ticket (PNG)</span>
+          </button>
+          <button id="btn-print-ticket" type="button" class="btn-secondary">
+            <span>🖨️ Print Pass</span>
+          </button>
+          <a href="events.html" class="btn-secondary">
+            <span>← Explore Events</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Shared Global Footer -->
+  <footer class="app-footer" role="contentinfo">
+    <div class="footer-container">
+      <div class="footer-brand">
+        <div class="brand-logo">
+          <span class="brand-glyph">∫</span>
+          <span class="brand-text">Math<span class="brand-accent">Verse</span></span>
+        </div>
+        <p class="footer-tagline">
+          The official digital universe and live competition arena of the College Mathematics Club. Fostering pure rigor, applied mastery, and intellectual camaraderie.
+        </p>
+        <div class="footer-socials">
+          <a href="#" class="social-icon-btn" aria-label="GitHub">gh</a>
+          <a href="#" class="social-icon-btn" aria-label="Discord">dc</a>
+          <a href="#" class="social-icon-btn" aria-label="LinkedIn">in</a>
+          <a href="#" class="social-icon-btn" aria-label="Instagram">ig</a>
+          <a href="#" class="social-icon-btn" aria-label="Twitter">𝕏</a>
+        </div>
+      </div>
+
+      <div class="footer-col">
+        <h4 class="footer-column-title">Platform</h4>
+        <ul class="footer-nav-list">
+          <li><a href="index.html" class="footer-nav-link">Home</a></li>
+          <li><a href="arena.html" class="footer-nav-link">Live Arena</a></li>
+          <li><a href="leaderboard.html" class="footer-nav-link">Leaderboard</a></li>
+          <li><a href="certificates.html" class="footer-nav-link">Certificates</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4 class="footer-column-title">Community</h4>
+        <ul class="footer-nav-list">
+          <li><a href="about.html" class="footer-nav-link">About Us</a></li>
+          <li><a href="events.html" class="footer-nav-link">Club Events</a></li>
+          <li><a href="gallery.html" class="footer-nav-link">Math Art Gallery</a></li>
+          <li><a href="members.html" class="footer-nav-link">Members</a></li>
+          <li><a href="feedback.html" class="footer-nav-link">Feedback</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4 class="footer-column-title">Contact & Join</h4>
+        <ul class="footer-nav-list">
+          <li><a href="contact.html" class="footer-nav-link">Contact Desk</a></li>
+          <li><a href="contact.html" class="footer-nav-link">Join the Club</a></li>
+          <li><span class="footer-nav-link" style="color: var(--text-subtle);">Department of Mathematics</span></li>
+          <li><span class="footer-nav-link" style="color: var(--text-subtle);">Science Hall, Room 402</span></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <p>&copy; 2026 MathVerse &bull; College Mathematics Club. All mathematical rights reserved.</p>
+      <p>
+        Crafted with rigor, curiosity, and code. 
+        <a href="admin.html" style="color: var(--text-subtle); text-decoration: underline; margin-left: 0.75rem;">Admin</a>
+      </p>
+    </div>
+  </footer>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script>
+
+  <script src="/js/data.js"></script>
+  <script src="/js/main.js"></script>
+
+  <!-- Ticket Viewer Script -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      let ticketCode = urlParams.get('code');
+
+      const loadingEl = document.getElementById('ticket-loading');
+      const errorEl = document.getElementById('ticket-error');
+      const errorMsgEl = document.getElementById('ticket-error-msg');
+      const displayEl = document.getElementById('ticket-display');
+      const manualInput = document.getElementById('manual-ticket-input');
+      const btnSearch = document.getElementById('btn-search-ticket');
+
+      async function fetchTicket(code) {
+        if (!code) {
+          loadingEl.style.display = 'none';
+          errorEl.style.display = 'block';
+          errorMsgEl.textContent = 'No ticket code provided in the URL.';
+          return;
+        }
+
+        loadingEl.style.display = 'block';
+        errorEl.style.display = 'none';
+        displayEl.style.display = 'none';
+
+        try {
+          const res = await fetch(`/api/ticket/${encodeURIComponent(code)}`);
+          const data = await res.json();
+
+          loadingEl.style.display = 'none';
+
+          if (!res.ok || !data.success) {
+            errorEl.style.display = 'block';
+            errorMsgEl.textContent = data.error || 'Ticket could not be verified.';
+            return;
+          }
+
+          const t = data.ticket;
+          document.getElementById('ticket-event-title').textContent = t.event_title;
+          document.getElementById('ticket-category-tag').textContent = t.event_category || 'Tournament';
+          document.getElementById('ticket-name').textContent = t.name;
+          document.getElementById('ticket-enrollment').textContent = t.enrollment_no;
+          document.getElementById('ticket-datetime').textContent = `${t.event_date} • ${t.event_time || ''}`;
+          document.getElementById('ticket-venue').textContent = t.event_venue;
+          document.getElementById('ticket-branch').textContent = t.branch;
+          document.getElementById('ticket-year').textContent = t.year;
+          document.getElementById('ticket-code-text').textContent = t.ticket_code;
+          document.getElementById('ticket-qr-image').src = data.qr_code;
+          document.getElementById('ticket-timestamp').textContent = `Issued: ${new Date(t.created_at).toLocaleString()}`;
+
+          displayEl.style.display = 'block';
+
+          // Canvas Download Handler
+          document.getElementById('btn-download-ticket').onclick = () => {
+            downloadTicketAsCanvas(t, data.qr_code);
+          };
+
+          // Print Pass Handler
+          document.getElementById('btn-print-ticket').onclick = () => {
+            window.print();
+          };
+        } catch (err) {
+          loadingEl.style.display = 'none';
+          errorEl.style.display = 'block';
+          errorMsgEl.textContent = 'Network error verifying ticket.';
+        }
+      }
+
+      if (btnSearch && manualInput) {
+        btnSearch.addEventListener('click', () => {
+          const val = manualInput.value.trim();
+          if (val) {
+            window.location.search = `?code=${encodeURIComponent(val)}`;
+          }
+        });
+      }
+
+      function downloadTicketAsCanvas(ticket, qrDataUrl) {
+        const canvas = document.createElement('canvas');
+        canvas.width = 800;
+        canvas.height = 460;
+        const ctx = canvas.getContext('2d');
+
+        // Dark background with gradient
+        const bgGrad = ctx.createLinearGradient(0, 0, 800, 460);
+        bgGrad.addColorStop(0, '#0a0e28');
+        bgGrad.addColorStop(1, '#050713');
+        ctx.fillStyle = bgGrad;
+        ctx.fillRect(0, 0, 800, 460);
+
+        // Top decorative border
+        const topGrad = ctx.createLinearGradient(0, 0, 800, 0);
+        topGrad.addColorStop(0, '#22d3ee');
+        topGrad.addColorStop(0.5, '#8b5cf6');
+        topGrad.addColorStop(1, '#fbbf24');
+        ctx.fillStyle = topGrad;
+        ctx.fillRect(0, 0, 800, 6);
+
+        // Header
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 24px "Space Grotesk", sans-serif';
+        ctx.fillText('MathVerse Official Event Entry Pass', 40, 50);
+
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = '14px Inter, sans-serif';
+        ctx.fillText('College Mathematics Club • Verified Credential', 40, 75);
+
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
+        ctx.setLineDash([6, 6]);
+        ctx.beginPath();
+        ctx.moveTo(40, 95);
+        ctx.lineTo(760, 95);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Event Title
+        ctx.fillStyle = '#22d3ee';
+        ctx.font = 'bold 26px "Space Grotesk", sans-serif';
+        ctx.fillText(ticket.event_title, 40, 140);
+
+        // Metadata grid
+        function drawMeta(label, val, x, y) {
+          ctx.fillStyle = '#8b5cf6';
+          ctx.font = 'bold 11px monospace';
+          ctx.fillText(label.toUpperCase(), x, y);
+          ctx.fillStyle = '#f8fafc';
+          ctx.font = '16px "Space Grotesk", sans-serif';
+          ctx.fillText(val || '—', x, y + 22);
+        }
+
+        drawMeta('Attendee Name', ticket.name, 40, 185);
+        drawMeta('Enrollment ID', ticket.enrollment_no, 260, 185);
+        drawMeta('Date & Time', `${ticket.event_date} • ${ticket.event_time || ''}`, 40, 255);
+        drawMeta('Venue', ticket.event_venue, 260, 255);
+        drawMeta('Branch / Major', ticket.branch, 40, 325);
+        drawMeta('Academic Year', ticket.year, 260, 325);
+
+        // Ticket code
+        drawMeta('Ticket Code', ticket.ticket_code, 40, 395);
+
+        // QR Code box
+        const qrImg = new Image();
+        qrImg.onload = () => {
+          ctx.fillStyle = '#ffffff';
+          ctx.beginPath();
+          ctx.roundRect(550, 120, 200, 240, 16);
+          ctx.fill();
+
+          ctx.drawImage(qrImg, 565, 135, 170, 170);
+
+          ctx.fillStyle = '#080c1f';
+          ctx.font = 'bold 14px monospace';
+          ctx.textAlign = 'center';
+          ctx.fillText(ticket.ticket_code, 650, 335);
+
+          // Trigger download
+          const link = document.createElement('a');
+          link.download = `MathVerse-Ticket-${ticket.ticket_code}.png`;
+          link.href = canvas.toDataURL('image/png');
+          link.click();
+        };
+        qrImg.src = qrDataUrl;
+      }
+
+      fetchTicket(ticketCode);
+    });
+  </script>
+</body>
+</html>

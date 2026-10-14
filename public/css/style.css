@@ -2602,3 +2602,413 @@ body.cursor-hover .custom-cursor-trail {
     padding: 2rem 1.5rem;
   }
 }
+
+/* ==========================================================================
+   Phase 3 Component Styles: Capacity Bars, Digital Ticket Pass, Admin Panel
+   ========================================================================== */
+
+/* Event Capacity Bar on Cards */
+.event-capacity-container {
+  margin: 1.25rem 0 1rem;
+}
+
+.capacity-text-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: 0.775rem;
+  margin-bottom: 0.45rem;
+  color: var(--text-muted);
+}
+
+.capacity-seats-label strong {
+  color: var(--text-pure);
+}
+
+.capacity-bar-track {
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  overflow: hidden;
+  position: relative;
+}
+
+.capacity-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--neon-cyan), var(--neon-violet));
+  transition: width 0.5s var(--ease-smooth);
+}
+
+.capacity-bar-fill.fill-warning {
+  background: linear-gradient(90deg, #f59e0b, #fbbf24);
+}
+
+.capacity-bar-fill.fill-full {
+  background: linear-gradient(90deg, #ef4444, #f43f5e);
+}
+
+.badge-sold-out {
+  background: rgba(239, 68, 68, 0.15) !important;
+  border-color: rgba(239, 68, 68, 0.4) !important;
+  color: #fca5a5 !important;
+}
+
+/* Event Modal Multi-View Container */
+.modal-view {
+  display: none;
+  animation: fadeIn 0.3s ease;
+}
+
+.modal-view.active {
+  display: block;
+}
+
+.modal-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: transparent;
+  border: none;
+  color: var(--neon-cyan);
+  font-family: var(--font-heading);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-bottom: 1.25rem;
+  padding: 0;
+  transition: transform var(--transition-fast);
+}
+
+.modal-back-btn:hover {
+  transform: translateX(-3px);
+}
+
+.form-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+@media (max-width: 600px) {
+  .form-grid-2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ==========================================================================
+   Digital Ticket Pass Design (.ticket-pass)
+   ========================================================================== */
+
+.ticket-pass-wrapper {
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+.ticket-pass {
+  position: relative;
+  background: linear-gradient(135deg, rgba(16, 22, 50, 0.95) 0%, rgba(9, 13, 32, 0.98) 100%);
+  border: 1px solid rgba(139, 92, 246, 0.4);
+  border-radius: 24px;
+  box-shadow: 0 25px 70px -10px rgba(139, 92, 246, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+  font-family: var(--font-body);
+}
+
+.ticket-pass::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(90deg, var(--neon-cyan), var(--neon-violet), var(--neon-gold));
+}
+
+.ticket-header {
+  padding: 1.75rem 2rem 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.12);
+}
+
+.ticket-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 1.25rem;
+  color: var(--text-pure);
+}
+
+.ticket-badge {
+  font-family: var(--font-mono);
+  font-size: 0.725rem;
+  font-weight: 700;
+  color: var(--neon-gold);
+  background: rgba(251, 191, 36, 0.1);
+  border: 1px solid rgba(251, 191, 36, 0.3);
+  padding: 0.25rem 0.65rem;
+  border-radius: 999px;
+  text-transform: uppercase;
+}
+
+.ticket-body {
+  padding: 2rem;
+  display: grid;
+  grid-template-columns: 1fr 180px;
+  gap: 2rem;
+  align-items: center;
+}
+
+@media (max-width: 580px) {
+  .ticket-body {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+}
+
+.ticket-event-name {
+  font-family: var(--font-heading);
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--text-pure);
+  line-height: 1.2;
+  margin-bottom: 1.25rem;
+}
+
+.ticket-meta-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.ticket-meta-item label {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  color: var(--neon-cyan);
+  margin-bottom: 0.2rem;
+}
+
+.ticket-meta-item p {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-pure);
+}
+
+.ticket-qr-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 0.85rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.ticket-qr-img {
+  width: 140px;
+  height: 140px;
+  display: block;
+}
+
+.ticket-code-label {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #090d1f;
+  margin-top: 0.4rem;
+  letter-spacing: 0.05em;
+}
+
+.ticket-footer {
+  background: rgba(6, 9, 24, 0.75);
+  border-top: 1px dashed rgba(255, 255, 255, 0.12);
+  padding: 1.25rem 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.825rem;
+  color: var(--text-subtle);
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.ticket-actions-row {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-top: 2rem;
+  flex-wrap: wrap;
+}
+
+/* ==========================================================================
+   Admin Portal Styles (admin.html)
+   ========================================================================== */
+
+.admin-login-wrapper {
+  min-height: calc(100vh - 180px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1.5rem;
+  position: relative;
+  z-index: 2;
+}
+
+.admin-login-card {
+  background: var(--space-surface);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--space-border);
+  border-radius: 28px;
+  padding: 3.5rem 2.5rem;
+  max-width: 480px;
+  width: 100%;
+  text-align: center;
+  box-shadow: var(--glass-shadow);
+}
+
+.admin-dashboard-wrapper {
+  max-width: 1380px;
+  margin: 0 auto;
+  padding: 2.5rem 1.75rem 6rem;
+  position: relative;
+  z-index: 2;
+}
+
+.admin-top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--space-border);
+  flex-wrap: wrap;
+  gap: 1.25rem;
+}
+
+.admin-stats-strip {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.5rem;
+  margin-bottom: 3rem;
+}
+
+@media (max-width: 960px) {
+  .admin-stats-strip {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 580px) {
+  .admin-stats-strip {
+    grid-template-columns: 1fr;
+  }
+}
+
+.admin-stat-card {
+  background: var(--space-surface);
+  backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--space-border);
+  border-radius: 20px;
+  padding: 1.75rem;
+  box-shadow: var(--glass-shadow);
+}
+
+.admin-stat-label {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  color: var(--neon-cyan);
+  margin-bottom: 0.4rem;
+}
+
+.admin-stat-value {
+  font-family: var(--font-heading);
+  font-size: 2.4rem;
+  font-weight: 800;
+  color: var(--text-pure);
+  line-height: 1;
+}
+
+.admin-table-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.25rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.admin-table-container {
+  background: var(--space-surface);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--space-border);
+  border-radius: 20px;
+  overflow-x: auto;
+  box-shadow: var(--glass-shadow);
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.9rem;
+}
+
+.admin-table th {
+  padding: 1.1rem 1.25rem;
+  font-family: var(--font-heading);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--space-border);
+  background: rgba(7, 10, 24, 0.6);
+  white-space: nowrap;
+}
+
+.admin-table td {
+  padding: 1.1rem 1.25rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  color: var(--text-main);
+  vertical-align: middle;
+}
+
+.admin-table tr:hover td {
+  background: rgba(139, 92, 246, 0.06);
+}
+
+.badge-ticket-code {
+  font-family: var(--font-mono);
+  font-size: 0.825rem;
+  font-weight: 700;
+  color: var(--neon-gold);
+  background: rgba(251, 191, 36, 0.1);
+  border: 1px solid rgba(251, 191, 36, 0.25);
+  padding: 0.25rem 0.6rem;
+  border-radius: 6px;
+  display: inline-block;
+}
+
+.footer-admin-link {
+  color: var(--text-subtle);
+  text-decoration: none;
+  font-size: 0.825rem;
+  transition: color var(--transition-fast);
+}
+
+.footer-admin-link:hover {
+  color: var(--neon-cyan);
+}
+

@@ -730,23 +730,126 @@ document.addEventListener('DOMContentLoaded', () => {
   const filterTabs = document.querySelectorAll('.filter-tab');
   const eventModal = document.getElementById('event-modal');
   const modalCloseBtn = document.getElementById('modal-close-btn');
-  const modalRegisterBtn = document.getElementById('btn-modal-register');
-  const registrationNotice = document.getElementById('modal-reg-notice');
+
+  // Modal Views & Controls
+  const modalViewDetails = document.getElementById('modal-view-details');
+  const modalViewForm = document.getElementById('modal-view-form');
+  const modalViewTicket = document.getElementById('modal-view-ticket');
+  const btnModalOpenForm = document.getElementById('btn-modal-open-form');
+  const btnBackToDetails = document.getElementById('btn-back-to-details');
+  const formEventSubtitle = document.getElementById('form-event-subtitle');
+  const regForm = document.getElementById('event-registration-form');
+  const regFormError = document.getElementById('reg-form-error');
+  const btnSubmitRegistration = document.getElementById('btn-submit-registration');
+  const modalTicketContainer = document.getElementById('modal-ticket-container');
+  const btnDownloadModalTicket = document.getElementById('btn-download-modal-ticket');
+  const btnViewTicketPage = document.getElementById('btn-view-ticket-page');
 
   let activeFilter = 'all';
   let searchQuery = '';
+  let eventsData = [];
+
+  // Reusable Canvas Ticket Downloader
+  window.downloadTicketAsCanvas = function(ticket, qrDataUrl) {
+    const canvas = document.createElement('canvas');
+    canvas.width = 800;
+    canvas.height = 460;
+    const ctx = canvas.getContext('2d');
+
+    // Background gradient
+    const bgGrad = ctx.createLinearGradient(0, 0, 800, 460);
+    bgGrad.addColorStop(0, '#0a0e28');
+    bgGrad.addColorStop(1, '#050713');
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0, 0, 800, 460);
+
+    // Accent top border
+    const topGrad = ctx.createLinearGradient(0, 0, 800, 0);
+    topGrad.addColorStop(0, '#22d3ee');
+    topGrad.addColorStop(0.5, '#8b5cf6');
+    topGrad.addColorStop(1, '#fbbf24');
+    ctx.fillStyle = topGrad;
+    ctx.fillRect(0, 0, 800, 6);
+
+    // Header branding
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 24px "Space Grotesk", sans-serif';
+    ctx.fillText('MathVerse Official Event Entry Pass', 40, 50);
+
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = '14px Inter, sans-serif';
+    ctx.fillText('College Mathematics Club • Verified Credential', 40, 75);
+
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
+    ctx.setLineDash([6, 6]);
+    ctx.beginPath();
+    ctx.moveTo(40, 95);
+    ctx.lineTo(760, 95);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Event title
+    ctx.fillStyle = '#22d3ee';
+    ctx.font = 'bold 24px "Space Grotesk", sans-serif';
+    const evTitle = ticket.event_title || (ticket.event && ticket.event.title) || 'Event Pass';
+    ctx.fillText(evTitle, 40, 140);
+
+    // Metadata entries
+    function drawMeta(label, val, x, y) {
+      ctx.fillStyle = '#8b5cf6';
+      ctx.font = 'bold 11px monospace';
+      ctx.fillText(label.toUpperCase(), x, y);
+      ctx.fillStyle = '#f8fafc';
+      ctx.font = '15px "Space Grotesk", sans-serif';
+      ctx.fillText(val || '—', x, y + 22);
+    }
+
+    drawMeta('Attendee Name', ticket.name, 40, 185);
+    drawMeta('Enrollment ID', ticket.enrollment_no, 260, 185);
+    const dateStr = ticket.event_date || (ticket.event && ticket.event.date) || '';
+    const timeStr = ticket.event_time || (ticket.event && ticket.event.time) || '';
+    drawMeta('Date & Time', `${dateStr} • ${timeStr}`, 40, 255);
+    drawMeta('Venue', ticket.event_venue || (ticket.event && ticket.event.venue) || '', 260, 255);
+    drawMeta('Branch / Major', ticket.branch, 40, 325);
+    drawMeta('Academic Year', ticket.year, 260, 325);
+    drawMeta('Ticket Code', ticket.ticket_code, 40, 395);
+
+    // QR Code Container
+    const qrImg = new Image();
+    qrImg.onload = () => {
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.roundRect(550, 120, 200, 240, 16);
+      ctx.fill();
+
+      ctx.drawImage(qrImg, 565, 135, 170, 170);
+
+      ctx.fillStyle = '#080c1f';
+      ctx.font = 'bold 13px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText(ticket.ticket_code, 650, 335);
+
+      const link = document.createElement('a');
+      link.download = `MathVerse-Ticket-${ticket.ticket_code}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    };
+    qrImg.src = qrDataUrl;
+  };
 
   // Live Countdown Timer for Next Upcoming Event
-  if (Array.isArray(data.events)) {
-    const upcomingEvents = data.events.filter(e => e.status === 'upcoming');
+  function initUpcomingCountdown(events) {
+    if (!Array.isArray(events) || events.length === 0) return;
+    const upcomingEvents = events.filter(e => e.status === 'upcoming');
     const nextEvent = upcomingEvents[0];
 
     if (nextEvent && document.getElementById('next-event-title')) {
       document.getElementById('next-event-title').textContent = nextEvent.title;
-      document.getElementById('next-event-date').textContent = nextEvent.dateStr;
+      document.getElementById('next-event-date').textContent = nextEvent.dateStr || nextEvent.date;
       document.getElementById('next-event-venue').textContent = nextEvent.venue;
 
-      const targetTime = new Date(nextEvent.dateTimeISO).getTime();
+      const isoTime = nextEvent.dateTimeISO || '2026-03-28T18:00:00';
+      const targetTime = new Date(isoTime).getTime();
 
       function updateCountdown() {
         const now = Date.now();
@@ -773,11 +876,48 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Render Event Cards
-  function renderEvents() {
-    if (!eventsGrid || !Array.isArray(data.events)) return;
+  // Fetch /api/events with fallback to data.js
+  async function loadEventsData() {
+    try {
+      const res = await fetch('/api/events');
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success && Array.isArray(json.events) && json.events.length > 0) {
+          eventsData = json.events.map(ev => {
+            // Merge with data.js details if present
+            const staticItem = Array.isArray(data.events) ? data.events.find(d => d.id === ev.id) : null;
+            return {
+              ...ev,
+              dateStr: ev.date,
+              dateTimeISO: staticItem ? staticItem.dateTimeISO : null,
+              badge: ev.badge || (staticItem ? staticItem.badge : 'Official'),
+              details: ev.details || (staticItem ? staticItem.details : '')
+            };
+          });
+          return;
+        }
+      }
+    } catch (err) {
+      console.warn('[MathVerse Events] API fetch failed, falling back to data.js:', err.message);
+    }
 
-    const filtered = data.events.filter(item => {
+    // Fallback to data.js
+    if (Array.isArray(data.events)) {
+      eventsData = data.events.map(e => ({
+        ...e,
+        capacity: e.capacity || 60,
+        registered_count: 0,
+        seats_left: e.capacity || 60,
+        is_sold_out: 0
+      }));
+    }
+  }
+
+  // Render Event Cards with Capacity Progress Bar & Sold Out State
+  function renderEvents() {
+    if (!eventsGrid || !Array.isArray(eventsData)) return;
+
+    const filtered = eventsData.filter(item => {
       const matchesTab = activeFilter === 'all' || item.status === activeFilter;
       const q = searchQuery.toLowerCase();
       const matchesSearch = !q ||
@@ -793,39 +933,59 @@ document.addEventListener('DOMContentLoaded', () => {
         <div style="grid-column: 1 / -1; text-align: center; padding: 4rem 1rem; color: var(--text-muted);">
           <div style="font-size: 2.5rem; margin-bottom: 1rem;">🔍</div>
           <h3 style="font-family: var(--font-heading); font-size: 1.3rem; color: var(--text-pure); margin-bottom: 0.5rem;">No Events Found</h3>
-          <p>No matching competitions or workshops match your search. Try resetting the filters.</p>
+          <p>No matching competitions or workshops match your query. Try resetting the filters.</p>
         </div>
       `;
       return;
     }
 
-    eventsGrid.innerHTML = filtered.map(item => `
-      <div class="event-card" data-event-id="${item.id}">
-        <div class="event-card-top">
-          <div class="event-badge-row">
-            <span class="event-category-pill">${item.category}</span>
-            <div class="event-status-indicator">
-              ${item.status === 'upcoming'
-                ? '<span class="status-upcoming-dot"></span><span class="status-upcoming-text">Upcoming</span>'
-                : '<span class="status-past-text">Past Event</span>'
-              }
+    eventsGrid.innerHTML = filtered.map(item => {
+      const pct = item.capacity > 0 ? Math.round((item.registered_count / item.capacity) * 100) : 0;
+      const isSoldOut = Boolean(item.is_sold_out || (item.capacity > 0 && item.registered_count >= item.capacity));
+
+      return `
+        <div class="event-card" data-event-id="${item.id}">
+          <div class="event-card-top">
+            <div class="event-badge-row">
+              <span class="event-category-pill">${item.category}</span>
+              <div class="event-status-indicator">
+                ${isSoldOut
+                  ? '<span class="ticket-badge badge-sold-out" style="font-size: 0.72rem; font-weight: 700;">SOLD OUT</span>'
+                  : (item.status === 'upcoming'
+                    ? '<span class="status-upcoming-dot"></span><span class="status-upcoming-text">Upcoming</span>'
+                    : '<span class="status-past-text">Past Event</span>'
+                  )
+                }
+              </div>
+            </div>
+            <h3 class="event-title">${item.title}</h3>
+            <div class="event-meta-info">
+              <div class="event-meta-item"><span>📅</span> <span>${item.dateStr || item.date} &bull; ${item.time || ''}</span></div>
+              <div class="event-meta-item"><span>📍</span> <span>${item.venue}</span></div>
+            </div>
+            <p class="event-desc-snippet">${item.description}</p>
+          </div>
+
+          <!-- Capacity Bar Section -->
+          <div class="event-capacity-container">
+            <div class="capacity-text-row">
+              <span class="capacity-seats-label"><strong>${item.registered_count}</strong> / ${item.capacity} seats filled</span>
+              <span>${isSoldOut ? '<strong style="color: #fca5a5;">Sold Out</strong>' : `${item.seats_left} seats left`}</span>
+            </div>
+            <div class="capacity-bar-track">
+              <div class="capacity-bar-fill ${isSoldOut ? 'fill-full' : (pct >= 80 ? 'fill-warning' : '')}" style="width: ${Math.min(100, pct)}%;"></div>
             </div>
           </div>
-          <h3 class="event-title">${item.title}</h3>
-          <div class="event-meta-info">
-            <div class="event-meta-item"><span>📅</span> <span>${item.dateStr} &bull; ${item.time}</span></div>
-            <div class="event-meta-item"><span>📍</span> <span>${item.venue}</span></div>
-          </div>
-          <p class="event-desc-snippet">${item.description}</p>
-        </div>
-        <div class="event-card-bottom">
-          <span class="btn-view-event">View Details <span class="arrow">→</span></span>
-          <span style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--neon-gold);">${item.badge}</span>
-        </div>
-      </div>
-    `).join('');
 
-    // Add click listeners to cards to open modal
+          <div class="event-card-bottom">
+            <span class="btn-view-event">${isSoldOut ? 'View Pass Info' : 'Register Now'} <span class="arrow">→</span></span>
+            <span style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--neon-gold);">${item.badge || 'Official'}</span>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    // Attach click listeners to cards to open modal
     eventsGrid.querySelectorAll('.event-card').forEach(card => {
       card.addEventListener('click', () => {
         const id = card.getAttribute('data-event-id');
@@ -834,21 +994,46 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // Open Event Modal with Multi-View Handling
   function openEventModal(eventId) {
-    if (!eventModal || !Array.isArray(data.events)) return;
-    const item = data.events.find(e => e.id === eventId);
+    if (!eventModal || !Array.isArray(eventsData)) return;
+    const item = eventsData.find(e => e.id === eventId);
     if (!item) return;
 
+    // Reset views to Details View
+    if (modalViewDetails) modalViewDetails.classList.add('active');
+    if (modalViewForm) modalViewForm.classList.remove('active');
+    if (modalViewTicket) modalViewTicket.classList.remove('active');
+    if (regFormError) regFormError.style.display = 'none';
+
+    // Populate Details View
+    const isSoldOut = Boolean(item.is_sold_out || (item.capacity > 0 && item.registered_count >= item.capacity));
+    
     document.getElementById('modal-event-title').textContent = item.title;
     document.getElementById('modal-event-category').textContent = item.category;
-    document.getElementById('modal-event-date').textContent = `${item.dateStr} • ${item.time}`;
+    document.getElementById('modal-event-date').textContent = `${item.dateStr || item.date} • ${item.time || ''}`;
     document.getElementById('modal-event-venue').textContent = item.venue;
+    document.getElementById('modal-event-capacity').textContent = `${item.registered_count} / ${item.capacity} seats filled ${isSoldOut ? '(Sold Out)' : `(${item.seats_left} seats remaining)`}`;
     document.getElementById('modal-event-desc').textContent = item.description;
-    document.getElementById('modal-event-details').textContent = item.details || '';
+    document.getElementById('modal-event-details').textContent = item.details || 'Registration includes access to competitive rounds, problem booklets, and refreshments.';
 
-    if (registrationNotice) {
-      registrationNotice.style.display = 'none';
+    // Configure Register button on details view
+    if (btnModalOpenForm) {
+      if (isSoldOut) {
+        btnModalOpenForm.innerHTML = '<span>Capacity Reached (Sold Out)</span>';
+        btnModalOpenForm.style.opacity = '0.5';
+        btnModalOpenForm.disabled = true;
+      } else {
+        btnModalOpenForm.innerHTML = '<span>Register for Event</span> <span aria-hidden="true">→</span>';
+        btnModalOpenForm.style.opacity = '1';
+        btnModalOpenForm.disabled = false;
+      }
     }
+
+    // Set hidden field on form
+    const regEventIdInput = document.getElementById('reg-event-id');
+    if (regEventIdInput) regEventIdInput.value = item.id;
+    if (formEventSubtitle) formEventSubtitle.textContent = `Registering for: ${item.title}`;
 
     eventModal.classList.add('open');
     document.body.style.overflow = 'hidden';
@@ -875,11 +1060,190 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  if (modalRegisterBtn && registrationNotice) {
-    modalRegisterBtn.addEventListener('click', () => {
-      registrationNotice.style.display = 'block';
-      registrationNotice.scrollIntoView({ behavior: 'smooth' });
+  // Switch to Registration Form View
+  if (btnModalOpenForm) {
+    btnModalOpenForm.addEventListener('click', () => {
+      if (btnModalOpenForm.disabled) return;
+      if (modalViewDetails) modalViewDetails.classList.remove('active');
+      if (modalViewForm) modalViewForm.classList.add('active');
     });
+  }
+
+  // Switch Back to Details View
+  if (btnBackToDetails) {
+    btnBackToDetails.addEventListener('click', () => {
+      if (modalViewForm) modalViewForm.classList.remove('active');
+      if (modalViewDetails) modalViewDetails.classList.add('active');
+    });
+  }
+
+  // Handle Event Registration Form Submission
+  if (regForm) {
+    regForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (regFormError) regFormError.style.display = 'none';
+
+      const eventId = document.getElementById('reg-event-id').value;
+      const name = document.getElementById('reg-name').value.trim();
+      const email = document.getElementById('reg-email').value.trim();
+      const phone = document.getElementById('reg-phone').value.trim();
+      const enrollmentNo = document.getElementById('reg-enrollment').value.trim();
+      const branch = document.getElementById('reg-branch').value;
+      const year = document.getElementById('reg-year').value;
+
+      // Validation
+      if (!name || !email || !phone || !enrollmentNo || !branch || !year) {
+        showFormError('Please fill out all required fields before submitting.');
+        return;
+      }
+
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        showFormError('Please enter a valid email address.');
+        return;
+      }
+
+      const digitsOnly = phone.replace(/\D/g, '');
+      if (digitsOnly.length < 7) {
+        showFormError('Please enter a valid phone number with at least 7 digits.');
+        return;
+      }
+
+      // Submit Registration to Server
+      if (btnSubmitRegistration) {
+        btnSubmitRegistration.disabled = true;
+        btnSubmitRegistration.innerHTML = '<span>Processing Ticket & QR...</span>';
+      }
+
+      try {
+        const res = await fetch('/api/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            event_id: eventId,
+            name,
+            email,
+            phone,
+            enrollment_no: enrollmentNo,
+            branch,
+            year
+          })
+        });
+
+        const data = await res.json();
+
+        if (res.status === 409) {
+          const ticketLink = data.existing_ticket_code
+            ? `<br><a href="ticket.html?code=${encodeURIComponent(data.existing_ticket_code)}" target="_blank" style="color: var(--neon-cyan); text-decoration: underline; margin-top: 0.5rem; display: inline-block;">View Your Existing Ticket Pass (${data.existing_ticket_code}) ↗</a>`
+            : '';
+          showFormError(`${data.error}${ticketLink}`);
+          return;
+        }
+
+        if (!res.ok || !data.success) {
+          showFormError(data.error || 'Registration failed. Please try again.');
+          return;
+        }
+
+        // Registration successful! Switch to Ticket Pass View
+        const ticket = data.ticket;
+        const qrCodeUrl = data.qr_code;
+
+        if (modalTicketContainer) {
+          modalTicketContainer.innerHTML = `
+            <div class="ticket-pass">
+              <div class="ticket-header">
+                <div class="ticket-brand">
+                  <span class="brand-glyph">∫</span>
+                  <span>Math<span style="color: var(--neon-cyan);">Verse</span> Pass</span>
+                </div>
+                <span class="ticket-badge">${ticket.event.category || 'Official Entry'}</span>
+              </div>
+              <div class="ticket-body">
+                <div>
+                  <h4 class="ticket-event-name">${ticket.event.title}</h4>
+                  <div class="ticket-meta-grid">
+                    <div class="ticket-meta-item">
+                      <label>Attendee</label>
+                      <p>${ticket.name}</p>
+                    </div>
+                    <div class="ticket-meta-item">
+                      <label>Enrollment ID</label>
+                      <p>${ticket.enrollment_no}</p>
+                    </div>
+                    <div class="ticket-meta-item">
+                      <label>Date & Time</label>
+                      <p>${ticket.event.date} • ${ticket.event.time || ''}</p>
+                    </div>
+                    <div class="ticket-meta-item">
+                      <label>Venue</label>
+                      <p>${ticket.event.venue}</p>
+                    </div>
+                    <div class="ticket-meta-item">
+                      <label>Branch</label>
+                      <p>${ticket.branch}</p>
+                    </div>
+                    <div class="ticket-meta-item">
+                      <label>Year</label>
+                      <p>${ticket.year}</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="ticket-qr-box">
+                  <img src="${qrCodeUrl}" alt="Ticket QR Code" class="ticket-qr-img">
+                  <span class="ticket-code-label">${ticket.ticket_code}</span>
+                </div>
+              </div>
+              <div class="ticket-footer">
+                <span>Pass Code: <strong style="color: var(--neon-gold); font-family: var(--font-mono);">${ticket.ticket_code}</strong></span>
+                <span>Issued: ${new Date(ticket.created_at).toLocaleDateString()}</span>
+              </div>
+            </div>
+          `;
+        }
+
+        if (btnDownloadModalTicket) {
+          btnDownloadModalTicket.onclick = () => {
+            window.downloadTicketAsCanvas(ticket, qrCodeUrl);
+          };
+        }
+
+        if (btnViewTicketPage) {
+          btnViewTicketPage.href = `ticket.html?code=${encodeURIComponent(ticket.ticket_code)}`;
+        }
+
+        if (modalViewForm) modalViewForm.classList.remove('active');
+        if (modalViewTicket) modalViewTicket.classList.add('active');
+
+        // Reset form inputs
+        regForm.reset();
+
+        // Update local event count & refresh cards
+        const ev = eventsData.find(e => e.id === eventId);
+        if (ev) {
+          ev.registered_count = (ev.registered_count || 0) + 1;
+          ev.seats_left = Math.max(0, ev.capacity - ev.registered_count);
+          if (ev.registered_count >= ev.capacity) ev.is_sold_out = 1;
+          renderEvents();
+        }
+
+      } catch (err) {
+        showFormError('Network communication error during registration. Please verify connection.');
+      } finally {
+        if (btnSubmitRegistration) {
+          btnSubmitRegistration.disabled = false;
+          btnSubmitRegistration.innerHTML = '<span>Confirm & Generate Digital Ticket ✦</span>';
+        }
+      }
+    });
+  }
+
+  function showFormError(msg) {
+    if (regFormError) {
+      regFormError.innerHTML = msg;
+      regFormError.style.display = 'block';
+      regFormError.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
   }
 
   // Filter tab events
@@ -901,7 +1265,36 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  renderEvents();
+  // Socket.IO real-time capacity listener for Events page
+  if (typeof io !== 'undefined') {
+    try {
+      const socket = io();
+      socket.on('event:registered', (payload) => {
+        if (Array.isArray(eventsData) && payload && payload.event_id) {
+          const match = eventsData.find(e => e.id === payload.event_id);
+          if (match) {
+            match.registered_count = payload.new_registered_count;
+            match.capacity = payload.capacity;
+            match.seats_left = Math.max(0, payload.capacity - payload.new_registered_count);
+            if (payload.new_registered_count >= payload.capacity) {
+              match.is_sold_out = 1;
+            }
+            renderEvents();
+          }
+        }
+      });
+    } catch (e) {
+      // ignore
+    }
+  }
+
+  // Initialize Events Page
+  if (eventsGrid) {
+    loadEventsData().then(() => {
+      initUpcomingCountdown(eventsData);
+      renderEvents();
+    });
+  }
 
   /* ========================================================================
      11. GALLERY PAGE INITIALIZER (gallery.html)

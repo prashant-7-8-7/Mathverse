@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Portal & Roster Management — MathVerse</title>
+  <meta name="description" content="Administrative control dashboard for managing event registrations, attendee rosters, and ticket verification.">
+
+  <!-- Google Fonts: Space Grotesk, Inter, JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <!-- Ambient Cosmic Nebula Glows -->
+  <div class="cosmic-nebula" aria-hidden="true">
+    <div class="nebula-orb orb-violet"></div>
+    <div class="nebula-orb orb-cyan"></div>
+    <div class="nebula-orb orb-gold"></div>
+  </div>
+
+  <!-- Sticky Top Navigation (Standard public links - NO Admin link in public nav) -->
+  <header class="navbar" role="banner">
+    <div class="nav-container">
+      <a href="index.html" class="nav-brand" aria-label="MathVerse Home">
+        <span class="brand-glyph">∫</span>
+        <span class="brand-text">Math<span class="brand-accent">Verse</span></span>
+      </a>
+
+      <!-- Desktop Nav Links -->
+      <nav class="nav-menu" aria-label="Primary Navigation">
+        <ul class="nav-links">
+          <li><a href="index.html" class="nav-link">Home</a></li>
+          <li><a href="about.html" class="nav-link">About</a></li>
+          <li><a href="events.html" class="nav-link">Events</a></li>
+          <li><a href="gallery.html" class="nav-link">Gallery</a></li>
+          <li><a href="arena.html" class="nav-link">Arena</a></li>
+          <li><a href="leaderboard.html" class="nav-link">Leaderboard</a></li>
+          <li><a href="members.html" class="nav-link">Members</a></li>
+          <li><a href="certificates.html" class="nav-link">Certificates</a></li>
+          <li><a href="feedback.html" class="nav-link">Feedback</a></li>
+          <li><a href="contact.html" class="nav-link">Contact</a></li>
+        </ul>
+      </nav>
+
+      <!-- Nav Actions -->
+      <div class="nav-actions">
+        <div id="status-badge" class="status-badge status-disconnected" title="Socket.IO real-time connection status" aria-live="polite">
+          <span class="status-dot"></span>
+          <span id="status-text" class="status-text">Disconnected</span>
+        </div>
+
+        <a href="contact.html" class="btn-nav-join">Join the Club</a>
+
+        <button id="nav-toggle" class="nav-toggle" aria-label="Toggle navigation menu" aria-expanded="false" aria-controls="mobile-menu">
+          <span class="toggle-line"></span>
+          <span class="toggle-line"></span>
+          <span class="toggle-line"></span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Mobile Drawer Menu -->
+  <div id="mobile-menu" class="mobile-menu" aria-hidden="true">
+    <ul class="mobile-links">
+      <li><a href="index.html" class="mobile-link">Home</a></li>
+      <li><a href="about.html" class="mobile-link">About</a></li>
+      <li><a href="events.html" class="mobile-link">Events</a></li>
+      <li><a href="gallery.html" class="mobile-link">Gallery</a></li>
+      <li><a href="arena.html" class="mobile-link">Arena</a></li>
+      <li><a href="leaderboard.html" class="mobile-link">Leaderboard</a></li>
+      <li><a href="members.html" class="mobile-link">Members</a></li>
+      <li><a href="certificates.html" class="mobile-link">Certificates</a></li>
+      <li><a href="feedback.html" class="mobile-link">Feedback</a></li>
+      <li><a href="contact.html" class="mobile-link">Contact</a></li>
+    </ul>
+    <a href="contact.html" class="btn-nav-join" style="padding: 0.8rem 2rem; font-size: 1rem;">Join the Club</a>
+  </div>
+
+  <!-- Main View Container -->
+  <main class="page-wrapper" style="flex-direction: column;">
+    
+    <!-- VIEW 1: Password Login Screen -->
+    <section id="admin-login-view" class="admin-login-wrapper">
+      <div class="admin-login-card">
+        <div style="width: 64px; height: 64px; margin: 0 auto 1.5rem; border-radius: 18px; background: rgba(139, 92, 246, 0.15); border: 1px solid rgba(139, 92, 246, 0.4); display: flex; align-items: center; justify-content: center; font-size: 1.8rem; box-shadow: 0 0 20px var(--neon-violet-glow);">
+          🛡️
+        </div>
+        <div class="subpage-badge" style="margin-bottom: 0.75rem;">Executive Authentication</div>
+        <h1 style="font-family: var(--font-heading); font-size: 2.2rem; color: var(--text-pure); margin-bottom: 0.5rem;">
+          Admin <span class="gradient-text">Portal</span>
+        </h1>
+        <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 2rem; line-height: 1.6;">
+          Enter the master administrative keyphrase to access real-time event rosters, capacity counters, and export registration data.
+        </p>
+
+        <!-- Login Error Box -->
+        <div id="login-error-box" style="display: none; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); border-radius: 12px; padding: 0.85rem 1rem; color: #fca5a5; font-size: 0.88rem; margin-bottom: 1.5rem; text-align: left;">
+          Invalid master password. Please verify your credentials and try again.
+        </div>
+
+        <form id="admin-login-form" novalidate>
+          <div class="form-group" style="text-align: left; margin-bottom: 1.5rem;">
+            <label for="admin-password-input" class="form-label">Master Password</label>
+            <input type="password" id="admin-password-input" class="form-input" placeholder="Enter admin password..." required autocomplete="current-password">
+          </div>
+
+          <button type="submit" id="btn-login-submit" class="btn-primary" style="width: 100%; justify-content: center;">
+            <span>Unlock Control Hub</span>
+            <span aria-hidden="true">→</span>
+          </button>
+        </form>
+      </div>
+    </section>
+
+    <!-- VIEW 2: Admin Dashboard (Hidden until authorized) -->
+    <section id="admin-dashboard-view" class="admin-dashboard-wrapper" style="display: none;">
+      
+      <!-- Top Action Bar -->
+      <div class="admin-top-bar">
+        <div>
+          <div class="subpage-badge" style="margin-bottom: 0.5rem;">Club Administration Hub</div>
+          <h1 style="font-family: var(--font-heading); font-size: 2.2rem; color: var(--text-pure); margin: 0;">
+            Event <span class="gradient-text">Roster & Operations</span>
+          </h1>
+        </div>
+
+        <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
+          <button id="btn-export-csv" type="button" class="btn-primary" title="Export registrations as CSV spreadsheet">
+            <span>📥 Export CSV</span>
+          </button>
+          <button id="btn-refresh-stats" type="button" class="btn-secondary" title="Refresh all statistics and tables">
+            <span>🔄 Refresh</span>
+          </button>
+          <button id="btn-admin-logout" type="button" class="btn-secondary" style="border-color: rgba(239, 68, 68, 0.35); color: #fca5a5;" title="End admin session">
+            <span>🚪 Logout</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- High-Level Metric Stat Cards -->
+      <div class="admin-stats-strip">
+        <div class="admin-stat-card">
+          <div class="admin-stat-label">Total Registrations</div>
+          <div id="stat-total-regs" class="admin-stat-value">0</div>
+          <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.4rem;">Across all club competitions</p>
+        </div>
+
+        <div class="admin-stat-card">
+          <div class="admin-stat-label">Total Events</div>
+          <div id="stat-total-events" class="admin-stat-value">0</div>
+          <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.4rem;">Scheduled & past symposiums</p>
+        </div>
+
+        <div class="admin-stat-card">
+          <div class="admin-stat-label">Overall Seat Capacity</div>
+          <div id="stat-total-cap" class="admin-stat-value">0</div>
+          <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.4rem;">Combined hall allocation</p>
+        </div>
+
+        <div class="admin-stat-card">
+          <div class="admin-stat-label">Capacity Utilization</div>
+          <div id="stat-utilization" class="admin-stat-value">0%</div>
+          <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.4rem;">Seat fulfillment rate</p>
+        </div>
+      </div>
+
+      <!-- Per-Event Breakdown Grid -->
+      <div style="margin-bottom: 2.5rem;">
+        <h3 style="font-family: var(--font-heading); font-size: 1.25rem; color: var(--text-pure); margin-bottom: 1rem;">
+          Event Capacity Breakdown
+        </h3>
+        <div id="per-event-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem;">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+
+      <!-- Registrations Table Header & Filter Controls -->
+      <div class="admin-table-controls">
+        <div style="display: flex; gap: 1rem; align-items: center; flex: 1; flex-wrap: wrap;">
+          <div class="events-search-box" style="max-width: 380px; width: 100%; margin: 0;">
+            <span class="search-icon" aria-hidden="true">🔍</span>
+            <input type="text" id="admin-search-input" class="search-input" placeholder="Search by name, email, ticket code, ID...">
+          </div>
+
+          <div style="min-width: 220px;">
+            <select id="admin-event-filter" class="form-select" style="padding: 0.75rem 1rem; font-size: 0.9rem;">
+              <option value="all">All Events</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <span id="admin-count-label" style="font-family: var(--font-mono); font-size: 0.85rem; color: var(--text-muted);">
+            Showing 0 registrations
+          </span>
+        </div>
+      </div>
+
+      <!-- Attendee Registrations Table -->
+      <div class="admin-table-container">
+        <table class="admin-table" aria-label="Event Attendee Registrations">
+          <thead>
+            <tr>
+              <th>Ticket Code</th>
+              <th>Attendee Name</th>
+              <th>Contact Details</th>
+              <th>Enrollment & Major</th>
+              <th>Registered Event</th>
+              <th>Date Registered</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="admin-table-body">
+            <!-- Dynamic rows -->
+          </tbody>
+        </table>
+
+        <!-- Table Empty State -->
+        <div id="admin-table-empty" style="display: none; padding: 4rem 1.5rem; text-align: center; color: var(--text-muted);">
+          <div style="font-size: 2.5rem; margin-bottom: 0.75rem;">📋</div>
+          <h4 style="font-family: var(--font-heading); font-size: 1.2rem; color: var(--text-pure); margin-bottom: 0.4rem;">
+            No Registrations Found
+          </h4>
+          <p style="font-size: 0.92rem;">No attendee entries match your current search or filter query.</p>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- Shared Global Footer (with discrete Admin link) -->
+  <footer class="app-footer" role="contentinfo">
+    <div class="footer-container">
+      <div class="footer-brand">
+        <div class="brand-logo">
+          <span class="brand-glyph">∫</span>
+          <span class="brand-text">Math<span class="brand-accent">Verse</span></span>
+        </div>
+        <p class="footer-tagline">
+          The official digital universe and live competition arena of the College Mathematics Club. Fostering pure rigor, applied mastery, and intellectual camaraderie.
+        </p>
+        <div class="footer-socials">
+          <a href="#" class="social-icon-btn" aria-label="GitHub">gh</a>
+          <a href="#" class="social-icon-btn" aria-label="Discord">dc</a>
+          <a href="#" class="social-icon-btn" aria-label="LinkedIn">in</a>
+          <a href="#" class="social-icon-btn" aria-label="Instagram">ig</a>
+          <a href="#" class="social-icon-btn" aria-label="Twitter">𝕏</a>
+        </div>
+      </div>
+
+      <div class="footer-col">
+        <h4 class="footer-column-title">Platform</h4>
+        <ul class="footer-nav-list">
+          <li><a href="index.html" class="footer-nav-link">Home</a></li>
+          <li><a href="arena.html" class="footer-nav-link">Live Arena</a></li>
+          <li><a href="leaderboard.html" class="footer-nav-link">Leaderboard</a></li>
+          <li><a href="certificates.html" class="footer-nav-link">Certificates</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4 class="footer-column-title">Community</h4>
+        <ul class="footer-nav-list">
+          <li><a href="about.html" class="footer-nav-link">About Us</a></li>
+          <li><a href="events.html" class="footer-nav-link">Club Events</a></li>
+          <li><a href="gallery.html" class="footer-nav-link">Math Art Gallery</a></li>
+          <li><a href="members.html" class="footer-nav-link">Members</a></li>
+          <li><a href="feedback.html" class="footer-nav-link">Feedback</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4 class="footer-column-title">Contact & Join</h4>
+        <ul class="footer-nav-list">
+          <li><a href="contact.html" class="footer-nav-link">Contact Desk</a></li>
+          <li><a href="contact.html" class="footer-nav-link">Join the Club</a></li>
+          <li><span class="footer-nav-link" style="color: var(--text-subtle);">Department of Mathematics</span></li>
+          <li><span class="footer-nav-link" style="color: var(--text-subtle);">Science Hall, Room 402</span></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <p>&copy; 2026 MathVerse &bull; College Mathematics Club. All mathematical rights reserved.</p>
+      <p>Crafted with rigor, curiosity, and code. &bull; <a href="admin.html" class="footer-admin-link">Admin</a></p>
+    </div>
+  </footer>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script>
+
+  <script src="/js/data.js"></script>
+  <script src="/js/main.js"></script>
+
+  <!-- Admin Portal Script -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const STORAGE_KEY = 'mathverse_admin_token';
+      let adminToken = sessionStorage.getItem(STORAGE_KEY);
+
+      // DOM Elements
+      const loginView = document.getElementById('admin-login-view');
+      const dashboardView = document.getElementById('admin-dashboard-view');
+      const loginForm = document.getElementById('admin-login-form');
+      const passwordInput = document.getElementById('admin-password-input');
+      const loginErrorBox = document.getElementById('login-error-box');
+
+      const statTotalRegs = document.getElementById('stat-total-regs');
+      const statTotalEvents = document.getElementById('stat-total-events');
+      const statTotalCap = document.getElementById('stat-total-cap');
+      const statUtilization = document.getElementById('stat-utilization');
+      const perEventGrid = document.getElementById('per-event-grid');
+
+      const tableBody = document.getElementById('admin-table-body');
+      const tableEmpty = document.getElementById('admin-table-empty');
+      const countLabel = document.getElementById('admin-count-label');
+      const searchInput = document.getElementById('admin-search-input');
+      const eventFilter = document.getElementById('admin-event-filter');
+
+      const btnExportCsv = document.getElementById('btn-export-csv');
+      const btnRefresh = document.getElementById('btn-refresh-stats');
+      const btnLogout = document.getElementById('btn-admin-logout');
+
+      let currentRegistrations = [];
+
+      // Check initial session
+      if (adminToken) {
+        initDashboard();
+      } else {
+        showLogin();
+      }
+
+      function showLogin() {
+        loginView.style.display = 'flex';
+        dashboardView.style.display = 'none';
+        passwordInput.value = '';
+        loginErrorBox.style.display = 'none';
+      }
+
+      function showDashboard() {
+        loginView.style.display = 'none';
+        dashboardView.style.display = 'block';
+      }
+
+      // Handle Admin Login
+      loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        loginErrorBox.style.display = 'none';
+        const password = passwordInput.value.trim();
+
+        if (!password) {
+          loginErrorBox.textContent = 'Please enter the master admin password.';
+          loginErrorBox.style.display = 'block';
+          return;
+        }
+
+        try {
+          const res = await fetch('/api/admin/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ password })
+          });
+
+          const data = await res.json();
+
+          if (!res.ok || !data.success) {
+            loginErrorBox.textContent = data.error || 'Authentication rejected. Incorrect password.';
+            loginErrorBox.style.display = 'block';
+            return;
+          }
+
+          adminToken = data.token;
+          sessionStorage.setItem(STORAGE_KEY, adminToken);
+          initDashboard();
+        } catch (err) {
+          loginErrorBox.textContent = 'Network or server error during authentication.';
+          loginErrorBox.style.display = 'block';
+        }
+      });
+
+      // Handle Logout
+      btnLogout.addEventListener('click', () => {
+        sessionStorage.removeItem(STORAGE_KEY);
+        adminToken = null;
+        showLogin();
+      });
+
+      // Handle Refresh
+      btnRefresh.addEventListener('click', () => {
+        loadStats();
+        loadRegistrations();
+      });
+
+      // Handle Export CSV
+      btnExportCsv.addEventListener('click', () => {
+        if (!adminToken) return;
+        const selectedEvent = eventFilter.value;
+        let exportUrl = `/api/admin/export.csv?token=${encodeURIComponent(adminToken)}`;
+        if (selectedEvent && selectedEvent !== 'all') {
+          exportUrl += `&event=${encodeURIComponent(selectedEvent)}`;
+        }
+        window.location.href = exportUrl;
+      });
+
+      async function initDashboard() {
+        showDashboard();
+        await loadStats();
+        await loadRegistrations();
+      }
+
+      // Load Statistics & Events Breakdown
+      async function loadStats() {
+        try {
+          const res = await fetch('/api/admin/stats', {
+            headers: { 'x-admin-token': adminToken }
+          });
+
+          if (res.status === 401) {
+            sessionStorage.removeItem(STORAGE_KEY);
+            showLogin();
+            return;
+          }
+
+          const data = await res.json();
+          if (!data.success) return;
+
+          const s = data.stats;
+          statTotalRegs.textContent = s.total_registrations;
+          statTotalEvents.textContent = s.total_events;
+          statTotalCap.textContent = s.total_capacity;
+          statUtilization.textContent = `${s.overall_utilization_pct}%`;
+
+          // Populate Event Filter options if empty
+          if (eventFilter.options.length <= 1 && Array.isArray(s.per_event)) {
+            s.per_event.forEach(ev => {
+              const opt = document.createElement('option');
+              opt.value = ev.id;
+              opt.textContent = ev.title;
+              eventFilter.appendChild(opt);
+            });
+          }
+
+          // Render Per-Event Breakdown
+          if (Array.isArray(s.per_event)) {
+            perEventGrid.innerHTML = s.per_event.map(ev => {
+              const pct = ev.capacity > 0 ? Math.round((ev.registered_count / ev.capacity) * 100) : 0;
+              const isFull = ev.registered_count >= ev.capacity;
+              return `
+                <div class="admin-stat-card" style="padding: 1.25rem;">
+                  <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
+                    <strong style="color: var(--text-pure); font-size: 0.95rem;">${ev.title}</strong>
+                    ${isFull 
+                      ? '<span class="ticket-badge badge-sold-out" style="font-size: 0.65rem;">SOLD OUT</span>'
+                      : `<span class="ticket-badge" style="font-size: 0.65rem;">${ev.capacity - ev.registered_count} seats left</span>`
+                    }
+                  </div>
+                  <div class="capacity-text-row" style="margin-bottom: 0.35rem;">
+                    <span>${ev.registered_count} / ${ev.capacity} registered</span>
+                    <span>${pct}%</span>
+                  </div>
+                  <div class="capacity-bar-track">
+                    <div class="capacity-bar-fill ${isFull ? 'fill-full' : (pct >= 80 ? 'fill-warning' : '')}" style="width: ${Math.min(100, pct)}%;"></div>
+                  </div>
+                </div>
+              `;
+            }).join('');
+          }
+        } catch (err) {
+          console.error('[Admin loadStats error]', err);
+        }
+      }
+
+      // Load Registrations with Filtering
+      async function loadRegistrations() {
+        try {
+          const selectedEvent = eventFilter.value;
+          const query = searchInput.value.trim();
+
+          let url = '/api/admin/registrations?';
+          const params = new URLSearchParams();
+          if (selectedEvent && selectedEvent !== 'all') params.append('event', selectedEvent);
+          if (query) params.append('search', query);
+          url += params.toString();
+
+          const res = await fetch(url, {
+            headers: { 'x-admin-token': adminToken }
+          });
+
+          if (res.status === 401) {
+            sessionStorage.removeItem(STORAGE_KEY);
+            showLogin();
+            return;
+          }
+
+          const data = await res.json();
+          if (!data.success) return;
+
+          currentRegistrations = data.registrations || [];
+          renderTable(currentRegistrations);
+        } catch (err) {
+          console.error('[Admin loadRegistrations error]', err);
+        }
+      }
+
+      function renderTable(list) {
+        countLabel.textContent = `Showing ${list.length} registration${list.length === 1 ? '' : 's'}`;
+
+        if (list.length === 0) {
+          tableBody.innerHTML = '';
+          tableEmpty.style.display = 'block';
+          return;
+        }
+
+        tableEmpty.style.display = 'none';
+        tableBody.innerHTML = list.map(r => `
+          <tr>
+            <td>
+              <span class="badge-ticket-code">${r.ticket_code}</span>
+            </td>
+            <td>
+              <strong style="color: var(--text-pure); display: block;">${r.name}</strong>
+            </td>
+            <td>
+              <div style="font-size: 0.85rem; color: var(--text-main);">${r.email}</div>
+              <div style="font-size: 0.8rem; color: var(--text-muted);">${r.phone}</div>
+            </td>
+            <td>
+              <div style="font-family: var(--font-mono); font-size: 0.825rem; color: var(--neon-cyan);">${r.enrollment_no}</div>
+              <div style="font-size: 0.8rem; color: var(--text-muted);">${r.branch} &bull; ${r.year}</div>
+            </td>
+            <td>
+              <strong style="color: var(--text-pure); font-size: 0.9rem;">${r.event_title}</strong>
+              <div style="font-size: 0.8rem; color: var(--text-subtle);">${r.event_venue || ''}</div>
+            </td>
+            <td style="font-size: 0.825rem; color: var(--text-muted); white-space: nowrap;">
+              ${new Date(r.created_at).toLocaleDateString()} ${new Date(r.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            </td>
+            <td>
+              <a href="ticket.html?code=${encodeURIComponent(r.ticket_code)}" target="_blank" class="btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.78rem; text-decoration: none; display: inline-flex; align-items: center; gap: 0.3rem;" title="Open attendee ticket pass">
+                <span>View Ticket</span>
+                <span aria-hidden="true">↗</span>
+              </a>
+            </td>
+          </tr>
+        `).join('');
+      }
+
+      // Debounced search & filter handlers
+      let searchTimeout = null;
+      searchInput.addEventListener('input', () => {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+          loadRegistrations();
+        }, 300);
+      });
+
+      eventFilter.addEventListener('change', () => {
+        loadRegistrations();
+      });
+
+      // Socket.IO live updates for admin
+      if (typeof io !== 'undefined') {
+        try {
+          const socket = io();
+          socket.on('event:registered', () => {
+            if (adminToken && dashboardView.style.display !== 'none') {
+              loadStats();
+              loadRegistrations();
+            }
+          });
+        } catch (e) {
+          // ignore
+        }
+      }
+    });
+  </script>
+</body>
+</html>

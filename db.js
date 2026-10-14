@@ -119,6 +119,41 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_answers_session ON answers(session_id);
   CREATE INDEX IF NOT EXISTS idx_members_code ON members(member_code);
   CREATE INDEX IF NOT EXISTS idx_members_email ON members(email);
+
+  -- Phase 6: Certificates
+  CREATE TABLE IF NOT EXISTS certificates (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    cert_code TEXT UNIQUE NOT NULL,
+    recipient_name TEXT NOT NULL,
+    recipient_email TEXT NULL,
+    event_id TEXT NULL,
+    session_id INTEGER NULL,
+    type TEXT NOT NULL,
+    issued_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY(event_id) REFERENCES events(id),
+    FOREIGN KEY(session_id) REFERENCES sessions(id)
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_certificates_code ON certificates(cert_code);
+  CREATE INDEX IF NOT EXISTS idx_certificates_email ON certificates(recipient_email);
+  CREATE INDEX IF NOT EXISTS idx_certificates_event ON certificates(event_id);
+  CREATE INDEX IF NOT EXISTS idx_certificates_session ON certificates(session_id);
+
+  -- Phase 6: Event Feedback
+  CREATE TABLE IF NOT EXISTS feedback (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    event_id TEXT NOT NULL,
+    ticket_code TEXT NOT NULL,
+    rating INTEGER NOT NULL CHECK (rating >= 1 AND rating <= 5),
+    liked TEXT,
+    improve TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(ticket_code, event_id),
+    FOREIGN KEY(event_id) REFERENCES events(id)
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_feedback_event ON feedback(event_id);
+  CREATE INDEX IF NOT EXISTS idx_feedback_ticket ON feedback(ticket_code);
 `);
 
 // Safe migration: Add member_id column to session_players if existing table didn't have it
@@ -128,6 +163,13 @@ if (!sessionPlayerCols.some(c => c.name === 'member_id')) {
   console.log('[DB] Safely migrated session_players table: added member_id column.');
 }
 db.exec("CREATE INDEX IF NOT EXISTS idx_session_players_member ON session_players(member_id);");
+
+// Safe migration: Add checked_in_at column to registrations if not present
+const regCols = db.prepare("PRAGMA table_info(registrations)").all();
+if (!regCols.some(c => c.name === 'checked_in_at')) {
+  db.exec("ALTER TABLE registrations ADD COLUMN checked_in_at DATETIME NULL;");
+  console.log('[DB] Safely migrated registrations table: added checked_in_at column.');
+}
 
 // Seed events if table is empty
 const countStmt = db.prepare('SELECT COUNT(*) as count FROM events');

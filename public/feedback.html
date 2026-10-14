@@ -3,14 +3,95 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Community Feedback & Ideas — MathVerse</title>
-  
+  <title>Event Feedback & Experience — MathVerse</title>
+  <meta name="description" content="Share your thoughts, ratings, and suggestions for MathVerse events and tournaments.">
+
+  <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700;800&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous">
   <link rel="stylesheet" href="/css/style.css">
+
+  <style>
+    .feedback-box {
+      width: 100%;
+      max-width: 640px;
+      margin: 0 auto;
+    }
+
+    .feedback-card {
+      background: var(--space-surface);
+      backdrop-filter: var(--glass-blur);
+      border: 1px solid var(--space-border);
+      border-radius: 28px;
+      padding: 2.5rem;
+      box-shadow: var(--glass-shadow);
+    }
+
+    /* Interactive 5-Star Rating */
+    .star-rating-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin: 1.5rem 0 2rem;
+    }
+
+    .star-row {
+      display: flex;
+      gap: 0.75rem;
+      font-size: 2.6rem;
+      cursor: pointer;
+    }
+
+    .star-btn {
+      background: none;
+      border: none;
+      color: rgba(255, 255, 255, 0.2);
+      cursor: pointer;
+      padding: 0;
+      transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), color 0.2s;
+    }
+
+    .star-btn:hover, .star-btn.hovered, .star-btn.selected {
+      color: #fbbf24;
+      text-shadow: 0 0 20px rgba(251, 191, 36, 0.6);
+      transform: scale(1.2);
+    }
+
+    .rating-label {
+      font-family: var(--font-heading);
+      font-size: 1.1rem;
+      color: var(--neon-cyan);
+      margin-top: 0.75rem;
+      min-height: 1.5rem;
+    }
+
+    .thank-you-card {
+      text-align: center;
+      animation: popIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes popIn {
+      0% { opacity: 0; transform: scale(0.92); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+
+    .thank-you-halo {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      margin: 0 auto 1.5rem;
+      background: rgba(139, 92, 246, 0.15);
+      border: 2px solid rgba(139, 92, 246, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.5rem;
+      color: #c4b5fd;
+      box-shadow: 0 0 35px var(--neon-violet-glow);
+    }
+  </style>
 </head>
 <body>
   <!-- Ambient Cosmic Nebula -->
@@ -75,19 +156,132 @@
     <a href="contact.html" class="btn-nav-join" style="padding: 0.8rem 2rem; font-size: 1rem;">Join the Club</a>
   </div>
 
-  <!-- Main Content: Coming Soon Card -->
-  <main class="page-wrapper">
-    <div class="coming-soon-card">
-      <div class="coming-soon-halo" aria-hidden="true"></div>
-      <div class="coming-soon-glyph">💬</div>
-      <span class="coming-soon-badge">Community Voice</span>
-      <h1 class="coming-soon-title">Feedback & Proposals</h1>
-      <p class="coming-soon-desc">
-        We value every proof, suggestion, and idea. Have an immediate suggestion? Reach out via our Contact Desk!
-      </p>
-      <a href="contact.html" class="btn-primary">
-        <span>Go to Contact Desk →</span>
-      </a>
+  <main class="page-wrapper" style="flex-direction: column; padding: 3rem 1.5rem 5rem;">
+    <div class="feedback-box">
+      
+      <!-- Top Title -->
+      <div style="text-align: center; margin-bottom: 2.5rem;">
+        <div class="subpage-badge" style="margin-bottom: 0.5rem;">Attendee Reflections</div>
+        <h1 style="font-family: var(--font-heading); font-size: 2.6rem; color: var(--text-pure); margin-bottom: 0.5rem;">
+          Event <span class="gradient-text">Feedback</span>
+        </h1>
+        <p style="color: var(--text-muted); font-size: 1rem; line-height: 1.6;">
+          Your insights guide future symposiums, problem sets, and live tournament formats. Enter your ticket code to review your experience.
+        </p>
+      </div>
+
+      <!-- STAGE 1: Ticket Verification Input -->
+      <div id="stage-ticket" class="feedback-card" style="margin-bottom: 2rem;">
+        <h3 style="font-family: var(--font-heading); font-size: 1.3rem; color: var(--text-pure); margin-bottom: 0.5rem;">
+          Enter Your Ticket Pass Code
+        </h3>
+        <p style="color: var(--text-muted); font-size: 0.92rem; margin-bottom: 1.5rem;">
+          Only checked-in attendees are eligible to submit event reviews (one review per event).
+        </p>
+
+        <form id="ticket-check-form" style="display: flex; gap: 0.75rem;">
+          <input type="text" id="ticket-code-input" class="form-input" placeholder="e.g. MV-2026-A1B2C3" style="text-transform: uppercase; font-family: var(--font-mono); font-size: 1.05rem;" required>
+          <button type="submit" id="btn-check-ticket" class="btn-primary" style="white-space: nowrap; padding: 0.8rem 1.6rem;">
+            <span>Verify Ticket</span>
+          </button>
+        </form>
+
+        <div id="ticket-error-box" style="display: none; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); border-radius: 12px; padding: 0.85rem 1rem; color: #fca5a5; font-size: 0.88rem; margin-top: 1.25rem;">
+          <!-- Error message dynamically placed -->
+        </div>
+      </div>
+
+      <!-- NOTICE: Already Submitted Card -->
+      <div id="notice-already-submitted" class="feedback-card" style="display: none; text-align: center; margin-bottom: 2rem;">
+        <div style="font-size: 2.8rem; margin-bottom: 0.75rem;">🌟</div>
+        <h3 style="font-family: var(--font-heading); font-size: 1.5rem; color: var(--text-pure); margin-bottom: 0.5rem;">
+          Feedback Already Recorded
+        </h3>
+        <p id="already-submitted-msg" style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 1.5rem;">
+          You have already shared your thoughts for this event. Thank you!
+        </p>
+        <a href="events.html" class="btn-secondary">Explore Other Events →</a>
+      </div>
+
+      <!-- NOTICE: Not Checked In Card -->
+      <div id="notice-not-attended" class="feedback-card" style="display: none; text-align: center; margin-bottom: 2rem;">
+        <div style="font-size: 2.8rem; margin-bottom: 0.75rem;">🎫</div>
+        <h3 style="font-family: var(--font-heading); font-size: 1.4rem; color: var(--text-pure); margin-bottom: 0.5rem;">
+          Check-In Required
+        </h3>
+        <p id="not-attended-msg" style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.6; margin-bottom: 1.5rem;">
+          Feedback is exclusively open to verified attendees who attended and checked in at the event. If you were present, please ensure an executive scanned your ticket QR.
+        </p>
+        <a href="index.html" class="btn-secondary">← Back to MathVerse</a>
+      </div>
+
+      <!-- STAGE 2: Interactive Review Form (Shown when eligible) -->
+      <div id="stage-form" class="feedback-card" style="display: none;">
+        <div style="border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 1.25rem; margin-bottom: 1.75rem;">
+          <span class="subpage-badge" style="font-size: 0.78rem;">Verified Attendee</span>
+          <h2 id="form-event-title" style="font-family: var(--font-heading); font-size: 1.7rem; color: var(--text-pure); margin: 0.25rem 0 0.2rem;">
+            Euler Quiz Night
+          </h2>
+          <p style="color: var(--neon-cyan); font-size: 0.92rem; margin: 0;">
+            Reviewing as: <strong id="form-attendee-name">Student Name</strong>
+          </p>
+        </div>
+
+        <form id="event-feedback-form" novalidate>
+          <input type="hidden" id="verified-ticket-code" value="">
+
+          <!-- 5-Star Rating Component -->
+          <div class="star-rating-container">
+            <label class="form-label" style="font-size: 0.95rem; color: var(--text-pure); margin-bottom: 0.5rem;">Overall Experience Rating *</label>
+            <div class="star-row" id="star-row" role="radiogroup" aria-label="1 to 5 star rating">
+              <button type="button" class="star-btn" data-value="1" aria-label="1 star">★</button>
+              <button type="button" class="star-btn" data-value="2" aria-label="2 stars">★</button>
+              <button type="button" class="star-btn" data-value="3" aria-label="3 stars">★</button>
+              <button type="button" class="star-btn" data-value="4" aria-label="4 stars">★</button>
+              <button type="button" class="star-btn" data-value="5" aria-label="5 stars">★</button>
+            </div>
+            <div id="rating-label" class="rating-label">Select your star rating</div>
+          </div>
+
+          <!-- Liked Textarea -->
+          <div class="form-group" style="margin-bottom: 1.5rem;">
+            <label for="fb-liked" class="form-label">What did you like? (Highlights & favorite moments)</label>
+            <textarea id="fb-liked" class="form-input" rows="3" placeholder="e.g. The lightning speed round, the Euler identity puzzle, the energetic live leaderboard..." style="resize: vertical;"></textarea>
+          </div>
+
+          <!-- Improve Textarea -->
+          <div class="form-group" style="margin-bottom: 2rem;">
+            <label for="fb-improve" class="form-label">What can we improve? (Pacing, problems, venue, logistics)</label>
+            <textarea id="fb-improve" class="form-input" rows="3" placeholder="e.g. More time on geometry questions, louder microphone in the back rows..." style="resize: vertical;"></textarea>
+          </div>
+
+          <button type="submit" id="btn-submit-feedback" class="btn-primary" style="width: 100%; justify-content: center; padding: 0.9rem; font-size: 1.05rem;">
+            <span>Transmit Feedback →</span>
+          </button>
+        </form>
+      </div>
+
+      <!-- STAGE 3: Thank You Screen Animation -->
+      <div id="stage-thankyou" class="feedback-card thank-you-card" style="display: none;">
+        <div class="thank-you-halo">🌌</div>
+        <span class="subpage-badge" style="margin-bottom: 0.5rem;">Feedback Transmitted</span>
+        <h2 style="font-family: var(--font-heading); font-size: 2.2rem; color: var(--text-pure); margin-bottom: 0.75rem;">
+          Thank You for <span class="gradient-text">Your Voice</span>!
+        </h2>
+        <p style="color: var(--text-muted); font-size: 1.05rem; line-height: 1.6; max-width: 500px; margin: 0 auto 2rem;">
+          Your feedback helps the Mathematics Club curate sharper problem sets, more immersive atmospheres, and tighter competitions.
+        </p>
+
+        <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+          <a href="certificates.html" class="btn-primary" style="padding: 0.85rem 1.8rem;">
+            <span>📜 View My Certificates</span>
+          </a>
+          <a href="events.html" class="btn-secondary" style="padding: 0.85rem 1.8rem;">
+            <span>📅 Explore Future Events</span>
+          </a>
+        </div>
+      </div>
+
     </div>
   </main>
 
@@ -102,13 +296,6 @@
         <p class="footer-tagline">
           The official digital universe and live competition arena of the College Mathematics Club. Fostering pure rigor, applied mastery, and intellectual camaraderie.
         </p>
-        <div class="footer-socials">
-          <a href="#" class="social-icon-btn" aria-label="GitHub">gh</a>
-          <a href="#" class="social-icon-btn" aria-label="Discord">dc</a>
-          <a href="#" class="social-icon-btn" aria-label="LinkedIn">in</a>
-          <a href="#" class="social-icon-btn" aria-label="Instagram">ig</a>
-          <a href="#" class="social-icon-btn" aria-label="Twitter">𝕏</a>
-        </div>
       </div>
 
       <div class="footer-col">
@@ -128,7 +315,7 @@
           <li><a href="events.html" class="footer-nav-link">Club Events</a></li>
           <li><a href="gallery.html" class="footer-nav-link">Math Art Gallery</a></li>
           <li><a href="members.html" class="footer-nav-link">Members</a></li>
-          <li><a href="feedback.html" class="footer-nav-link">Feedback</a></li>
+          <li><a href="feedback.html" class="footer-nav-link active">Feedback</a></li>
         </ul>
       </div>
 
@@ -150,10 +337,213 @@
   </footer>
 
   <script src="/socket.io/socket.io.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script>
-  <script src="/js/data.js"></script>
-  <script src="/js/main.js"></script>
+  <script>
+    (function() {
+      const stageTicket = document.getElementById('stage-ticket');
+      const ticketCheckForm = document.getElementById('ticket-check-form');
+      const ticketCodeInput = document.getElementById('ticket-code-input');
+      const btnCheckTicket = document.getElementById('btn-check-ticket');
+      const ticketErrorBox = document.getElementById('ticket-error-box');
+
+      const noticeAlreadySubmitted = document.getElementById('notice-already-submitted');
+      const alreadySubmittedMsg = document.getElementById('already-submitted-msg');
+      const noticeNotAttended = document.getElementById('notice-not-attended');
+      const notAttendedMsg = document.getElementById('not-attended-msg');
+
+      const stageForm = document.getElementById('stage-form');
+      const formEventTitle = document.getElementById('form-event-title');
+      const formAttendeeName = document.getElementById('form-attendee-name');
+      const verifiedTicketCode = document.getElementById('verified-ticket-code');
+      const eventFeedbackForm = document.getElementById('event-feedback-form');
+      const fbLiked = document.getElementById('fb-liked');
+      const fbImprove = document.getElementById('fb-improve');
+      const btnSubmitFeedback = document.getElementById('btn-submit-feedback');
+
+      const stageThankYou = document.getElementById('stage-thankyou');
+
+      // Star rating state
+      let selectedRating = 0;
+      const starButtons = document.querySelectorAll('.star-btn');
+      const ratingLabel = document.getElementById('rating-label');
+
+      const ratingDescriptions = {
+        1: '1 Star — Needs Significant Work',
+        2: '2 Stars — Fair, But Missing Polish',
+        3: '3 Stars — Good & Engaging',
+        4: '4 Stars — Great Session & Rigor',
+        5: '5 Stars — Exceptional Masterpiece!'
+      };
+
+      function updateStarHighlight(val) {
+        starButtons.forEach(btn => {
+          const btnVal = parseInt(btn.getAttribute('data-value'), 10);
+          if (btnVal <= val) {
+            btn.classList.add('selected');
+          } else {
+            btn.classList.remove('selected');
+          }
+        });
+        ratingLabel.textContent = ratingDescriptions[val] || 'Select your star rating';
+      }
+
+      starButtons.forEach(btn => {
+        const val = parseInt(btn.getAttribute('data-value'), 10);
+        btn.addEventListener('mouseenter', () => {
+          starButtons.forEach(b => {
+            const bVal = parseInt(b.getAttribute('data-value'), 10);
+            if (bVal <= val) b.classList.add('hovered');
+            else b.classList.remove('hovered');
+          });
+          ratingLabel.textContent = ratingDescriptions[val];
+        });
+
+        btn.addEventListener('mouseleave', () => {
+          starButtons.forEach(b => b.classList.remove('hovered'));
+          ratingLabel.textContent = ratingDescriptions[selectedRating] || 'Select your star rating';
+        });
+
+        btn.addEventListener('click', () => {
+          selectedRating = val;
+          updateStarHighlight(val);
+        });
+      });
+
+      function hideFeedbackStages() {
+        ticketErrorBox.style.display = 'none';
+        noticeAlreadySubmitted.style.display = 'none';
+        noticeNotAttended.style.display = 'none';
+        stageForm.style.display = 'none';
+        stageThankYou.style.display = 'none';
+      }
+
+      async function verifyTicketCode(code) {
+        if (!code) return;
+        const cleanCode = code.trim().toUpperCase();
+        ticketCodeInput.value = cleanCode;
+
+        hideFeedbackStages();
+        btnCheckTicket.disabled = true;
+        btnCheckTicket.innerHTML = '<span>Verifying...</span>';
+
+        try {
+          const res = await fetch(`/api/feedback/check/${encodeURIComponent(cleanCode)}`);
+          const data = await res.json();
+
+          btnCheckTicket.disabled = false;
+          btnCheckTicket.innerHTML = '<span>Verify Ticket</span>';
+
+          if (data.eligible) {
+            formEventTitle.textContent = data.event_title;
+            formAttendeeName.textContent = data.attendee_name;
+            verifiedTicketCode.value = cleanCode;
+            stageTicket.style.display = 'none';
+            stageForm.style.display = 'block';
+
+          } else if (data.reason === 'already_submitted') {
+            alreadySubmittedMsg.textContent = data.message || `You previously rated "${data.event_title}" ${data.rating} stars. Thank you!`;
+            noticeAlreadySubmitted.style.display = 'block';
+
+          } else if (data.reason === 'not_checked_in') {
+            notAttendedMsg.textContent = data.message || `Feedback is exclusively open to verified attendees who attended and checked in at "${data.event_title}".`;
+            noticeNotAttended.style.display = 'block';
+
+          } else {
+            ticketErrorBox.textContent = data.message || 'Invalid ticket code. Please check your registration confirmation.';
+            ticketErrorBox.style.display = 'block';
+          }
+        } catch (err) {
+          btnCheckTicket.disabled = false;
+          btnCheckTicket.innerHTML = '<span>Verify Ticket</span>';
+          ticketErrorBox.textContent = 'Server connection error during ticket check. Please try again.';
+          ticketErrorBox.style.display = 'block';
+        }
+      }
+
+      ticketCheckForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const code = ticketCodeInput.value.trim();
+        if (code) {
+          const newUrl = `${window.location.pathname}?code=${encodeURIComponent(code)}`;
+          window.history.pushState({ code }, '', newUrl);
+          verifyTicketCode(code);
+        }
+      });
+
+      // Feedback Form Submission
+      eventFeedbackForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (selectedRating === 0) {
+          alert('Please select an overall star rating (1 to 5 stars).');
+          return;
+        }
+
+        const ticketCode = verifiedTicketCode.value.trim();
+        const liked = fbLiked.value.trim();
+        const improve = fbImprove.value.trim();
+
+        btnSubmitFeedback.disabled = true;
+        btnSubmitFeedback.innerHTML = '<span>Transmitting Feedback...</span>';
+
+        try {
+          const res = await fetch('/api/feedback', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              ticket_code: ticketCode,
+              rating: selectedRating,
+              liked,
+              improve
+            })
+          });
+
+          const data = await res.json();
+          btnSubmitFeedback.disabled = false;
+          btnSubmitFeedback.innerHTML = '<span>Transmit Feedback →</span>';
+
+          if (res.ok && data.success) {
+            stageForm.style.display = 'none';
+            stageThankYou.style.display = 'block';
+          } else {
+            alert(data.error || 'Failed to submit feedback.');
+          }
+        } catch (err) {
+          btnSubmitFeedback.disabled = false;
+          btnSubmitFeedback.innerHTML = '<span>Transmit Feedback →</span>';
+          alert('Network communication error. Please try again.');
+        }
+      });
+
+      // On initial load: read ?code=
+      const urlParams = new URLSearchParams(window.location.search);
+      const initialCode = urlParams.get('code');
+      if (initialCode) {
+        verifyTicketCode(initialCode);
+      }
+
+      // Mobile Menu
+      const navToggle = document.getElementById('nav-toggle');
+      const mobileMenu = document.getElementById('mobile-menu');
+      if (navToggle && mobileMenu) {
+        navToggle.addEventListener('click', () => {
+          const isOpen = mobileMenu.classList.toggle('active');
+          navToggle.setAttribute('aria-expanded', isOpen);
+          mobileMenu.setAttribute('aria-hidden', !isOpen);
+        });
+      }
+
+      // Socket status badge
+      if (typeof io !== 'undefined') {
+        const socket = io();
+        const badge = document.getElementById('status-badge');
+        const txt = document.getElementById('status-text');
+        socket.on('connect', () => {
+          if (badge && txt) { badge.className = 'status-badge status-connected'; txt.textContent = 'Connected'; }
+        });
+        socket.on('disconnect', () => {
+          if (badge && txt) { badge.className = 'status-badge status-disconnected'; txt.textContent = 'Disconnected'; }
+        });
+      }
+    })();
+  </script>
 </body>
 </html>

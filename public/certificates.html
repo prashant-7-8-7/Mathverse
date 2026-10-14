@@ -3,14 +3,82 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Certificates & Verification — MathVerse</title>
-  
+  <title>Certificates & Verifiable Credentials — MathVerse</title>
+  <meta name="description" content="Search, view, and download official verified event certificates and tournament honors from the Mathematics Club.">
+
+  <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700;800&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous">
   <link rel="stylesheet" href="/css/style.css">
+
+  <style>
+    .certs-search-card {
+      background: var(--space-surface);
+      backdrop-filter: var(--glass-blur);
+      border: 1px solid var(--space-border);
+      border-radius: 24px;
+      padding: 2.5rem 2rem;
+      max-width: 640px;
+      margin: 0 auto 3rem;
+      text-align: center;
+      box-shadow: var(--glass-shadow);
+    }
+
+    .cert-gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 1.5rem;
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .cert-item-card {
+      background: var(--space-surface);
+      backdrop-filter: var(--glass-blur);
+      border: 1px solid var(--space-border);
+      border-radius: 22px;
+      padding: 1.8rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s, box-shadow 0.25s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .cert-item-card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(139, 92, 246, 0.5);
+      box-shadow: 0 12px 30px rgba(139, 92, 246, 0.2);
+    }
+
+    .cert-badge-winner {
+      background: rgba(251, 191, 36, 0.15);
+      border-color: rgba(251, 191, 36, 0.5);
+      color: #fbbf24;
+    }
+
+    .cert-badge-participation {
+      background: rgba(34, 211, 238, 0.15);
+      border-color: rgba(34, 211, 238, 0.4);
+      color: var(--neon-cyan);
+    }
+
+    .cert-badge-runner_up {
+      background: rgba(56, 189, 248, 0.15);
+      border-color: rgba(56, 189, 248, 0.4);
+      color: #38bdf8;
+    }
+
+    .cert-badge-third_place {
+      background: rgba(249, 115, 22, 0.15);
+      border-color: rgba(249, 115, 22, 0.4);
+      color: #fb923c;
+    }
+  </style>
 </head>
 <body>
   <!-- Ambient Cosmic Nebula -->
@@ -75,20 +143,76 @@
     <a href="contact.html" class="btn-nav-join" style="padding: 0.8rem 2rem; font-size: 1rem;">Join the Club</a>
   </div>
 
-  <!-- Main Content: Coming Soon Card -->
-  <main class="page-wrapper">
-    <div class="coming-soon-card">
-      <div class="coming-soon-halo" aria-hidden="true"></div>
-      <div class="coming-soon-glyph">📜</div>
-      <span class="coming-soon-badge">Verifiable Credentials</span>
-      <h1 class="coming-soon-title">Certificates & Awards</h1>
-      <p class="coming-soon-desc">
-        Instant cryptographic ID verification, official club competition certificates, seminar attendance badges, and downloadable high-res vector credentials.
+  <main class="page-wrapper" style="flex-direction: column; padding: 2.5rem 1.5rem 5rem;">
+
+    <!-- Page Header -->
+    <div style="text-align: center; max-width: 760px; margin: 0 auto 2.5rem;">
+      <div class="subpage-badge" style="margin-bottom: 0.5rem;">Authentic Credentials</div>
+      <h1 style="font-family: var(--font-heading); font-size: 2.8rem; color: var(--text-pure); margin-bottom: 0.75rem;">
+        Find My <span class="gradient-text">Certificates</span>
+      </h1>
+      <p style="color: var(--text-muted); font-size: 1.05rem; line-height: 1.6;">
+        Official event participation records and Arena tournament victory certificates. Enter your registered email to retrieve your credentials.
       </p>
-      <a href="index.html" class="btn-primary">
-        <span>← Return to Universe</span>
+    </div>
+
+    <!-- Search Form Card -->
+    <div class="certs-search-card">
+      <div id="member-autofill-notice" style="display: none; background: rgba(139, 92, 246, 0.15); border: 1px solid rgba(139, 92, 246, 0.35); border-radius: 12px; padding: 0.65rem 1rem; color: #c4b5fd; font-size: 0.88rem; margin-bottom: 1.25rem;">
+        👤 Signed in as <strong id="member-autofill-name">Member</strong>. Auto-loading your credentials.
+      </div>
+
+      <form id="cert-search-form" novalidate>
+        <div class="form-group" style="text-align: left; margin-bottom: 1.25rem;">
+          <label for="search-email" class="form-label">Registered College / Personal Email</label>
+          <input type="email" id="search-email" class="form-input" placeholder="e.g. yourname@college.edu" required autocomplete="email">
+        </div>
+
+        <button type="submit" id="btn-search-submit" class="btn-primary" style="width: 100%; justify-content: center; padding: 0.85rem;">
+          <span>🔍 Retrieve My Certificates</span>
+        </button>
+      </form>
+
+      <div style="margin-top: 1.25rem; font-size: 0.85rem; color: var(--text-muted);">
+        Looking to verify someone's certificate? <a href="verify.html" style="color: var(--neon-cyan); text-decoration: underline;">Open Verification Portal →</a>
+      </div>
+    </div>
+
+    <!-- Results Section -->
+    <div id="certs-results-container" style="display: none; width: 100%; max-width: 1200px; margin: 0 auto;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+        <h3 style="font-family: var(--font-heading); font-size: 1.4rem; color: var(--text-pure); margin: 0;">
+          Your Credentials (<span id="certs-count">0</span>)
+        </h3>
+        <span id="certs-email-label" style="font-family: var(--font-mono); font-size: 0.88rem; color: var(--neon-cyan);"></span>
+      </div>
+
+      <!-- Gallery Grid -->
+      <div id="certs-grid" class="cert-gallery-grid">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div id="certs-empty" style="display: none; text-align: center; max-width: 500px; margin: 2rem auto; padding: 3rem 1.5rem; background: var(--space-surface); border: 1px solid var(--space-border); border-radius: 24px;">
+      <div style="font-size: 2.8rem; margin-bottom: 0.75rem;">📜</div>
+      <h3 style="font-family: var(--font-heading); font-size: 1.3rem; color: var(--text-pure); margin-bottom: 0.5rem;">
+        No Certificates Found
+      </h3>
+      <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.6; margin-bottom: 1.5rem;">
+        We couldn't find any issued certificates associated with this email address. Note that participation certificates are issued after event check-in has been completed.
+      </p>
+      <a href="events.html" class="btn-secondary">
+        <span>Explore Upcoming Events →</span>
       </a>
     </div>
+
+    <!-- Rate Limit or Server Error Notice -->
+    <div id="certs-error" style="display: none; text-align: center; max-width: 500px; margin: 2rem auto; padding: 2rem; background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.4); border-radius: 20px; color: #fca5a5;">
+      <div style="font-size: 2rem; margin-bottom: 0.5rem;">⚠️</div>
+      <p id="certs-error-text" style="font-size: 0.95rem; margin: 0;">Error retrieving certificates.</p>
+    </div>
+
   </main>
 
   <!-- Shared Global Footer -->
@@ -150,10 +274,179 @@
   </footer>
 
   <script src="/socket.io/socket.io.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script>
-  <script src="/js/data.js"></script>
-  <script src="/js/main.js"></script>
+  <script>
+    (function() {
+      const searchForm = document.getElementById('cert-search-form');
+      const searchEmailInput = document.getElementById('search-email');
+      const btnSubmit = document.getElementById('btn-search-submit');
+      const resultsContainer = document.getElementById('certs-results-container');
+      const certsGrid = document.getElementById('certs-grid');
+      const certsCount = document.getElementById('certs-count');
+      const certsEmailLabel = document.getElementById('certs-email-label');
+      const certsEmpty = document.getElementById('certs-empty');
+      const certsError = document.getElementById('certs-error');
+      const certsErrorText = document.getElementById('certs-error-text');
+      const memberNotice = document.getElementById('member-autofill-notice');
+      const memberAutofillName = document.getElementById('member-autofill-name');
+
+      function hideAll() {
+        resultsContainer.style.display = 'none';
+        certsEmpty.style.display = 'none';
+        certsError.style.display = 'none';
+      }
+
+      function getBadgeClass(type) {
+        if (type === 'winner') return 'cert-badge-winner';
+        if (type === 'runner_up') return 'cert-badge-runner_up';
+        if (type === 'third_place') return 'cert-badge-third_place';
+        return 'cert-badge-participation';
+      }
+
+      function getBadgeLabel(type) {
+        if (type === 'winner') return '👑 1st Place Winner';
+        if (type === 'runner_up') return '🥈 1st Runner-Up';
+        if (type === 'third_place') return '🥉 2nd Runner-Up';
+        return '✓ Participation';
+      }
+
+      async function searchCertificates(email) {
+        if (!email) return;
+        const cleanEmail = email.trim().toLowerCase();
+        hideAll();
+        btnSubmit.disabled = true;
+        btnSubmit.innerHTML = '<span>Searching...</span>';
+
+        try {
+          const res = await fetch(`/api/certificates?email=${encodeURIComponent(cleanEmail)}`);
+          const data = await res.json();
+
+          btnSubmit.disabled = false;
+          btnSubmit.innerHTML = '<span>🔍 Retrieve My Certificates</span>';
+
+          if (res.status === 429) {
+            certsErrorText.textContent = data.error || 'Too many certificate lookups. Please wait a moment.';
+            certsError.style.display = 'block';
+            return;
+          }
+
+          if (res.ok && data.success) {
+            if (data.certificates && data.certificates.length > 0) {
+              certsCount.textContent = data.certificates.length;
+              certsEmailLabel.textContent = cleanEmail;
+
+              certsGrid.innerHTML = data.certificates.map(cert => {
+                const eventTitle = cert.event_title || cert.quiz_title || 'MathVerse Tournament';
+                const issueDate = cert.event_date || (new Date(cert.issued_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }));
+
+                return `
+                  <div class="cert-item-card">
+                    <div>
+                      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; gap: 0.5rem;">
+                        <span class="ticket-badge ${getBadgeClass(cert.type)}" style="font-size: 0.78rem;">
+                          ${getBadgeLabel(cert.type)}
+                        </span>
+                        <span style="font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-muted);">
+                          ${issueDate}
+                        </span>
+                      </div>
+
+                      <h4 style="font-family: var(--font-heading); font-size: 1.3rem; color: #ffffff; margin-bottom: 0.4rem;">
+                        ${eventTitle}
+                      </h4>
+                      <p style="color: var(--neon-cyan); font-size: 0.95rem; margin-bottom: 1.25rem;">
+                        Awarded to: <strong>${cert.recipient_name}</strong>
+                      </p>
+
+                      <div style="background: rgba(255, 255, 255, 0.04); border-radius: 10px; padding: 0.6rem 0.85rem; margin-bottom: 1.5rem; font-family: var(--font-mono); font-size: 0.78rem; color: var(--neon-gold); display: flex; justify-content: space-between;">
+                        <span>Serial:</span>
+                        <span>${cert.cert_code}</span>
+                      </div>
+                    </div>
+
+                    <div style="display: flex; gap: 0.6rem;">
+                      <a href="/api/certificates/${encodeURIComponent(cert.cert_code)}/pdf" class="btn-primary" style="flex: 1; justify-content: center; padding: 0.65rem; font-size: 0.88rem;" download="MathVerse_Certificate_${cert.cert_code}.pdf">
+                        <span>📥 Download PDF</span>
+                      </a>
+                      <a href="verify.html?code=${encodeURIComponent(cert.cert_code)}" class="btn-secondary" style="padding: 0.65rem 0.9rem; font-size: 0.88rem;" title="Verify Authenticity">
+                        <span>Verify ↗</span>
+                      </a>
+                    </div>
+                  </div>
+                `;
+              }).join('');
+
+              resultsContainer.style.display = 'block';
+            } else {
+              certsEmpty.style.display = 'block';
+            }
+          } else {
+            certsErrorText.textContent = data.error || 'Failed to retrieve certificates.';
+            certsError.style.display = 'block';
+          }
+        } catch (err) {
+          btnSubmit.disabled = false;
+          btnSubmit.innerHTML = '<span>🔍 Retrieve My Certificates</span>';
+          certsErrorText.textContent = 'Network communication error. Please try again.';
+          certsError.style.display = 'block';
+        }
+      }
+
+      searchForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const email = searchEmailInput.value.trim();
+        if (email) searchCertificates(email);
+      });
+
+      // Auto-load for logged-in member
+      const memberToken = localStorage.getItem('mathverse_member_token');
+      if (memberToken) {
+        fetch('/api/members/me', {
+          headers: { 'x-member-token': memberToken }
+        })
+        .then(r => r.json())
+        .then(data => {
+          if (data.success && data.member && data.member.email) {
+            searchEmailInput.value = data.member.email;
+            memberAutofillName.textContent = data.member.name;
+            memberNotice.style.display = 'block';
+            searchCertificates(data.member.email);
+          }
+        })
+        .catch(() => {});
+      }
+
+      // Check ?email= query param
+      const urlParams = new URLSearchParams(window.location.search);
+      const emailParam = urlParams.get('email');
+      if (emailParam) {
+        searchEmailInput.value = emailParam;
+        searchCertificates(emailParam);
+      }
+
+      // Mobile Menu Toggle
+      const navToggle = document.getElementById('nav-toggle');
+      const mobileMenu = document.getElementById('mobile-menu');
+      if (navToggle && mobileMenu) {
+        navToggle.addEventListener('click', () => {
+          const isOpen = mobileMenu.classList.toggle('active');
+          navToggle.setAttribute('aria-expanded', isOpen);
+          mobileMenu.setAttribute('aria-hidden', !isOpen);
+        });
+      }
+
+      // Socket status badge
+      if (typeof io !== 'undefined') {
+        const socket = io();
+        const badge = document.getElementById('status-badge');
+        const txt = document.getElementById('status-text');
+        socket.on('connect', () => {
+          if (badge && txt) { badge.className = 'status-badge status-connected'; txt.textContent = 'Connected'; }
+        });
+        socket.on('disconnect', () => {
+          if (badge && txt) { badge.className = 'status-badge status-disconnected'; txt.textContent = 'Disconnected'; }
+        });
+      }
+    })();
+  </script>
 </body>
 </html>

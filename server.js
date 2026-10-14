@@ -5,7 +5,9 @@ const crypto = require('crypto');
 const express = require('express');
 const { Server } = require('socket.io');
 const qrcode = require('qrcode');
+const PDFDocument = require('pdfkit');
 const db = require('./db');
+const MathVerseData = require('./public/js/data.js');
 
 const app = express();
 const server = http.createServer(app);
@@ -128,17 +130,20 @@ function requireMember(req, res, next) {
    Public APIs: Events, Registration & Tickets
    ========================================================================== */
 
-// GET /api/events - List events with live registration counts and seat calculations
+// GET /api/events - List events with live registration counts, seat calculations & feedback ratings
 app.get('/api/events', (req, res) => {
   try {
     const stmt = db.prepare(`
       SELECT 
         e.*,
-        COALESCE(COUNT(r.id), 0) AS registered_count,
-        MAX(0, e.capacity - COALESCE(COUNT(r.id), 0)) AS seats_left,
-        CASE WHEN COALESCE(COUNT(r.id), 0) >= e.capacity THEN 1 ELSE 0 END AS is_sold_out
+        COALESCE(COUNT(DISTINCT r.id), 0) AS registered_count,
+        MAX(0, e.capacity - COALESCE(COUNT(DISTINCT r.id), 0)) AS seats_left,
+        CASE WHEN COALESCE(COUNT(DISTINCT r.id), 0) >= e.capacity THEN 1 ELSE 0 END AS is_sold_out,
+        ROUND(AVG(f.rating), 1) AS avg_rating,
+        COUNT(DISTINCT f.id) AS feedback_count
       FROM events e
       LEFT JOIN registrations r ON e.id = r.event_id
+      LEFT JOIN feedback f ON e.id = f.event_id
       GROUP BY e.id
       ORDER BY e.id ASC
     `);
@@ -1370,6 +1375,1075 @@ app.get('/api/leaderboard', (req, res) => {
 });
 
 /* ==========================================================================
+   Phase 6: Attendance Check-In, Certificates & Event Feedback
+   ========================================================================== */
+
+// In-memory rate limiter for certificate lookup (ip -> { count, resetAt })
+const certLookupAttempts = new Map();
+
+function checkCertRateLimit(ip) {
+  const now = Date.now();
+  const attempt = certLookupAttempts.get(ip);
+  if (!attempt) return { limited: false };
+  if (now > attempt.resetAt) {
+    certLookupAttempts.delete(ip);
+    return { limited: false };
+  }
+  if (attempt.count >= 30) {
+    const minutesLeft = Math.ceil((attempt.resetAt - now) / 60000);
+    return { limited: true, minutesLeft };
+  }
+  return { limited: false };
+}
+
+function recordCertLookup(ip) {
+  const now = Date.now();
+  const attempt = certLookupAttempts.get(ip);
+  if (!attempt || now > attempt.resetAt) {
+    certLookupAttempts.set(ip, { count: 1, resetAt: now + 5 * 60 * 1000 });
+  } else {
+    attempt.count++;
+  }
+}
+
+// Helper: Beautiful Landscape A4 PDF generator using PDFKit
+async function generateCertificatePdf(cert, hostUrl) {
+  const doc = new PDFDocument({
+    size: 'A4',
+    layout: 'landscape',
+    margins: { top: 0, bottom: 0, left: 0, right: 0 },
+    autoFirstPage: true,
+    info: {
+      Title: `MathVerse Certificate - ${cert.cert_code}`,
+      Author: 'MathVerse - Mathematics Club',
+      Subject: 'Certificate of Mathematical Excellence'
+    }
+  });
+
+  const width = 841.89;
+  const height = 595.28;
+
+  // 1. Dark navy cosmos background
+  doc.rect(0, 0, width, height).fill('#080c1f');
+
+  doc.save();
+
+  // 2. Outer Gold Geometric Border
+  doc.lineWidth(2.5)
+     .strokeColor('#fbbf24')
+     .rect(26, 26, width - 52, height - 52)
+     .stroke();
+
+  // 3. Inner Violet Geometric Border
+  doc.lineWidth(1)
+     .strokeColor('#8b5cf6')
+     .rect(34, 34, width - 68, height - 68)
+     .stroke();
+
+  // Thin Cyan Accent Inner Border
+  doc.lineWidth(0.5)
+     .strokeColor('rgba(34, 211, 238, 0.4)')
+     .rect(38, 38, width - 76, height - 76)
+     .stroke();
+
+  // 4. Corner Diamonds
+  const drawCornerDiamond = (cx, cy) => {
+    doc.save()
+       .fillColor('#fbbf24')
+       .polygon([cx, cy - 8], [cx + 8, cy], [cx, cy + 8], [cx - 8, cy])
+       .fill()
+       .restore();
+    doc.save()
+       .strokeColor('#8b5cf6')
+       .lineWidth(1)
+       .polygon([cx, cy - 12], [cx + 12, cy], [cx, cy + 12], [cx - 12, cy])
+       .stroke()
+       .restore();
+  };
+
+  drawCornerDiamond(34, 34);
+  drawCornerDiamond(width - 34, 34);
+  drawCornerDiamond(34, height - 34);
+  drawCornerDiamond(width - 34, height - 34);
+
+  // Geometric horizontal divider accents
+  doc.save()
+     .strokeColor('#fbbf24')
+     .lineWidth(0.75)
+     .moveTo(140, 48).lineTo(width - 140, 48)
+     .stroke()
+     .restore();
+
+  // 5. Header: Club & College Names
+  const clubName = (MathVerseData && MathVerseData.clubName) ? MathVerseData.clubName : 'MATHEMATICS CLUB';
+  const collegeName = (MathVerseData && MathVerseData.collegeName) ? MathVerseData.collegeName : 'College of Science & Mathematics';
+  const departmentName = (MathVerseData && MathVerseData.department) ? MathVerseData.department : 'Department of Mathematics';
+
+  doc.font('Helvetica-Bold')
+     .fontSize(13)
+     .fillColor('#fbbf24')
+     .text(clubName.toUpperCase(), 0, 68, { align: 'center', characterSpacing: 4 });
+
+  doc.font('Helvetica')
+     .fontSize(10)
+     .fillColor('#94a3b8')
+     .text(collegeName, 0, 88, { align: 'center' });
+
+  // 6. Certificate Title & Ribbon
+  let mainTitle = 'CERTIFICATE OF PARTICIPATION';
+  let badgeSubtitle = 'THIS IS PROUDLY CONFERRED UPON';
+  let honorText = 'for active participation, mathematical inquiry, and dedicated enthusiasm in';
+
+  if (cert.type === 'winner') {
+    mainTitle = 'CERTIFICATE OF ACHIEVEMENT';
+    badgeSubtitle = 'FIRST PLACE WINNER • CHAMPION';
+    honorText = 'for securing 1st Place with outstanding mathematical rigor and precision in';
+  } else if (cert.type === 'runner_up') {
+    mainTitle = 'CERTIFICATE OF ACHIEVEMENT';
+    badgeSubtitle = 'FIRST RUNNER-UP • EXCELLENCE';
+    honorText = 'for securing 2nd Place with exceptional analytical speed and problem-solving in';
+  } else if (cert.type === 'third_place') {
+    mainTitle = 'CERTIFICATE OF ACHIEVEMENT';
+    badgeSubtitle = 'SECOND RUNNER-UP • MERIT';
+    honorText = 'for securing 3rd Place with impressive mathematical skill and acumen in';
+  }
+
+  doc.font('Helvetica-Bold')
+     .fontSize(23)
+     .fillColor('#22d3ee')
+     .text(mainTitle, 0, 114, { align: 'center', characterSpacing: 2 });
+
+  doc.font('Helvetica-Bold')
+     .fontSize(10)
+     .fillColor(cert.type !== 'participation' ? '#fbbf24' : '#a78bfa')
+     .text(badgeSubtitle, 0, 148, { align: 'center', characterSpacing: 3 });
+
+  // 7. Recipient Name in Large Elegant Type
+  const nameY = 175;
+  doc.font('Helvetica-Bold')
+     .fontSize(32)
+     .fillColor('#ffffff')
+     .text(cert.recipient_name, 0, nameY, { align: 'center' });
+
+  // Underline ornament under name
+  const nameWidth = Math.min(width - 240, Math.max(260, cert.recipient_name.length * 17));
+  const lineX = (width - nameWidth) / 2;
+  doc.strokeColor('#fbbf24')
+     .lineWidth(1.5)
+     .moveTo(lineX, nameY + 42)
+     .lineTo(lineX + nameWidth, nameY + 42)
+     .stroke();
+
+  // 8. Event Title & Date Description
+  const eventTitle = cert.event_title || cert.quiz_title || 'MathVerse Tournament';
+  const eventDate = cert.event_date || (new Date(cert.issued_at || Date.now()).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }));
+
+  doc.font('Helvetica')
+     .fontSize(12)
+     .fillColor('#cbd5e1')
+     .text(honorText, 0, 240, { align: 'center' });
+
+  doc.font('Helvetica-Bold')
+     .fontSize(18)
+     .fillColor('#38bdf8')
+     .text(`"${eventTitle}"`, 0, 264, { align: 'center' });
+
+  doc.font('Helvetica')
+     .fontSize(10)
+     .fillColor('#94a3b8')
+     .text(`Conducted under the auspices of MathVerse on ${eventDate}.`, 0, 292, { align: 'center' });
+
+  // 9. Signatures Block
+  const sigY = 412;
+  // Left: Club President
+  doc.strokeColor('#64748b')
+     .lineWidth(1)
+     .moveTo(85, sigY)
+     .lineTo(255, sigY)
+     .stroke();
+
+  doc.font('Helvetica-Bold')
+     .fontSize(10.5)
+     .fillColor('#f8fafc')
+     .text('Club President', 85, sigY + 7, { width: 170, align: 'center' });
+
+  doc.font('Helvetica')
+     .fontSize(8.5)
+     .fillColor('#94a3b8')
+     .text('MathVerse Executive Committee', 85, sigY + 22, { width: 170, align: 'center' });
+
+  // Right: Faculty Coordinator
+  doc.strokeColor('#64748b')
+     .lineWidth(1)
+     .moveTo(width - 255, sigY)
+     .lineTo(width - 85, sigY)
+     .stroke();
+
+  doc.font('Helvetica-Bold')
+     .fontSize(10.5)
+     .fillColor('#f8fafc')
+     .text('Faculty Coordinator', width - 255, sigY + 7, { width: 170, align: 'center' });
+
+  doc.font('Helvetica')
+     .fontSize(8.5)
+     .fillColor('#94a3b8')
+     .text(departmentName, width - 255, sigY + 22, { width: 170, align: 'center' });
+
+  // 10. Center Verification QR Code & Code
+  const verifyUrl = `${hostUrl}/verify.html?code=${cert.cert_code}`;
+  const qrBuffer = await qrcode.toBuffer(verifyUrl, {
+    errorCorrectionLevel: 'M',
+    margin: 1,
+    width: 80,
+    color: {
+      dark: '#080c1f',
+      light: '#ffffff'
+    }
+  });
+
+  const qrX = (width - 70) / 2;
+  const qrY = 378;
+
+  // White rounded card background for QR code
+  doc.save()
+     .fillColor('#ffffff')
+     .roundedRect(qrX - 4, qrY - 4, 78, 78, 4)
+     .fill()
+     .image(qrBuffer, qrX, qrY, { width: 70, height: 70 })
+     .restore();
+
+  // Verification text
+  doc.font('Helvetica-Bold')
+     .fontSize(8.5)
+     .fillColor('#fbbf24')
+     .text(`ID: ${cert.cert_code}`, 0, qrY + 82, { align: 'center' });
+
+  doc.font('Helvetica')
+     .fontSize(7.5)
+     .fillColor('#64748b')
+     .text(`Scan QR or visit ${hostUrl}/verify.html to authenticate`, 0, qrY + 95, { align: 'center' });
+
+  doc.restore();
+  return doc;
+}
+
+// --------------------------------------------------------------------------
+// 1. Attendance Check-in API (Admin Only)
+// --------------------------------------------------------------------------
+app.post('/api/admin/checkin', requireAdmin, (req, res) => {
+  try {
+    const { event_id, ticket_code } = req.body;
+    if (!event_id || !ticket_code) {
+      return res.status(400).json({ success: false, error: 'Event ID and ticket code are required.' });
+    }
+
+    const cleanCode = String(ticket_code).trim().toUpperCase();
+    const cleanEventId = String(event_id).trim();
+
+    const stmt = db.prepare(`
+      SELECT 
+        r.*,
+        e.title AS event_title,
+        e.date AS event_date
+      FROM registrations r
+      JOIN events e ON r.event_id = e.id
+      WHERE UPPER(r.ticket_code) = ?
+    `);
+
+    const reg = stmt.get(cleanCode);
+
+    if (!reg) {
+      return res.status(404).json({
+        success: false,
+        status: 'invalid_code',
+        message: `Ticket code "${cleanCode}" was not found in the database. Please verify the code.`
+      });
+    }
+
+    if (reg.event_id !== cleanEventId) {
+      return res.status(400).json({
+        success: false,
+        status: 'wrong_event',
+        message: `Ticket "${cleanCode}" is registered for "${reg.event_title}", not this event.`
+      });
+    }
+
+    if (reg.checked_in === 1) {
+      return res.status(200).json({
+        success: false,
+        status: 'already_checked_in',
+        message: `Already checked in at ${reg.checked_in_at || 'earlier'}.`,
+        attendee: {
+          name: reg.name,
+          email: reg.email,
+          phone: reg.phone,
+          enrollment_no: reg.enrollment_no,
+          branch: reg.branch,
+          year: reg.year,
+          ticket_code: reg.ticket_code,
+          checked_in_at: reg.checked_in_at
+        }
+      });
+    }
+
+    // Mark as checked in
+    const checkinTime = new Date().toISOString();
+    db.prepare('UPDATE registrations SET checked_in = 1, checked_in_at = ? WHERE id = ?').run(checkinTime, reg.id);
+
+    // Current event attendance stats
+    const stats = db.prepare(`
+      SELECT 
+        COUNT(*) AS total_registered,
+        COALESCE(SUM(CASE WHEN checked_in = 1 THEN 1 ELSE 0 END), 0) AS checked_in_count
+      FROM registrations
+      WHERE event_id = ?
+    `).get(cleanEventId);
+
+    // Broadcast attendance update via Socket.IO
+    io.emit('attendance:updated', {
+      event_id: cleanEventId,
+      checked_in_count: stats.checked_in_count,
+      total_registered: stats.total_registered
+    });
+
+    res.json({
+      success: true,
+      status: 'checked_in',
+      message: `Checked in: ${reg.name}`,
+      attendee: {
+        id: reg.id,
+        name: reg.name,
+        email: reg.email,
+        phone: reg.phone,
+        enrollment_no: reg.enrollment_no,
+        branch: reg.branch,
+        year: reg.year,
+        ticket_code: reg.ticket_code,
+        checked_in_at: checkinTime
+      },
+      stats: {
+        checked_in_count: stats.checked_in_count,
+        total_registered: stats.total_registered
+      }
+    });
+  } catch (err) {
+    console.error('[API POST /api/admin/checkin error]', err);
+    res.status(500).json({ success: false, error: 'Check-in processing error.' });
+  }
+});
+
+// GET /api/admin/attendance - Per-event attendance overview
+app.get('/api/admin/attendance', requireAdmin, (req, res) => {
+  try {
+    const events = db.prepare(`
+      SELECT 
+        e.id,
+        e.title,
+        e.date,
+        e.time,
+        e.venue,
+        e.category,
+        e.capacity,
+        e.status,
+        COUNT(r.id) AS registered_count,
+        COALESCE(SUM(CASE WHEN r.checked_in = 1 THEN 1 ELSE 0 END), 0) AS attended_count
+      FROM events e
+      LEFT JOIN registrations r ON e.id = r.event_id
+      GROUP BY e.id
+      ORDER BY e.id ASC
+    `).all();
+
+    const enriched = events.map(ev => ({
+      ...ev,
+      attendance_pct: ev.registered_count > 0 ? Math.round((ev.attended_count / ev.registered_count) * 100) : 0
+    }));
+
+    res.json({ success: true, events: enriched });
+  } catch (err) {
+    console.error('[API GET /api/admin/attendance error]', err);
+    res.status(500).json({ error: 'Failed to retrieve attendance overview.' });
+  }
+});
+
+// GET /api/admin/events/:id/attendance - Specific event attendees & check-in list
+app.get('/api/admin/events/:id/attendance', requireAdmin, (req, res) => {
+  try {
+    const { id } = req.params;
+    const event = db.prepare('SELECT * FROM events WHERE id = ?').get(id);
+    if (!event) {
+      return res.status(404).json({ error: 'Event not found.' });
+    }
+
+    const attendees = db.prepare(`
+      SELECT 
+        id,
+        ticket_code,
+        name,
+        email,
+        phone,
+        enrollment_no,
+        branch,
+        year,
+        checked_in,
+        checked_in_at,
+        created_at
+      FROM registrations
+      WHERE event_id = ?
+      ORDER BY checked_in DESC, checked_in_at DESC, created_at ASC
+    `).all(id);
+
+    const attendedCount = attendees.filter(a => a.checked_in === 1).length;
+
+    res.json({
+      success: true,
+      event,
+      stats: {
+        total_registered: attendees.length,
+        attended_count: attendedCount,
+        capacity: event.capacity,
+        attendance_pct: attendees.length > 0 ? Math.round((attendedCount / attendees.length) * 100) : 0
+      },
+      attendees
+    });
+  } catch (err) {
+    console.error('[API GET /api/admin/events/:id/attendance error]', err);
+    res.status(500).json({ error: 'Failed to retrieve event attendance.' });
+  }
+});
+
+// GET /api/admin/attendance/export.csv - Download CSV export of attendance
+app.get('/api/admin/attendance/export.csv', requireAdmin, (req, res) => {
+  try {
+    const { event } = req.query;
+    let query = `
+      SELECT 
+        r.id,
+        r.ticket_code,
+        e.id AS event_id,
+        e.title AS event_title,
+        r.name,
+        r.email,
+        r.phone,
+        r.enrollment_no,
+        r.branch,
+        r.year,
+        r.created_at,
+        r.checked_in,
+        r.checked_in_at
+      FROM registrations r
+      JOIN events e ON r.event_id = e.id
+    `;
+    const params = [];
+    if (event && event !== 'all') {
+      query += ` WHERE r.event_id = ?`;
+      params.push(event);
+    }
+    query += ` ORDER BY r.checked_in DESC, r.checked_in_at DESC, r.created_at DESC`;
+
+    const rows = db.prepare(query).all(...params);
+
+    const headers = [
+      'Registration ID',
+      'Ticket Code',
+      'Event ID',
+      'Event Title',
+      'Attendee Name',
+      'Email',
+      'Phone',
+      'Enrollment No',
+      'Branch',
+      'Academic Year',
+      'Registered At',
+      'Checked In Status',
+      'Checked In At'
+    ];
+
+    const escapeCsv = (val) => {
+      if (val === null || val === undefined) return '""';
+      const str = String(val).replace(/"/g, '""');
+      return `"${str}"`;
+    };
+
+    const csvLines = [headers.map(escapeCsv).join(',')];
+
+    for (const r of rows) {
+      csvLines.push([
+        escapeCsv(r.id),
+        escapeCsv(r.ticket_code),
+        escapeCsv(r.event_id),
+        escapeCsv(r.event_title),
+        escapeCsv(r.name),
+        escapeCsv(r.email),
+        escapeCsv(r.phone),
+        escapeCsv(r.enrollment_no),
+        escapeCsv(r.branch),
+        escapeCsv(r.year),
+        escapeCsv(r.created_at),
+        escapeCsv(r.checked_in ? 'Yes' : 'No'),
+        escapeCsv(r.checked_in_at || '')
+      ].join(','));
+    }
+
+    const csvContent = csvLines.join('\r\n');
+
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', 'attachment; filename="mathverse_attendance.csv"');
+    res.status(200).send(csvContent);
+  } catch (err) {
+    console.error('[API /api/admin/attendance/export.csv error]', err);
+    res.status(500).send('Error generating attendance CSV export.');
+  }
+});
+
+// --------------------------------------------------------------------------
+// 2. Certificate Issuance APIs (Admin Only)
+// --------------------------------------------------------------------------
+
+// POST /api/admin/events/:id/issue-certificates - Issue participation certificates to all checked-in attendees
+app.post('/api/admin/events/:id/issue-certificates', requireAdmin, (req, res) => {
+  try {
+    const { id } = req.params;
+    const event = db.prepare('SELECT * FROM events WHERE id = ?').get(id);
+    if (!event) {
+      return res.status(404).json({ error: 'Event not found.' });
+    }
+
+    const attendees = db.prepare(`
+      SELECT * FROM registrations 
+      WHERE event_id = ? AND checked_in = 1
+    `).all(id);
+
+    if (attendees.length === 0) {
+      return res.json({
+        success: true,
+        issued_count: 0,
+        skipped_count: 0,
+        total_attendees: 0,
+        message: 'No checked-in attendees found for this event yet.'
+      });
+    }
+
+    let issuedCount = 0;
+    let skippedCount = 0;
+
+    const checkStmt = db.prepare(`
+      SELECT id FROM certificates 
+      WHERE event_id = ? AND LOWER(recipient_email) = LOWER(?) AND type = 'participation'
+    `);
+
+    const insertStmt = db.prepare(`
+      INSERT INTO certificates (cert_code, recipient_name, recipient_email, event_id, session_id, type)
+      VALUES (?, ?, ?, ?, NULL, 'participation')
+    `);
+
+    for (const att of attendees) {
+      const existing = checkStmt.get(id, att.email);
+      if (existing) {
+        skippedCount++;
+        continue;
+      }
+
+      // Generate unique cert code: MV-CERT-XXXXXXXX
+      let certCode;
+      let unique = false;
+      while (!unique) {
+        const hex = crypto.randomBytes(4).toString('hex').toUpperCase();
+        certCode = `MV-CERT-${hex}`;
+        if (!db.prepare('SELECT 1 FROM certificates WHERE cert_code = ?').get(certCode)) {
+          unique = true;
+        }
+      }
+
+      insertStmt.run(certCode, att.name, att.email.toLowerCase(), id);
+      issuedCount++;
+    }
+
+    res.json({
+      success: true,
+      issued_count: issuedCount,
+      skipped_count: skippedCount,
+      total_attendees: attendees.length,
+      message: `Issued ${issuedCount} participation certificates (${skippedCount} skipped as already issued).`
+    });
+  } catch (err) {
+    console.error('[API POST /api/admin/events/:id/issue-certificates error]', err);
+    res.status(500).json({ error: 'Failed to issue event certificates.' });
+  }
+});
+
+// POST /api/admin/sessions/:id/issue-certificates - Issue winner certificates to top 3 players
+app.post('/api/admin/sessions/:id/issue-certificates', requireAdmin, (req, res) => {
+  try {
+    const { id } = req.params;
+    const session = db.prepare(`
+      SELECT s.*, q.title AS quiz_title 
+      FROM sessions s 
+      JOIN quizzes q ON s.quiz_id = q.id 
+      WHERE s.id = ?
+    `).get(id);
+
+    if (!session) {
+      return res.status(404).json({ error: 'Session not found.' });
+    }
+
+    const topPlayers = db.prepare(`
+      SELECT sp.*, m.email AS member_email, m.name AS member_name
+      FROM session_players sp
+      LEFT JOIN members m ON sp.member_id = m.id
+      WHERE sp.session_id = ?
+      ORDER BY sp.final_rank ASC, sp.final_score DESC
+      LIMIT 3
+    `).all(id);
+
+    if (topPlayers.length === 0) {
+      return res.status(400).json({ error: 'No players found in this session to award.' });
+    }
+
+    const typeMap = {
+      1: 'winner',
+      2: 'runner_up',
+      3: 'third_place'
+    };
+
+    let issuedCount = 0;
+    let skippedCount = 0;
+
+    const checkStmt = db.prepare(`
+      SELECT id FROM certificates 
+      WHERE session_id = ? AND type = ? AND recipient_name = ?
+    `);
+
+    const insertStmt = db.prepare(`
+      INSERT INTO certificates (cert_code, recipient_name, recipient_email, event_id, session_id, type)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `);
+
+    for (const player of topPlayers) {
+      const type = typeMap[player.final_rank] || 'winner';
+      const recipientName = player.name;
+      const recipientEmail = player.member_email ? player.member_email.toLowerCase() : null;
+
+      const existing = checkStmt.get(id, type, recipientName);
+      if (existing) {
+        skippedCount++;
+        continue;
+      }
+
+      let certCode;
+      let unique = false;
+      while (!unique) {
+        const hex = crypto.randomBytes(4).toString('hex').toUpperCase();
+        certCode = `MV-CERT-${hex}`;
+        if (!db.prepare('SELECT 1 FROM certificates WHERE cert_code = ?').get(certCode)) {
+          unique = true;
+        }
+      }
+
+      insertStmt.run(certCode, recipientName, recipientEmail, session.event_id || null, session.id, type);
+      issuedCount++;
+    }
+
+    res.json({
+      success: true,
+      issued_count: issuedCount,
+      skipped_count: skippedCount,
+      message: `Issued ${issuedCount} winner certificates (${skippedCount} already existed).`
+    });
+  } catch (err) {
+    console.error('[API POST /api/admin/sessions/:id/issue-certificates error]', err);
+    res.status(500).json({ error: 'Failed to issue winner certificates.' });
+  }
+});
+
+// --------------------------------------------------------------------------
+// 3. Public Certificates API & Verification
+// --------------------------------------------------------------------------
+
+// GET /api/certificates - Find certificates by registered email (rate limited)
+app.get('/api/certificates', (req, res) => {
+  try {
+    const ip = req.ip || req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown';
+    const rateStatus = checkCertRateLimit(ip);
+    if (rateStatus.limited) {
+      return res.status(429).json({
+        error: `Too many certificate lookups. Please wait ${rateStatus.minutesLeft} minute(s) before trying again.`
+      });
+    }
+
+    const { email } = req.query;
+    if (!email || !String(email).trim()) {
+      return res.status(400).json({ error: 'Registered email address is required.' });
+    }
+
+    const cleanEmail = String(email).trim().toLowerCase();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(cleanEmail)) {
+      return res.status(400).json({ error: 'Please enter a valid email address.' });
+    }
+
+    recordCertLookup(ip);
+
+    const certs = db.prepare(`
+      SELECT 
+        c.id,
+        c.cert_code,
+        c.recipient_name,
+        c.type,
+        c.issued_at,
+        e.title AS event_title,
+        e.date AS event_date,
+        q.title AS quiz_title,
+        s.started_at AS session_date
+      FROM certificates c
+      LEFT JOIN events e ON c.event_id = e.id
+      LEFT JOIN sessions s ON c.session_id = s.id
+      LEFT JOIN quizzes q ON s.quiz_id = q.id
+      WHERE LOWER(c.recipient_email) = ?
+      ORDER BY c.issued_at DESC
+    `).all(cleanEmail);
+
+    res.json({
+      success: true,
+      count: certs.length,
+      certificates: certs
+    });
+  } catch (err) {
+    console.error('[API GET /api/certificates error]', err);
+    res.status(500).json({ error: 'Failed to retrieve certificates.' });
+  }
+});
+
+// GET /api/certificates/verify/:code - Public certificate verification
+app.get('/api/certificates/verify/:code', (req, res) => {
+  try {
+    const { code } = req.params;
+    const cleanCode = String(code).trim().toUpperCase();
+
+    const cert = db.prepare(`
+      SELECT 
+        c.id,
+        c.cert_code,
+        c.recipient_name,
+        c.type,
+        c.issued_at,
+        e.title AS event_title,
+        e.date AS event_date,
+        q.title AS quiz_title,
+        s.started_at AS session_date
+      FROM certificates c
+      LEFT JOIN events e ON c.event_id = e.id
+      LEFT JOIN sessions s ON c.session_id = s.id
+      LEFT JOIN quizzes q ON s.quiz_id = q.id
+      WHERE UPPER(c.cert_code) = ?
+    `).get(cleanCode);
+
+    if (!cert) {
+      return res.status(404).json({
+        valid: false,
+        error: 'Certificate not found. The certificate code is invalid or has not been issued.'
+      });
+    }
+
+    res.json({
+      valid: true,
+      certificate: {
+        cert_code: cert.cert_code,
+        recipient_name: cert.recipient_name,
+        type: cert.type,
+        issued_at: cert.issued_at,
+        event_title: cert.event_title || cert.quiz_title || 'MathVerse Tournament',
+        event_date: cert.event_date || cert.session_date,
+        club_name: (MathVerseData && MathVerseData.clubName) ? MathVerseData.clubName : 'Mathematics Club',
+        college_name: (MathVerseData && MathVerseData.collegeName) ? MathVerseData.collegeName : 'Your College Name'
+      }
+    });
+  } catch (err) {
+    console.error('[API GET /api/certificates/verify/:code error]', err);
+    res.status(500).json({ valid: false, error: 'Verification failed.' });
+  }
+});
+
+// GET /api/certificates/:code/pdf - Download/stream landscape A4 certificate PDF
+app.get('/api/certificates/:code/pdf', async (req, res) => {
+  try {
+    const { code } = req.params;
+    const cleanCode = String(code).trim().toUpperCase();
+
+    const cert = db.prepare(`
+      SELECT 
+        c.id,
+        c.cert_code,
+        c.recipient_name,
+        c.type,
+        c.issued_at,
+        e.title AS event_title,
+        e.date AS event_date,
+        q.title AS quiz_title,
+        s.started_at AS session_date
+      FROM certificates c
+      LEFT JOIN events e ON c.event_id = e.id
+      LEFT JOIN sessions s ON c.session_id = s.id
+      LEFT JOIN quizzes q ON s.quiz_id = q.id
+      WHERE UPPER(c.cert_code) = ?
+    `).get(cleanCode);
+
+    if (!cert) {
+      return res.status(404).send('Certificate not found.');
+    }
+
+    const hostUrl = `${req.protocol}://${req.get('host')}`;
+    const doc = await generateCertificatePdf(cert, hostUrl);
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `inline; filename="MathVerse_Certificate_${cert.cert_code}.pdf"`);
+
+    doc.pipe(res);
+    doc.end();
+  } catch (err) {
+    console.error('[API GET /api/certificates/:code/pdf error]', err);
+    res.status(500).send('Error generating certificate PDF.');
+  }
+});
+
+// --------------------------------------------------------------------------
+// 4. Feedback APIs
+// --------------------------------------------------------------------------
+
+// GET /api/feedback/check/:ticket_code - Check ticket eligibility for feedback
+app.get('/api/feedback/check/:ticket_code', (req, res) => {
+  try {
+    const { ticket_code } = req.params;
+    const cleanCode = String(ticket_code).trim().toUpperCase();
+
+    const reg = db.prepare(`
+      SELECT 
+        r.*,
+        e.title AS event_title,
+        e.date AS event_date,
+        e.status AS event_status
+      FROM registrations r
+      JOIN events e ON r.event_id = e.id
+      WHERE UPPER(r.ticket_code) = ?
+    `).get(cleanCode);
+
+    if (!reg) {
+      return res.status(404).json({
+        eligible: false,
+        reason: 'not_found',
+        message: `Ticket code "${cleanCode}" was not found. Please verify your ticket code.`
+      });
+    }
+
+    if (reg.checked_in !== 1) {
+      return res.status(403).json({
+        eligible: false,
+        reason: 'not_checked_in',
+        event_title: reg.event_title,
+        message: `Feedback is exclusively open to verified attendees who checked in at "${reg.event_title}".`
+      });
+    }
+
+    const existingFeedback = db.prepare(`
+      SELECT id, rating, created_at FROM feedback 
+      WHERE UPPER(ticket_code) = ? AND event_id = ?
+    `).get(cleanCode, reg.event_id);
+
+    if (existingFeedback) {
+      return res.json({
+        eligible: false,
+        reason: 'already_submitted',
+        event_title: reg.event_title,
+        rating: existingFeedback.rating,
+        submitted_at: existingFeedback.created_at,
+        message: `You have already submitted feedback for "${reg.event_title}". Thank you for your review!`
+      });
+    }
+
+    res.json({
+      eligible: true,
+      attendee_name: reg.name,
+      event_id: reg.event_id,
+      event_title: reg.event_title,
+      event_date: reg.event_date
+    });
+  } catch (err) {
+    console.error('[API GET /api/feedback/check/:ticket_code error]', err);
+    res.status(500).json({ eligible: false, error: 'Eligibility check failed.' });
+  }
+});
+
+// POST /api/feedback - Submit event feedback
+app.post('/api/feedback', (req, res) => {
+  try {
+    const { ticket_code, rating, liked, improve } = req.body;
+    if (!ticket_code || rating === undefined || rating === null) {
+      return res.status(400).json({ error: 'Ticket code and star rating (1-5) are required.' });
+    }
+
+    const cleanCode = String(ticket_code).trim().toUpperCase();
+    const numRating = parseInt(rating, 10);
+
+    if (isNaN(numRating) || numRating < 1 || numRating > 5) {
+      return res.status(400).json({ error: 'Rating must be an integer between 1 and 5 stars.' });
+    }
+
+    const cleanLiked = liked ? String(liked).trim().slice(0, 1000) : '';
+    const cleanImprove = improve ? String(improve).trim().slice(0, 1000) : '';
+
+    const reg = db.prepare('SELECT * FROM registrations WHERE UPPER(ticket_code) = ?').get(cleanCode);
+    if (!reg) {
+      return res.status(404).json({ error: 'Invalid ticket code.' });
+    }
+
+    if (reg.checked_in !== 1) {
+      return res.status(403).json({ error: 'Only checked-in attendees can submit feedback.' });
+    }
+
+    const existing = db.prepare('SELECT id FROM feedback WHERE UPPER(ticket_code) = ? AND event_id = ?').get(cleanCode, reg.event_id);
+    if (existing) {
+      return res.status(409).json({ error: 'Feedback has already been submitted for this ticket.' });
+    }
+
+    db.prepare(`
+      INSERT INTO feedback (event_id, ticket_code, rating, liked, improve)
+      VALUES (?, ?, ?, ?, ?)
+    `).run(reg.event_id, cleanCode, numRating, cleanLiked, cleanImprove);
+
+    res.status(201).json({
+      success: true,
+      message: 'Thank you! Your feedback has been recorded successfully.'
+    });
+  } catch (err) {
+    console.error('[API POST /api/feedback error]', err);
+    res.status(500).json({ error: 'Failed to record feedback.' });
+  }
+});
+
+// GET /api/admin/feedback - Feedback summary & responses list (Admin only)
+app.get('/api/admin/feedback', requireAdmin, (req, res) => {
+  try {
+    const { event } = req.query;
+    let whereClause = '';
+    const params = [];
+    if (event && event !== 'all') {
+      whereClause = 'WHERE f.event_id = ?';
+      params.push(event);
+    }
+
+    const feedbackList = db.prepare(`
+      SELECT 
+        f.id,
+        f.event_id,
+        e.title AS event_title,
+        f.ticket_code,
+        r.name AS attendee_name,
+        f.rating,
+        f.liked,
+        f.improve,
+        f.created_at
+      FROM feedback f
+      JOIN events e ON f.event_id = e.id
+      LEFT JOIN registrations r ON UPPER(f.ticket_code) = UPPER(r.ticket_code) AND f.event_id = r.event_id
+      ${whereClause}
+      ORDER BY f.created_at DESC
+    `).all(...params);
+
+    // Distribution: counts for 1, 2, 3, 4, 5 stars
+    const dist = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+    let totalRatingSum = 0;
+    feedbackList.forEach(fb => {
+      if (dist[fb.rating] !== undefined) dist[fb.rating]++;
+      totalRatingSum += fb.rating;
+    });
+
+    const totalCount = feedbackList.length;
+    const avgRating = totalCount > 0 ? Math.round((totalRatingSum / totalCount) * 10) / 10 : 0;
+
+    res.json({
+      success: true,
+      total_count: totalCount,
+      avg_rating: avgRating,
+      distribution: dist,
+      feedback: feedbackList
+    });
+  } catch (err) {
+    console.error('[API GET /api/admin/feedback error]', err);
+    res.status(500).json({ error: 'Failed to retrieve feedback.' });
+  }
+});
+
+// GET /api/admin/feedback/export.csv - Download CSV export of feedback
+app.get('/api/admin/feedback/export.csv', requireAdmin, (req, res) => {
+  try {
+    const { event } = req.query;
+    let whereClause = '';
+    const params = [];
+    if (event && event !== 'all') {
+      whereClause = 'WHERE f.event_id = ?';
+      params.push(event);
+    }
+
+    const rows = db.prepare(`
+      SELECT 
+        f.id,
+        e.title AS event_title,
+        f.ticket_code,
+        COALESCE(r.name, 'Attendee') AS attendee_name,
+        f.rating,
+        f.liked,
+        f.improve,
+        f.created_at
+      FROM feedback f
+      JOIN events e ON f.event_id = e.id
+      LEFT JOIN registrations r ON UPPER(f.ticket_code) = UPPER(r.ticket_code) AND f.event_id = r.event_id
+      ${whereClause}
+      ORDER BY f.created_at DESC
+    `).all(...params);
+
+    const headers = [
+      'Feedback ID',
+      'Event Title',
+      'Ticket Code',
+      'Attendee Name',
+      'Rating (Stars)',
+      'What Did You Like',
+      'What Can We Improve',
+      'Submitted At'
+    ];
+
+    const escapeCsv = (val) => {
+      if (val === null || val === undefined) return '""';
+      const str = String(val).replace(/"/g, '""');
+      return `"${str}"`;
+    };
+
+    const csvLines = [headers.map(escapeCsv).join(',')];
+
+    for (const r of rows) {
+      csvLines.push([
+        escapeCsv(r.id),
+        escapeCsv(r.event_title),
+        escapeCsv(r.ticket_code),
+        escapeCsv(r.attendee_name),
+        escapeCsv(r.rating),
+        escapeCsv(r.liked || ''),
+        escapeCsv(r.improve || ''),
+        escapeCsv(r.created_at)
+      ].join(','));
+    }
+
+    const csvContent = csvLines.join('\r\n');
+
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', 'attachment; filename="mathverse_feedback.csv"');
+    res.status(200).send(csvContent);
+  } catch (err) {
+    console.error('[API /api/admin/feedback/export.csv error]', err);
+    res.status(500).send('Error generating feedback CSV export.');
+  }
+});
+
+/* ==========================================================================
    Socket.IO Live Arena Real-Time Game Engine
    ========================================================================== */
 
@@ -1630,6 +2704,7 @@ function endGame(room) {
   // Broadcast to host
   if (room.hostSocketId) {
     io.to(room.hostSocketId).emit('host:game_over', {
+      session_id: room.sessionId,
       podium,
       full_rankings: fullRankings
     });

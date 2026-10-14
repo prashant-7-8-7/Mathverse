@@ -374,3 +374,6 @@ const MathVerseData = {
 if (typeof window !== 'undefined') {
   window.MathVerseData = MathVerseData;
 }
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = MathVerseData;
+}

@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Live Check-In Scanner & Attendance — MathVerse Admin</title>
+  <meta name="description" content="Real-time ticket scanner and attendance verification system for MathVerse events.">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="/css/style.css">
+  
+  <!-- html5-qrcode library for camera barcode / QR scanning -->
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+
+  <style>
+    .checkin-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    @media (max-width: 900px) {
+      .checkin-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .scanner-panel, .results-panel {
+      background: var(--space-surface);
+      backdrop-filter: var(--glass-blur);
+      border: 1px solid var(--space-border);
+      border-radius: 24px;
+      padding: 2rem;
+      box-shadow: var(--glass-shadow);
+    }
+
+    #qr-reader-container {
+      width: 100%;
+      min-height: 280px;
+      background: rgba(0, 0, 0, 0.4);
+      border: 2px dashed rgba(139, 92, 246, 0.4);
+      border-radius: 16px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    #reader {
+      width: 100% !important;
+      border: none !important;
+    }
+
+    #reader video {
+      border-radius: 14px;
+      width: 100% !important;
+      object-fit: cover;
+    }
+
+    .checkin-status-card {
+      border-radius: 18px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      animation: popIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+      display: none;
+    }
+
+    @keyframes popIn {
+      0% { opacity: 0; transform: scale(0.92) translateY(10px); }
+      100% { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    .status-card-success {
+      background: rgba(16, 185, 129, 0.12);
+      border: 1.5px solid rgba(16, 185, 129, 0.5);
+      color: #a7f3d0;
+      box-shadow: 0 0 25px rgba(16, 185, 129, 0.25);
+    }
+
+    .status-card-error {
+      background: rgba(239, 68, 68, 0.12);
+      border: 1.5px solid rgba(239, 68, 68, 0.5);
+      color: #fca5a5;
+      box-shadow: 0 0 25px rgba(239, 68, 68, 0.25);
+    }
+
+    .status-card-warning {
+      background: rgba(245, 158, 11, 0.12);
+      border: 1.5px solid rgba(245, 158, 11, 0.5);
+      color: #fde68a;
+      box-shadow: 0 0 25px rgba(245, 158, 11, 0.25);
+    }
+
+    .recent-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      max-height: 380px;
+      overflow-y: auto;
+      padding-right: 0.4rem;
+    }
+
+    .recent-item {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 12px;
+      padding: 0.85rem 1.1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: background 0.2s;
+    }
+
+    .recent-item:hover {
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .camera-notice {
+      padding: 1.5rem;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.92rem;
+    }
+  </style>
+</head>
+<body>
+  <!-- Ambient Cosmic Nebula Glows -->
+  <div class="cosmic-nebula" aria-hidden="true">
+    <div class="nebula-orb orb-violet"></div>
+    <div class="nebula-orb orb-cyan"></div>
+    <div class="nebula-orb orb-gold"></div>
+  </div>
+
+  <!-- Sticky Top Navigation -->
+  <header class="navbar" role="banner">
+    <div class="nav-container">
+      <a href="index.html" class="nav-brand" aria-label="MathVerse Home">
+        <span class="brand-glyph">∫</span>
+        <span class="brand-text">Math<span class="brand-accent">Verse</span></span>
+      </a>
+
+      <div class="nav-actions">
+        <a href="admin.html" class="btn-secondary" style="padding: 0.5rem 1rem; font-size: 0.88rem;">← Admin Portal</a>
+        <div id="status-badge" class="status-badge status-disconnected" aria-live="polite">
+          <span class="status-dot"></span>
+          <span id="status-text" class="status-text">Disconnected</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="page-wrapper" style="flex-direction: column; padding: 2rem 1.5rem 4rem;">
+
+    <!-- AUTH GATE: If admin not logged in -->
+    <div id="auth-gate" style="display: none; max-width: 440px; margin: 4rem auto; text-align: center; background: var(--space-surface); border: 1px solid var(--space-border); border-radius: 24px; padding: 2.5rem 2rem;">
+      <div style="font-size: 3rem; margin-bottom: 1rem;">🔒</div>
+      <h2 style="font-family: var(--font-heading); color: var(--text-pure); margin-bottom: 0.75rem;">Admin Access Required</h2>
+      <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 1.75rem;">You must be logged in to MathVerse Admin to scan tickets and record check-ins.</p>
+      <a href="admin.html" class="btn-primary" style="width: 100%; justify-content: center;">Go to Admin Login →</a>
+    </div>
+
+    <!-- MAIN APP CONTENT (Visible when authorized) -->
+    <div id="checkin-content" style="display: none; width: 100%; max-width: 1200px; margin: 0 auto;">
+      
+      <!-- Header with Event Selector & Live Counter -->
+      <div style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 1.5rem; margin-bottom: 2rem;">
+        <div>
+          <div class="subpage-badge" style="margin-bottom: 0.5rem;">Access Control</div>
+          <h1 style="font-family: var(--font-heading); font-size: 2.4rem; color: var(--text-pure); margin: 0;">
+            Live <span class="gradient-text">Ticket Check-In</span>
+          </h1>
+          <p style="color: var(--text-muted); font-size: 0.95rem; margin-top: 0.4rem;">
+            Scan digital ticket QR codes with your device camera or type ticket codes manually.
+          </p>
+        </div>
+
+        <!-- Event Selection Dropdown -->
+        <div style="min-width: 320px; max-width: 400px; width: 100%;">
+          <label for="event-select" class="form-label" style="font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--neon-cyan);">Select Active Event</label>
+          <select id="event-select" class="form-select" style="padding: 0.75rem 1rem; font-size: 0.95rem;">
+            <option value="" disabled selected>Loading events...</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Live Attendance Counter Strip -->
+      <div style="background: var(--space-surface); border: 1px solid var(--space-border); border-radius: 20px; padding: 1.5rem 2rem; margin-bottom: 2rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1.5rem;">
+        <div>
+          <div style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; font-family: var(--font-mono);">Checked-In Attendance</div>
+          <div style="display: flex; align-items: baseline; gap: 0.6rem; margin-top: 0.2rem;">
+            <span id="counter-attended" style="font-family: var(--font-heading); font-size: 2.6rem; font-weight: 800; color: #10b981;">0</span>
+            <span style="font-family: var(--font-mono); font-size: 1.3rem; color: var(--text-muted);">/</span>
+            <span id="counter-total" style="font-family: var(--font-heading); font-size: 1.8rem; font-weight: 700; color: var(--text-pure);">0</span>
+            <span style="font-size: 0.95rem; color: var(--text-muted); margin-left: 0.25rem;">registered</span>
+          </div>
+        </div>
+
+        <div style="flex: 1; max-width: 400px; min-width: 200px;">
+          <div style="display: flex; justify-content: space-between; font-size: 0.85rem; font-family: var(--font-mono); color: var(--neon-cyan); margin-bottom: 0.4rem;">
+            <span>Attendance Rate</span>
+            <span id="counter-percent">0%</span>
+          </div>
+          <div style="height: 10px; background: rgba(255, 255, 255, 0.08); border-radius: 10px; overflow: hidden;">
+            <div id="counter-bar" style="height: 100%; width: 0%; background: linear-gradient(90deg, var(--neon-violet), #10b981); transition: width 0.4s ease;"></div>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 0.75rem;">
+          <button id="btn-toggle-camera" type="button" class="btn-primary" style="padding: 0.75rem 1.4rem; font-size: 0.92rem;">
+            <span>📷 Start Camera</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Two-Column Check-in Interface -->
+      <div class="checkin-layout">
+        
+        <!-- Column 1: Scanner & Manual Entry -->
+        <div class="scanner-panel">
+          <h3 style="font-family: var(--font-heading); font-size: 1.3rem; color: var(--text-pure); margin-bottom: 1rem; display: flex; align-items: center; justify-content: space-between;">
+            <span>Device Camera Scanner</span>
+            <span id="scanner-state-badge" class="ticket-badge" style="font-size: 0.75rem;">Camera Idle</span>
+          </h3>
+
+          <!-- Camera Stream Container -->
+          <div id="qr-reader-container">
+            <div id="reader"></div>
+            <div id="camera-placeholder" class="camera-notice">
+              <div style="font-size: 2.2rem; margin-bottom: 0.5rem;">📸</div>
+              <p>Camera is currently idle. Click <strong>"Start Camera"</strong> above to begin scanning attendee ticket QR codes.</p>
+            </div>
+            <div id="camera-error-msg" class="camera-notice" style="display: none; color: #fca5a5;">
+              <div style="font-size: 2rem; margin-bottom: 0.5rem;">⚠️</div>
+              <p id="camera-error-text">Camera permission was denied. Please allow camera access in your browser or enter ticket codes manually below.</p>
+            </div>
+          </div>
+
+          <div style="margin-top: 1.75rem; padding-top: 1.5rem; border-top: 1px solid rgba(255, 255, 255, 0.08);">
+            <h4 style="font-family: var(--font-heading); font-size: 1.05rem; color: var(--text-pure); margin-bottom: 0.75rem;">
+              Or Enter Ticket Code Manually
+            </h4>
+            <form id="manual-code-form" style="display: flex; gap: 0.75rem;">
+              <input type="text" id="manual-code-input" class="form-input" placeholder="e.g. MV-2026-A1B2C3" style="text-transform: uppercase; font-family: var(--font-mono);" required>
+              <button type="submit" class="btn-secondary" style="white-space: nowrap; padding: 0.75rem 1.5rem;">
+                Check In ↵
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <!-- Column 2: Status Cards & Recent Activity -->
+        <div class="results-panel">
+          <h3 style="font-family: var(--font-heading); font-size: 1.3rem; color: var(--text-pure); margin-bottom: 1rem;">
+            Verification Outcome
+          </h3>
+
+          <!-- SUCCESS CARD: Big Green Animated -->
+          <div id="card-success" class="checkin-status-card status-card-success">
+            <div style="display: flex; align-items: flex-start; gap: 1rem;">
+              <div style="font-size: 2.5rem; line-height: 1;">✓</div>
+              <div style="flex: 1;">
+                <div style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; font-family: var(--font-mono); color: #34d399; margin-bottom: 0.25rem;">
+                  SUCCESSFULLY VERIFIED &bull; ATTENDEE ADMITTED
+                </div>
+                <h4 id="success-name" style="font-family: var(--font-heading); font-size: 1.6rem; color: #ffffff; margin: 0 0 0.5rem;">
+                  Attendee Name
+                </h4>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem; font-size: 0.88rem; color: #d1fae5;">
+                  <div><strong>Ticket:</strong> <span id="success-code" style="font-family: var(--font-mono);">MV-2026-XXXX</span></div>
+                  <div><strong>ID:</strong> <span id="success-enrollment">—</span></div>
+                  <div><strong>Major:</strong> <span id="success-branch">—</span></div>
+                  <div><strong>Admitted:</strong> <span id="success-time">Just now</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- REPEAT WARNING CARD: Yellow/Amber -->
+          <div id="card-warning" class="checkin-status-card status-card-warning">
+            <div style="display: flex; align-items: flex-start; gap: 1rem;">
+              <div style="font-size: 2.5rem; line-height: 1;">⚠️</div>
+              <div style="flex: 1;">
+                <div style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; font-family: var(--font-mono); color: #fbbf24; margin-bottom: 0.25rem;">
+                  ALREADY CHECKED IN
+                </div>
+                <h4 id="warning-name" style="font-family: var(--font-heading); font-size: 1.4rem; color: #ffffff; margin: 0 0 0.4rem;">
+                  Attendee Name
+                </h4>
+                <p id="warning-msg" style="font-size: 0.9rem; margin: 0; color: #fef3c7;">
+                  This attendee has already been admitted.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- ERROR CARD: Red -->
+          <div id="card-error" class="checkin-status-card status-card-error">
+            <div style="display: flex; align-items: flex-start; gap: 1rem;">
+              <div style="font-size: 2.5rem; line-height: 1;">✕</div>
+              <div style="flex: 1;">
+                <div style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; font-family: var(--font-mono); color: #f87171; margin-bottom: 0.25rem;">
+                  CHECK-IN REJECTED
+                </div>
+                <h4 style="font-family: var(--font-heading); font-size: 1.3rem; color: #ffffff; margin: 0 0 0.4rem;">
+                  Invalid Ticket Code
+                </h4>
+                <p id="error-msg" style="font-size: 0.9rem; margin: 0; color: #fee2e2;">
+                  Ticket code not recognized in system.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Recent Check-Ins Roster -->
+          <div style="margin-top: 1.5rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+              <h4 style="font-family: var(--font-heading); font-size: 1.1rem; color: var(--text-pure); margin: 0;">
+                Recent Admissions
+              </h4>
+              <span id="recent-count" style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-muted);">0 recorded</span>
+            </div>
+
+            <div id="recent-list" class="recent-list">
+              <div id="recent-empty" style="color: var(--text-muted); font-size: 0.9rem; text-align: center; padding: 2rem 1rem;">
+                No check-ins recorded yet during this session.
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    (function() {
+      // Admin Token Validation
+      const adminToken = localStorage.getItem('mathverse_admin_token');
+      const authGate = document.getElementById('auth-gate');
+      const checkinContent = document.getElementById('checkin-content');
+
+      if (!adminToken) {
+        authGate.style.display = 'block';
+        return;
+      }
+      authGate.style.display = 'none';
+      checkinContent.style.display = 'block';
+
+      // State
+      let activeEventId = null;
+      let html5QrCode = null;
+      let isScanning = false;
+      let isProcessing = false;
+      const recentCheckins = [];
+
+      const eventSelect = document.getElementById('event-select');
+      const counterAttended = document.getElementById('counter-attended');
+      const counterTotal = document.getElementById('counter-total');
+      const counterPercent = document.getElementById('counter-percent');
+      const counterBar = document.getElementById('counter-bar');
+      const btnToggleCamera = document.getElementById('btn-toggle-camera');
+      const scannerStateBadge = document.getElementById('scanner-state-badge');
+      const cameraPlaceholder = document.getElementById('camera-placeholder');
+      const cameraErrorMsg = document.getElementById('camera-error-msg');
+      const cameraErrorText = document.getElementById('camera-error-text');
+      const manualForm = document.getElementById('manual-code-form');
+      const manualInput = document.getElementById('manual-code-input');
+      const recentList = document.getElementById('recent-list');
+      const recentEmpty = document.getElementById('recent-empty');
+      const recentCount = document.getElementById('recent-count');
+
+      // Cards
+      const cardSuccess = document.getElementById('card-success');
+      const successName = document.getElementById('success-name');
+      const successCode = document.getElementById('success-code');
+      const successEnrollment = document.getElementById('success-enrollment');
+      const successBranch = document.getElementById('success-branch');
+      const successTime = document.getElementById('success-time');
+
+      const cardWarning = document.getElementById('card-warning');
+      const warningName = document.getElementById('warning-name');
+      const warningMsg = document.getElementById('warning-msg');
+
+      const cardError = document.getElementById('card-error');
+      const errorMsg = document.getElementById('error-msg');
+
+      function hideAllCards() {
+        cardSuccess.style.display = 'none';
+        cardWarning.style.display = 'none';
+        cardError.style.display = 'none';
+      }
+
+      // Audio feedback (synthesizer beep)
+      function playTone(type) {
+        try {
+          const ctx = new (window.AudioContext || window.webkitAudioContext)();
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+
+          if (type === 'success') {
+            osc.frequency.setValueAtTime(587.33, ctx.currentTime); // D5
+            osc.frequency.setValueAtTime(880, ctx.currentTime + 0.1); // A5
+            gain.gain.setValueAtTime(0.15, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+            osc.start();
+            osc.stop(ctx.currentTime + 0.3);
+          } else if (type === 'warning') {
+            osc.frequency.setValueAtTime(440, ctx.currentTime);
+            gain.gain.setValueAtTime(0.12, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.25);
+            osc.start();
+            osc.stop(ctx.currentTime + 0.25);
+          } else {
+            osc.frequency.setValueAtTime(220, ctx.currentTime); // A3 low
+            gain.gain.setValueAtTime(0.15, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.35);
+            osc.start();
+            osc.stop(ctx.currentTime + 0.35);
+          }
+        } catch (e) {
+          // ignore audio failure
+        }
+      }
+
+      // Load Events
+      async function loadEvents() {
+        try {
+          const res = await fetch('/api/admin/attendance', {
+            headers: { 'x-admin-token': adminToken }
+          });
+          if (res.status === 401) {
+            localStorage.removeItem('mathverse_admin_token');
+            window.location.href = 'admin.html';
+            return;
+          }
+          const json = await res.json();
+          if (json.success && json.events) {
+            eventSelect.innerHTML = json.events.map(ev => `
+              <option value="${ev.id}">${ev.title} (${ev.date})</option>
+            `).join('');
+
+            // Pre-select from URL query if present, otherwise first event
+            const urlParams = new URLSearchParams(window.location.search);
+            const queryEvent = urlParams.get('event');
+            if (queryEvent && json.events.some(e => e.id === queryEvent)) {
+              eventSelect.value = queryEvent;
+            } else if (json.events.length > 0) {
+              eventSelect.value = json.events[0].id;
+            }
+
+            activeEventId = eventSelect.value;
+            loadEventStats(activeEventId);
+          }
+        } catch (err) {
+          console.error('Failed to load events:', err);
+        }
+      }
+
+      async function loadEventStats(eventId) {
+        if (!eventId) return;
+        try {
+          const res = await fetch(`/api/admin/events/${eventId}/attendance`, {
+            headers: { 'x-admin-token': adminToken }
+          });
+          if (res.ok) {
+            const data = await res.json();
+            if (data.success && data.stats) {
+              updateStatsUI(data.stats.attended_count, data.stats.total_registered);
+              
+              // Load recent check-ins from attendee list
+              const checkedIn = data.attendees.filter(a => a.checked_in === 1);
+              checkedIn.slice(0, 10).forEach(att => {
+                if (!recentCheckins.some(r => r.ticket_code === att.ticket_code)) {
+                  recentCheckins.push({
+                    name: att.name,
+                    ticket_code: att.ticket_code,
+                    time: att.checked_in_at ? new Date(att.checked_in_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Earlier',
+                    enrollment: att.enrollment_no,
+                    branch: att.branch
+                  });
+                }
+              });
+              renderRecentList();
+            }
+          }
+        } catch (e) {
+          console.error(e);
+        }
+      }
+
+      function updateStatsUI(attended, total) {
+        counterAttended.textContent = attended;
+        counterTotal.textContent = total;
+        const pct = total > 0 ? Math.round((attended / total) * 100) : 0;
+        counterPercent.textContent = `${pct}%`;
+        counterBar.style.width = `${pct}%`;
+      }
+
+      function renderRecentList() {
+        if (recentCheckins.length === 0) {
+          recentEmpty.style.display = 'block';
+          recentCount.textContent = '0 recorded';
+          return;
+        }
+        recentEmpty.style.display = 'none';
+        recentCount.textContent = `${recentCheckins.length} recorded`;
+
+        recentList.innerHTML = recentCheckins.map(item => `
+          <div class="recent-item">
+            <div>
+              <div style="font-weight: 600; color: #ffffff; font-size: 0.95rem;">${item.name}</div>
+              <div style="font-family: var(--font-mono); font-size: 0.78rem; color: var(--neon-cyan);">${item.ticket_code} &bull; ${item.branch || 'Student'}</div>
+            </div>
+            <div style="text-align: right;">
+              <span class="ticket-badge" style="background: rgba(16, 185, 129, 0.15); border-color: rgba(16, 185, 129, 0.4); color: #34d399; font-size: 0.75rem;">
+                ✓ ${item.time}
+              </span>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      // Check-in Execution
+      async function executeCheckIn(ticketCode) {
+        if (!activeEventId) {
+          alert('Please select an active event first.');
+          return;
+        }
+        if (isProcessing) return;
+        isProcessing = true;
+
+        hideAllCards();
+
+        try {
+          const res = await fetch('/api/admin/checkin', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-admin-token': adminToken
+            },
+            body: JSON.stringify({
+              event_id: activeEventId,
+              ticket_code: ticketCode
+            })
+          });
+
+          const data = await res.json();
+
+          if (data.status === 'checked_in') {
+            playTone('success');
+            successName.textContent = data.attendee.name;
+            successCode.textContent = data.attendee.ticket_code;
+            successEnrollment.textContent = data.attendee.enrollment_no || '—';
+            successBranch.textContent = data.attendee.branch || '—';
+            successTime.textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            cardSuccess.style.display = 'block';
+
+            if (data.stats) {
+              updateStatsUI(data.stats.checked_in_count, data.stats.total_registered);
+            }
+
+            // Add to top of recents
+            recentCheckins.unshift({
+              name: data.attendee.name,
+              ticket_code: data.attendee.ticket_code,
+              time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+              enrollment: data.attendee.enrollment_no,
+              branch: data.attendee.branch
+            });
+            renderRecentList();
+
+          } else if (data.status === 'already_checked_in') {
+            playTone('warning');
+            warningName.textContent = data.attendee ? data.attendee.name : 'Attendee';
+            warningMsg.textContent = data.message || 'Already checked in previously.';
+            cardWarning.style.display = 'block';
+          } else {
+            playTone('error');
+            errorMsg.textContent = data.message || data.error || 'Invalid ticket code.';
+            cardError.style.display = 'block';
+          }
+        } catch (err) {
+          playTone('error');
+          errorMsg.textContent = 'Server network error during verification. Check connection.';
+          cardError.style.display = 'block';
+        } finally {
+          setTimeout(() => {
+            isProcessing = false;
+          }, 800);
+        }
+      }
+
+      // Event Switch Listener
+      eventSelect.addEventListener('change', (e) => {
+        activeEventId = e.target.value;
+        recentCheckins.length = 0;
+        hideAllCards();
+        loadEventStats(activeEventId);
+      });
+
+      // Manual Code Form
+      manualForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const code = manualInput.value.trim().toUpperCase();
+        if (code) {
+          executeCheckIn(code);
+          manualInput.value = '';
+        }
+      });
+
+      // Camera Scanner Controller
+      async function startCamera() {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          cameraPlaceholder.style.display = 'none';
+          cameraErrorMsg.style.display = 'block';
+          cameraErrorText.textContent = 'Camera API is not supported on this browser or device.';
+          return;
+        }
+
+        try {
+          cameraPlaceholder.style.display = 'none';
+          cameraErrorMsg.style.display = 'none';
+
+          if (!html5QrCode) {
+            html5QrCode = new Html5Qrcode('reader');
+          }
+
+          const config = {
+            fps: 10,
+            qrbox: { width: 250, height: 250 },
+            aspectRatio: 1.0
+          };
+
+          await html5QrCode.start(
+            { facingMode: 'environment' },
+            config,
+            (decodedText) => {
+              // Successfully decoded QR code text
+              let code = decodedText.trim();
+              // If full URL was encoded (e.g. https://domain.com/ticket?code=MV-2026-XXXX)
+              if (code.includes('code=')) {
+                try {
+                  const url = new URL(code, window.location.origin);
+                  code = url.searchParams.get('code') || code;
+                } catch (e) {}
+              }
+              executeCheckIn(code);
+            },
+            (errorMessage) => {
+              // frame scan failure (normal, ignore)
+            }
+          );
+
+          isScanning = true;
+          btnToggleCamera.innerHTML = '<span>⏹ Stop Camera</span>';
+          btnToggleCamera.classList.remove('btn-primary');
+          btnToggleCamera.classList.add('btn-secondary');
+          scannerStateBadge.textContent = 'Camera Live';
+          scannerStateBadge.style.color = '#10b981';
+
+        } catch (err) {
+          console.error('Camera start failed:', err);
+          cameraPlaceholder.style.display = 'none';
+          cameraErrorMsg.style.display = 'block';
+          if (err && (err.name === 'NotAllowedError' || String(err).includes('Permission'))) {
+            cameraErrorText.textContent = 'Camera permission was denied. Please allow camera access in browser site settings or enter ticket codes manually.';
+          } else {
+            cameraErrorText.textContent = 'Could not initialize camera: ' + (err.message || err);
+          }
+        }
+      }
+
+      async function stopCamera() {
+        if (html5QrCode && isScanning) {
+          try {
+            await html5QrCode.stop();
+          } catch (e) {}
+          isScanning = false;
+          btnToggleCamera.innerHTML = '<span>📷 Start Camera</span>';
+          btnToggleCamera.classList.remove('btn-secondary');
+          btnToggleCamera.classList.add('btn-primary');
+          scannerStateBadge.textContent = 'Camera Idle';
+          scannerStateBadge.style.color = 'var(--text-muted)';
+          cameraPlaceholder.style.display = 'block';
+        }
+      }
+
+      btnToggleCamera.addEventListener('click', () => {
+        if (isScanning) {
+          stopCamera();
+        } else {
+          startCamera();
+        }
+      });
+
+      // Socket.IO real-time connection & listener
+      if (typeof io !== 'undefined') {
+        const socket = io();
+        const badge = document.getElementById('status-badge');
+        const txt = document.getElementById('status-text');
+
+        socket.on('connect', () => {
+          if (badge && txt) {
+            badge.className = 'status-badge status-connected';
+            txt.textContent = 'Connected';
+          }
+        });
+
+        socket.on('disconnect', () => {
+          if (badge && txt) {
+            badge.className = 'status-badge status-disconnected';
+            txt.textContent = 'Disconnected';
+          }
+        });
+
+        socket.on('attendance:updated', (payload) => {
+          if (payload && payload.event_id === activeEventId) {
+            updateStatsUI(payload.checked_in_count, payload.total_registered);
+          }
+        });
+      }
+
+      // Initial load
+      loadEvents();
+    })();
+  </script>
+</body>
+</html>

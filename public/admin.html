@@ -142,10 +142,16 @@
         </div>
       </div>
 
-      <!-- Admin Navigation Tabs: Registrations vs Members -->
+      <!-- Admin Navigation Tabs: Registrations vs Attendance vs Feedback vs Members -->
       <div class="admin-nav-tabs" role="tablist">
         <button type="button" id="tab-admin-events" class="admin-nav-tab active" role="tab" aria-selected="true">
-          🎟️ Event Registrations
+          🎟️ Registrations
+        </button>
+        <button type="button" id="tab-admin-attendance" class="admin-nav-tab" role="tab" aria-selected="false">
+          📋 Attendance & Certificates
+        </button>
+        <button type="button" id="tab-admin-feedback" class="admin-nav-tab" role="tab" aria-selected="false">
+          ⭐ Event Feedback
         </button>
         <button type="button" id="tab-admin-members" class="admin-nav-tab" role="tab" aria-selected="false">
           👥 Club Members Roster
@@ -290,6 +296,100 @@
         </div>
       </div>
 
+      <!-- TAB PANEL 3: Attendance & Certificates -->
+      <div id="panel-admin-attendance" style="display: none;">
+        <div class="admin-table-controls" style="margin-bottom: 1.5rem;">
+          <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
+            <a href="admin-checkin.html" class="btn-primary" style="padding: 0.75rem 1.4rem;">
+              <span>📷 Launch Check-In Scanner</span>
+            </a>
+            <button type="button" id="btn-export-attendance-csv" class="btn-secondary" style="padding: 0.75rem 1.4rem;">
+              <span>📥 Export Attendance CSV</span>
+            </button>
+            <button type="button" id="btn-refresh-attendance" class="btn-secondary" style="padding: 0.75rem 1.4rem;">
+              <span>🔄 Refresh</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Attendance Report Table -->
+        <div class="admin-table-container">
+          <table class="admin-table" aria-label="Event Attendance Report">
+            <thead>
+              <tr>
+                <th>Event Title</th>
+                <th>Date & Venue</th>
+                <th>Capacity</th>
+                <th style="text-align: center;">Registered</th>
+                <th style="text-align: center;">Attended</th>
+                <th style="text-align: center;">Attendance Rate</th>
+                <th style="text-align: right;">Certificates & Actions</th>
+              </tr>
+            </thead>
+            <tbody id="admin-attendance-tbody">
+              <!-- Rendered dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- TAB PANEL 4: Event Feedback -->
+      <div id="panel-admin-feedback" style="display: none;">
+        <!-- Feedback Toolbar -->
+        <div class="admin-table-controls" style="margin-bottom: 2rem;">
+          <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+            <div style="min-width: 240px;">
+              <select id="admin-feedback-event-filter" class="form-select" style="padding: 0.75rem 1rem; font-size: 0.9rem;">
+                <option value="all">All Events Feedback</option>
+              </select>
+            </div>
+            <button type="button" id="btn-export-feedback-csv" class="btn-primary" style="padding: 0.75rem 1.4rem;">
+              <span>📥 Export Feedback CSV</span>
+            </button>
+            <button type="button" id="btn-refresh-feedback" class="btn-secondary" style="padding: 0.75rem 1.4rem;">
+              <span>🔄 Refresh</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Feedback Summary Stats Strip -->
+        <div class="admin-stats-strip" style="margin-bottom: 2rem;">
+          <div class="admin-stat-card">
+            <div class="admin-stat-label">Average Star Rating</div>
+            <div id="fb-stat-avg" class="admin-stat-value" style="color: var(--neon-gold);">0.0 ★</div>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.4rem;">Overall attendee sentiment</p>
+          </div>
+          <div class="admin-stat-card">
+            <div class="admin-stat-label">Total Reviews</div>
+            <div id="fb-stat-total" class="admin-stat-value">0</div>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.4rem;">Verified check-in submissions</p>
+          </div>
+          <div class="admin-stat-card" style="grid-column: span 2;">
+            <div class="admin-stat-label">Star Distribution</div>
+            <div id="fb-star-dist" style="display: flex; flex-direction: column; gap: 0.35rem; margin-top: 0.5rem;">
+              <!-- 5 stars to 1 star bars -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Feedback Responses List -->
+        <div>
+          <h3 style="font-family: var(--font-heading); font-size: 1.3rem; color: var(--text-pure); margin-bottom: 1rem;">
+            Attendee Responses & Ideas
+          </h3>
+          <div id="fb-responses-list" style="display: flex; flex-direction: column; gap: 1rem;">
+            <!-- Rendered dynamically -->
+          </div>
+          <div id="fb-empty-state" style="display: none; padding: 4rem 1.5rem; text-align: center; color: var(--text-muted);">
+            <div style="font-size: 2.5rem; margin-bottom: 0.75rem;">💬</div>
+            <h4 style="font-family: var(--font-heading); font-size: 1.2rem; color: var(--text-pure); margin-bottom: 0.4rem;">
+              No Feedback Submitted Yet
+            </h4>
+            <p style="font-size: 0.92rem;">Attendees who check in can share feedback at <a href="feedback.html" style="color: var(--neon-cyan); text-decoration: underline;">feedback.html</a>.</p>
+          </div>
+        </div>
+      </div>
+
     </section>
 
     <!-- Delete Confirmation Modal -->
@@ -387,7 +487,7 @@
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       const STORAGE_KEY = 'mathverse_admin_token';
-      let adminToken = sessionStorage.getItem(STORAGE_KEY);
+      let adminToken = sessionStorage.getItem(STORAGE_KEY) || localStorage.getItem(STORAGE_KEY);
 
       // DOM Elements
       const loginView = document.getElementById('admin-login-view');
@@ -462,6 +562,7 @@
 
           adminToken = data.token;
           sessionStorage.setItem(STORAGE_KEY, adminToken);
+          localStorage.setItem(STORAGE_KEY, adminToken);
           initDashboard();
         } catch (err) {
           loginErrorBox.textContent = 'Network or server error during authentication.';
@@ -472,6 +573,7 @@
       // Handle Logout
       btnLogout.addEventListener('click', () => {
         sessionStorage.removeItem(STORAGE_KEY);
+        localStorage.removeItem(STORAGE_KEY);
         adminToken = null;
         showLogin();
       });
@@ -652,11 +754,282 @@
       /* ====================================================================
          Members Roster Management Logic
          ==================================================================== */
+      /* ====================================================================
+         Tab Navigation & Operational Panels (Events, Attendance, Feedback, Members)
+         ==================================================================== */
       const tabEvents = document.getElementById('tab-admin-events');
+      const tabAttendance = document.getElementById('tab-admin-attendance');
+      const tabFeedback = document.getElementById('tab-admin-feedback');
       const tabMembers = document.getElementById('tab-admin-members');
+
       const panelEvents = document.getElementById('panel-admin-events');
+      const panelAttendance = document.getElementById('panel-admin-attendance');
+      const panelFeedback = document.getElementById('panel-admin-feedback');
       const panelMembers = document.getElementById('panel-admin-members');
 
+      const btnExportAttendanceCsv = document.getElementById('btn-export-attendance-csv');
+      const btnRefreshAttendance = document.getElementById('btn-refresh-attendance');
+      const btnExportFeedbackCsv = document.getElementById('btn-export-feedback-csv');
+      const btnRefreshFeedback = document.getElementById('btn-refresh-feedback');
+      const feedbackEventFilter = document.getElementById('admin-feedback-event-filter');
+
+      function escapeHtml(str) {
+        if (!str) return '';
+        return String(str)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;');
+      }
+
+      function switchAdminTab(targetTab) {
+        const tabs = [
+          { name: 'events', btn: tabEvents, panel: panelEvents, loader: () => { loadStats(); loadRegistrations(); } },
+          { name: 'attendance', btn: tabAttendance, panel: panelAttendance, loader: loadAttendance },
+          { name: 'feedback', btn: tabFeedback, panel: panelFeedback, loader: loadFeedback },
+          { name: 'members', btn: tabMembers, panel: panelMembers, loader: loadMembers }
+        ];
+
+        tabs.forEach(t => {
+          if (t.name === targetTab) {
+            t.btn.classList.add('active');
+            t.btn.setAttribute('aria-selected', 'true');
+            t.panel.style.display = 'block';
+            if (t.loader) t.loader();
+          } else {
+            t.btn.classList.remove('active');
+            t.btn.setAttribute('aria-selected', 'false');
+            t.panel.style.display = 'none';
+          }
+        });
+      }
+
+      tabEvents.addEventListener('click', () => switchAdminTab('events'));
+      tabAttendance.addEventListener('click', () => switchAdminTab('attendance'));
+      tabFeedback.addEventListener('click', () => switchAdminTab('feedback'));
+      tabMembers.addEventListener('click', () => switchAdminTab('members'));
+
+      /* ====================================================================
+         Attendance & Certificates Logic
+         ==================================================================== */
+      async function loadAttendance() {
+        try {
+          const res = await fetch('/api/admin/attendance', {
+            headers: { 'x-admin-token': adminToken }
+          });
+          if (res.status === 401) {
+            sessionStorage.removeItem(STORAGE_KEY);
+            localStorage.removeItem(STORAGE_KEY);
+            showLogin();
+            return;
+          }
+          const data = await res.json();
+          if (!data.success) return;
+
+          const tbody = document.getElementById('admin-attendance-tbody');
+          tbody.innerHTML = (data.events || []).map(ev => {
+            const pct = ev.attendance_pct || 0;
+            return `
+              <tr>
+                <td>
+                  <strong style="color: #ffffff; font-size: 1rem; display: block;">${ev.title}</strong>
+                  <span class="event-category-pill" style="font-size: 0.72rem; padding: 0.15rem 0.5rem; margin-top: 0.2rem; display: inline-block;">${ev.category}</span>
+                </td>
+                <td>
+                  <div style="font-size: 0.88rem; color: var(--text-pure);">${ev.date}</div>
+                  <div style="font-size: 0.78rem; color: var(--text-muted);">${ev.venue}</div>
+                </td>
+                <td style="font-family: var(--font-mono); font-size: 0.95rem;">${ev.capacity}</td>
+                <td style="text-align: center; font-family: var(--font-mono); font-size: 1rem; font-weight: 700; color: var(--neon-cyan);">${ev.registered_count}</td>
+                <td style="text-align: center; font-family: var(--font-mono); font-size: 1rem; font-weight: 700; color: #10b981;">${ev.attended_count}</td>
+                <td style="text-align: center;">
+                  <span class="ticket-badge" style="background: rgba(16, 185, 129, 0.12); border-color: rgba(16, 185, 129, 0.4); color: #34d399; font-size: 0.8rem;">
+                    ${pct}%
+                  </span>
+                </td>
+                <td style="text-align: right;">
+                  <div style="display: flex; gap: 0.5rem; justify-content: flex-end; flex-wrap: wrap;">
+                    <a href="admin-checkin.html?event=${encodeURIComponent(ev.id)}" class="btn-primary" style="padding: 0.4rem 0.85rem; font-size: 0.8rem;" title="Scan tickets for this event">
+                      <span>📷 Scan</span>
+                    </a>
+                    <button type="button" class="btn-secondary btn-issue-certs" data-event-id="${ev.id}" data-event-title="${ev.title}" style="padding: 0.4rem 0.85rem; font-size: 0.8rem; border-color: rgba(251, 191, 36, 0.4); color: var(--neon-gold);" title="Issue certificates to all checked-in attendees">
+                      <span>📜 Issue Certs</span>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            `;
+          }).join('');
+
+          // Issue certificates handler
+          tbody.querySelectorAll('.btn-issue-certs').forEach(btn => {
+            btn.addEventListener('click', async () => {
+              const eventId = btn.getAttribute('data-event-id');
+              const eventTitle = btn.getAttribute('data-event-title');
+              if (!confirm(`Issue participation certificates to all checked-in attendees for "${eventTitle}"?\n\n(Attendees who already have a certificate will be skipped automatically.)`)) {
+                return;
+              }
+
+              btn.disabled = true;
+              btn.textContent = 'Issuing...';
+              try {
+                const cRes = await fetch(`/api/admin/events/${eventId}/issue-certificates`, {
+                  method: 'POST',
+                  headers: { 'x-admin-token': adminToken }
+                });
+                const cData = await cRes.json();
+                btn.disabled = false;
+                btn.textContent = '📜 Issue Certs';
+                if (cRes.ok && cData.success) {
+                  alert(cData.message || 'Certificates issued successfully!');
+                } else {
+                  alert(cData.error || 'Failed to issue certificates.');
+                }
+              } catch (e) {
+                btn.disabled = false;
+                btn.textContent = '📜 Issue Certs';
+                alert('Network communication error while issuing certificates.');
+              }
+            });
+          });
+
+        } catch (err) {
+          console.error('[Admin loadAttendance error]', err);
+        }
+      }
+
+      if (btnRefreshAttendance) {
+        btnRefreshAttendance.addEventListener('click', loadAttendance);
+      }
+
+      if (btnExportAttendanceCsv) {
+        btnExportAttendanceCsv.addEventListener('click', () => {
+          window.location.href = `/api/admin/attendance/export.csv?token=${encodeURIComponent(adminToken)}`;
+        });
+      }
+
+      /* ====================================================================
+         Feedback Management Logic
+         ==================================================================== */
+      async function loadFeedback() {
+        try {
+          // Populate event filter options if not yet populated
+          if (feedbackEventFilter && feedbackEventFilter.options.length <= 1) {
+            const evRes = await fetch('/api/admin/attendance', {
+              headers: { 'x-admin-token': adminToken }
+            });
+            if (evRes.ok) {
+              const evData = await evRes.json();
+              if (evData.events) {
+                evData.events.forEach(ev => {
+                  const opt = document.createElement('option');
+                  opt.value = ev.id;
+                  opt.textContent = ev.title;
+                  feedbackEventFilter.appendChild(opt);
+                });
+              }
+            }
+          }
+
+          const selectedEvent = (feedbackEventFilter && feedbackEventFilter.value) || 'all';
+          const res = await fetch(`/api/admin/feedback?event=${encodeURIComponent(selectedEvent)}`, {
+            headers: { 'x-admin-token': adminToken }
+          });
+          if (res.status === 401) {
+            sessionStorage.removeItem(STORAGE_KEY);
+            localStorage.removeItem(STORAGE_KEY);
+            showLogin();
+            return;
+          }
+          const data = await res.json();
+          if (!data.success) return;
+
+          document.getElementById('fb-stat-avg').textContent = `${Number(data.avg_rating || 0).toFixed(1)} ★`;
+          document.getElementById('fb-stat-total').textContent = data.total_count || 0;
+
+          // Render Star Distribution
+          const distContainer = document.getElementById('fb-star-dist');
+          const dist = data.distribution || { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+          const total = data.total_count || 1;
+          distContainer.innerHTML = [5, 4, 3, 2, 1].map(stars => {
+            const count = dist[stars] || 0;
+            const pct = Math.round((count / total) * 100);
+            return `
+              <div style="display: flex; align-items: center; gap: 0.75rem; font-size: 0.82rem;">
+                <span style="font-family: var(--font-mono); width: 45px; color: var(--neon-gold);">${stars} ★</span>
+                <div style="flex: 1; height: 7px; background: rgba(255, 255, 255, 0.08); border-radius: 4px; overflow: hidden;">
+                  <div style="height: 100%; width: ${pct}%; background: linear-gradient(90deg, var(--neon-gold), #f59e0b);"></div>
+                </div>
+                <span style="font-family: var(--font-mono); width: 35px; text-align: right; color: var(--text-muted);">${count}</span>
+              </div>
+            `;
+          }).join('');
+
+          // Render responses list
+          const listEl = document.getElementById('fb-responses-list');
+          const emptyEl = document.getElementById('fb-empty-state');
+          const feedbacks = data.feedback || [];
+
+          if (feedbacks.length === 0) {
+            listEl.innerHTML = '';
+            emptyEl.style.display = 'block';
+            return;
+          }
+
+          emptyEl.style.display = 'none';
+          listEl.innerHTML = feedbacks.map(fb => {
+            const starStr = '★'.repeat(fb.rating) + '☆'.repeat(5 - fb.rating);
+            return `
+              <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.07); border-radius: 16px; padding: 1.5rem;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem;">
+                  <div>
+                    <span style="font-family: var(--font-heading); font-size: 1.1rem; color: #ffffff; font-weight: 700;">${fb.event_title}</span>
+                    <div style="font-size: 0.82rem; color: var(--neon-cyan); margin-top: 0.15rem;">
+                      ${fb.attendee_name || 'Attendee'} &bull; <span style="font-family: var(--font-mono);">${fb.ticket_code}</span>
+                    </div>
+                  </div>
+                  <div style="text-align: right;">
+                    <div style="color: var(--neon-gold); font-size: 1.2rem; letter-spacing: 0.1em;">${starStr}</div>
+                    <div style="font-size: 0.75rem; color: var(--text-muted); font-family: var(--font-mono);">${new Date(fb.created_at).toLocaleDateString()}</div>
+                  </div>
+                </div>
+                ${fb.liked ? `
+                  <div style="margin-bottom: 0.6rem; font-size: 0.9rem; color: #d1fae5;">
+                    <span style="color: #34d399; font-weight: 600;">Liked:</span> "${escapeHtml(fb.liked)}"
+                  </div>
+                ` : ''}
+                ${fb.improve ? `
+                  <div style="font-size: 0.9rem; color: #fee2e2;">
+                    <span style="color: #f87171; font-weight: 600;">Suggestions:</span> "${escapeHtml(fb.improve)}"
+                  </div>
+                ` : ''}
+              </div>
+            `;
+          }).join('');
+
+        } catch (err) {
+          console.error('[Admin loadFeedback error]', err);
+        }
+      }
+
+      if (feedbackEventFilter) {
+        feedbackEventFilter.addEventListener('change', loadFeedback);
+      }
+
+      if (btnRefreshFeedback) {
+        btnRefreshFeedback.addEventListener('click', loadFeedback);
+      }
+
+      if (btnExportFeedbackCsv) {
+        btnExportFeedbackCsv.addEventListener('click', () => {
+          const ev = (feedbackEventFilter && feedbackEventFilter.value) || 'all';
+          window.location.href = `/api/admin/feedback/export.csv?event=${encodeURIComponent(ev)}&token=${encodeURIComponent(adminToken)}`;
+        });
+      }
+
+      /* ====================================================================
+         Members Roster Management Logic
+         ==================================================================== */
       const membersTbody = document.getElementById('admin-members-tbody');
       const membersEmpty = document.getElementById('admin-members-empty');
       const memberCountLabel = document.getElementById('admin-member-count-label');
@@ -670,28 +1043,6 @@
 
       let currentMembers = [];
       let memberToDelete = null;
-
-      function switchAdminTab(toMembers) {
-        if (toMembers) {
-          tabMembers.classList.add('active');
-          tabMembers.setAttribute('aria-selected', 'true');
-          tabEvents.classList.remove('active');
-          tabEvents.setAttribute('aria-selected', 'false');
-          panelMembers.style.display = 'block';
-          panelEvents.style.display = 'none';
-          loadMembers();
-        } else {
-          tabEvents.classList.add('active');
-          tabEvents.setAttribute('aria-selected', 'true');
-          tabMembers.classList.remove('active');
-          tabMembers.setAttribute('aria-selected', 'false');
-          panelEvents.style.display = 'block';
-          panelMembers.style.display = 'none';
-        }
-      }
-
-      tabEvents.addEventListener('click', () => switchAdminTab(false));
-      tabMembers.addEventListener('click', () => switchAdminTab(true));
 
       async function loadMembers() {
         try {

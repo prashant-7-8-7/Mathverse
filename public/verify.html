@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Credential Verification & Authentication — MathVerse</title>
+  <meta name="description" content="Public cryptographic certificate validation and authenticity verification portal for MathVerse honors and participation.">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="/css/style.css">
+
+  <style>
+    .verify-box {
+      width: 100%;
+      max-width: 680px;
+      margin: 0 auto;
+    }
+
+    .credential-card {
+      background: var(--space-surface);
+      backdrop-filter: var(--glass-blur);
+      border: 1px solid var(--space-border);
+      border-radius: 28px;
+      padding: 3rem 2.5rem;
+      box-shadow: var(--glass-shadow);
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      animation: fadeInScale 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes fadeInScale {
+      from { opacity: 0; transform: scale(0.95) translateY(12px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    .verified-badge-halo {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      margin: 0 auto 1.5rem;
+      background: rgba(16, 185, 129, 0.15);
+      border: 2px solid rgba(16, 185, 129, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.4rem;
+      color: #34d399;
+      box-shadow: 0 0 35px rgba(16, 185, 129, 0.35);
+    }
+
+    .invalid-badge-halo {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      margin: 0 auto 1.5rem;
+      background: rgba(239, 68, 68, 0.15);
+      border: 2px solid rgba(239, 68, 68, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.4rem;
+      color: #f87171;
+      box-shadow: 0 0 35px rgba(239, 68, 68, 0.35);
+    }
+
+    .cert-details-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.25rem;
+      text-align: left;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      border-radius: 18px;
+      padding: 1.5rem;
+      margin: 2rem 0;
+    }
+
+    @media (max-width: 600px) {
+      .cert-details-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .cert-prop-label {
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      margin-bottom: 0.25rem;
+    }
+
+    .cert-prop-val {
+      font-size: 1.05rem;
+      color: var(--text-pure);
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <!-- Ambient Cosmic Nebula -->
+  <div class="cosmic-nebula" aria-hidden="true">
+    <div class="nebula-orb orb-violet"></div>
+    <div class="nebula-orb orb-cyan"></div>
+    <div class="nebula-orb orb-gold"></div>
+  </div>
+
+  <!-- Sticky Top Navigation -->
+  <header class="navbar" role="banner">
+    <div class="nav-container">
+      <a href="index.html" class="nav-brand" aria-label="MathVerse Home">
+        <span class="brand-glyph">∫</span>
+        <span class="brand-text">Math<span class="brand-accent">Verse</span></span>
+      </a>
+
+      <nav class="nav-menu" aria-label="Primary Navigation">
+        <ul class="nav-links">
+          <li><a href="index.html" class="nav-link">Home</a></li>
+          <li><a href="about.html" class="nav-link">About</a></li>
+          <li><a href="events.html" class="nav-link">Events</a></li>
+          <li><a href="gallery.html" class="nav-link">Gallery</a></li>
+          <li><a href="arena.html" class="nav-link">Arena</a></li>
+          <li><a href="leaderboard.html" class="nav-link">Leaderboard</a></li>
+          <li><a href="members.html" class="nav-link">Members</a></li>
+          <li><a href="certificates.html" class="nav-link active">Certificates</a></li>
+          <li><a href="feedback.html" class="nav-link">Feedback</a></li>
+          <li><a href="contact.html" class="nav-link">Contact</a></li>
+        </ul>
+      </nav>
+
+      <div class="nav-actions">
+        <div id="status-badge" class="status-badge status-disconnected" aria-live="polite">
+          <span class="status-dot"></span>
+          <span id="status-text" class="status-text">Disconnected</span>
+        </div>
+        <a href="contact.html" class="btn-nav-join">Join the Club</a>
+        <button id="nav-toggle" class="nav-toggle" aria-label="Toggle navigation menu">
+          <span class="toggle-line"></span>
+          <span class="toggle-line"></span>
+          <span class="toggle-line"></span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="page-wrapper" style="flex-direction: column; padding: 3rem 1.5rem 5rem;">
+    <div class="verify-box">
+      
+      <!-- Lookup Form if no code in URL or want to test another code -->
+      <div style="margin-bottom: 2rem;">
+        <form id="verify-form" style="display: flex; gap: 0.75rem;">
+          <input type="text" id="verify-code-input" class="form-input" placeholder="Enter Certificate Code (e.g. MV-CERT-XXXXX)" style="text-transform: uppercase; font-family: var(--font-mono); font-size: 1rem;" required>
+          <button type="submit" class="btn-primary" style="white-space: nowrap; padding: 0.75rem 1.5rem;">
+            <span>Verify</span>
+          </button>
+        </form>
+      </div>
+
+      <!-- State 1: Loading State -->
+      <div id="verify-loading" style="display: none; text-align: center; padding: 3rem 1rem;">
+        <div style="font-size: 2.5rem; animation: floatSlow 1.5s infinite ease-in-out;">⚡</div>
+        <h3 style="font-family: var(--font-heading); color: var(--text-pure); margin-top: 1rem;">Authenticating Credential...</h3>
+        <p style="color: var(--text-muted); font-size: 0.95rem;">Checking MathVerse cryptographic registry</p>
+      </div>
+
+      <!-- State 2: Valid Certificate Result -->
+      <div id="verify-valid" class="credential-card" style="display: none;">
+        <div class="verified-badge-halo">✓</div>
+        
+        <span class="ticket-badge" style="background: rgba(16, 185, 129, 0.15); border-color: rgba(16, 185, 129, 0.4); color: #34d399; font-size: 0.85rem; padding: 0.4rem 1.1rem; margin-bottom: 1rem;">
+          Official Verified Credential
+        </span>
+
+        <h1 id="cert-title-display" style="font-family: var(--font-heading); font-size: 2rem; color: var(--text-pure); margin-bottom: 0.25rem;">
+          Certificate of Participation
+        </h1>
+        <p id="cert-type-pill" style="font-family: var(--font-mono); font-size: 0.9rem; color: var(--neon-cyan); margin-bottom: 1.5rem;">
+          General Attendee Honor
+        </p>
+
+        <!-- Recipient Highlight -->
+        <div style="margin: 1.5rem 0;">
+          <div class="cert-prop-label">Awarded To</div>
+          <div id="cert-recipient" style="font-family: var(--font-heading); font-size: 2.2rem; font-weight: 700; color: #ffffff; text-shadow: 0 0 20px rgba(139, 92, 246, 0.4);">
+            Recipient Name
+          </div>
+        </div>
+
+        <!-- Details Grid -->
+        <div class="cert-details-grid">
+          <div>
+            <div class="cert-prop-label">Competition / Event</div>
+            <div id="cert-event" class="cert-prop-val">Euler Quiz Night</div>
+          </div>
+          <div>
+            <div class="cert-prop-label">Date Issued</div>
+            <div id="cert-date" class="cert-prop-val">March 28, 2026</div>
+          </div>
+          <div>
+            <div class="cert-prop-label">Issuing Organization</div>
+            <div id="cert-org" class="cert-prop-val">Mathematics Club</div>
+          </div>
+          <div>
+            <div class="cert-prop-label">Certificate Serial ID</div>
+            <div id="cert-code" class="cert-prop-val" style="font-family: var(--font-mono); color: var(--neon-gold);">MV-CERT-XXXXXXXX</div>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+          <a id="btn-download-pdf" href="#" class="btn-primary" style="padding: 0.85rem 1.8rem;">
+            <span>📥 Download Official PDF</span>
+          </a>
+          <a href="certificates.html" class="btn-secondary" style="padding: 0.85rem 1.8rem;">
+            <span>🔍 Find My Certificates</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- State 3: Invalid / Not Found Result -->
+      <div id="verify-invalid" class="credential-card" style="display: none;">
+        <div class="invalid-badge-halo">✕</div>
+        
+        <span class="ticket-badge" style="background: rgba(239, 68, 68, 0.15); border-color: rgba(239, 68, 68, 0.4); color: #f87171; font-size: 0.85rem; padding: 0.4rem 1.1rem; margin-bottom: 1rem;">
+          Verification Failed
+        </span>
+
+        <h2 style="font-family: var(--font-heading); font-size: 1.8rem; color: var(--text-pure); margin-bottom: 0.75rem;">
+          Certificate Not Found
+        </h2>
+        <p id="invalid-reason-text" style="color: var(--text-muted); font-size: 0.98rem; line-height: 1.6; max-width: 480px; margin: 0 auto 2rem;">
+          The certificate code provided was not found in the MathVerse registry. Please check for typographical errors or contact the Mathematics Club.
+        </p>
+
+        <a href="certificates.html" class="btn-secondary">
+          <span>← Search Certificates by Email</span>
+        </a>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Shared Global Footer -->
+  <footer class="app-footer" role="contentinfo">
+    <div class="footer-container">
+      <div class="footer-brand">
+        <div class="brand-logo">
+          <span class="brand-glyph">∫</span>
+          <span class="brand-text">Math<span class="brand-accent">Verse</span></span>
+        </div>
+        <p class="footer-tagline">
+          The official digital universe and live competition arena of the College Mathematics Club.
+        </p>
+      </div>
+
+      <div class="footer-col">
+        <h4 class="footer-column-title">Platform</h4>
+        <ul class="footer-nav-list">
+          <li><a href="index.html" class="footer-nav-link">Home</a></li>
+          <li><a href="arena.html" class="footer-nav-link">Live Arena</a></li>
+          <li><a href="leaderboard.html" class="footer-nav-link">Leaderboard</a></li>
+          <li><a href="certificates.html" class="footer-nav-link">Certificates</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4 class="footer-column-title">Community</h4>
+        <ul class="footer-nav-list">
+          <li><a href="about.html" class="footer-nav-link">About Us</a></li>
+          <li><a href="events.html" class="footer-nav-link">Club Events</a></li>
+          <li><a href="feedback.html" class="footer-nav-link">Feedback</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2026 MathVerse &bull; College Mathematics Club. All mathematical rights reserved.</p>
+    </div>
+  </footer>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    (function() {
+      const verifyForm = document.getElementById('verify-form');
+      const codeInput = document.getElementById('verify-code-input');
+      const verifyLoading = document.getElementById('verify-loading');
+      const verifyValid = document.getElementById('verify-valid');
+      const verifyInvalid = document.getElementById('verify-invalid');
+      const invalidReasonText = document.getElementById('invalid-reason-text');
+
+      const certTitleDisplay = document.getElementById('cert-title-display');
+      const certTypePill = document.getElementById('cert-type-pill');
+      const certRecipient = document.getElementById('cert-recipient');
+      const certEvent = document.getElementById('cert-event');
+      const certDate = document.getElementById('cert-date');
+      const certOrg = document.getElementById('cert-org');
+      const certCode = document.getElementById('cert-code');
+      const btnDownloadPdf = document.getElementById('btn-download-pdf');
+
+      function hideAll() {
+        verifyLoading.style.display = 'none';
+        verifyValid.style.display = 'none';
+        verifyInvalid.style.display = 'none';
+      }
+
+      async function verifyCode(code) {
+        if (!code) return;
+        const cleanCode = code.trim().toUpperCase();
+        codeInput.value = cleanCode;
+
+        hideAll();
+        verifyLoading.style.display = 'block';
+
+        try {
+          const res = await fetch(`/api/certificates/verify/${encodeURIComponent(cleanCode)}`);
+          const data = await res.json();
+
+          verifyLoading.style.display = 'none';
+
+          if (res.ok && data.valid && data.certificate) {
+            const cert = data.certificate;
+            
+            // Format Title & Subtitle based on Type
+            if (cert.type === 'winner') {
+              certTitleDisplay.textContent = 'Certificate of Achievement';
+              certTypePill.textContent = '👑 1st Place Champion';
+              certTypePill.style.color = 'var(--neon-gold)';
+            } else if (cert.type === 'runner_up') {
+              certTitleDisplay.textContent = 'Certificate of Achievement';
+              certTypePill.textContent = '🥈 1st Runner-Up Excellence';
+              certTypePill.style.color = '#38bdf8';
+            } else if (cert.type === 'third_place') {
+              certTitleDisplay.textContent = 'Certificate of Achievement';
+              certTypePill.textContent = '🥉 2nd Runner-Up Merit';
+              certTypePill.style.color = '#fb923c';
+            } else {
+              certTitleDisplay.textContent = 'Certificate of Participation';
+              certTypePill.textContent = 'Verified Event Participant';
+              certTypePill.style.color = 'var(--neon-cyan)';
+            }
+
+            certRecipient.textContent = cert.recipient_name;
+            certEvent.textContent = cert.event_title;
+            certDate.textContent = cert.event_date || new Date(cert.issued_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+            certOrg.textContent = `${cert.club_name || 'Mathematics Club'} • ${cert.college_name || 'College'}`;
+            certCode.textContent = cert.cert_code;
+
+            btnDownloadPdf.href = `/api/certificates/${encodeURIComponent(cert.cert_code)}/pdf`;
+            btnDownloadPdf.setAttribute('download', `MathVerse_Certificate_${cert.cert_code}.pdf`);
+
+            verifyValid.style.display = 'block';
+          } else {
+            invalidReasonText.textContent = (data && data.error) ? data.error : `The credential ID "${cleanCode}" could not be authenticated.`;
+            verifyInvalid.style.display = 'block';
+          }
+        } catch (err) {
+          verifyLoading.style.display = 'none';
+          invalidReasonText.textContent = 'Network error while attempting to contact verification server.';
+          verifyInvalid.style.display = 'block';
+        }
+      }
+
+      verifyForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const code = codeInput.value.trim();
+        if (code) {
+          // Update URL without reloading
+          const newUrl = `${window.location.pathname}?code=${encodeURIComponent(code)}`;
+          window.history.pushState({ code }, '', newUrl);
+          verifyCode(code);
+        }
+      });
+
+      // On initial page load: check ?code=
+      const urlParams = new URLSearchParams(window.location.search);
+      const codeFromUrl = urlParams.get('code');
+      if (codeFromUrl) {
+        verifyCode(codeFromUrl);
+      }
+
+      // Socket status badge
+      if (typeof io !== 'undefined') {
+        const socket = io();
+        const badge = document.getElementById('status-badge');
+        const txt = document.getElementById('status-text');
+        socket.on('connect', () => {
+          if (badge && txt) { badge.className = 'status-badge status-connected'; txt.textContent = 'Connected'; }
+        });
+        socket.on('disconnect', () => {
+          if (badge && txt) { badge.className = 'status-badge status-disconnected'; txt.textContent = 'Disconnected'; }
+        });
+      }
+    })();
+  </script>
+</body>
+</html>

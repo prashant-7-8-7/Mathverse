@@ -457,8 +457,11 @@
         </div>
       </div>
 
-      <div style="margin-top: 2rem;">
-        <button id="btn-podium-restart" type="button" class="btn-primary" style="font-size: 1.1rem; padding: 0.9rem 2.2rem;">
+      <div style="margin-top: 2rem; display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+        <button id="btn-issue-winner-certs" type="button" class="btn-primary" style="font-size: 1.1rem; padding: 0.9rem 2.2rem; background: linear-gradient(135deg, var(--neon-gold), #f59e0b); color: #080c1f; border-color: rgba(251, 191, 36, 0.6); box-shadow: 0 0 25px rgba(251, 191, 36, 0.4);">
+          <span>📜 Issue Winner Certificates (Top 3)</span>
+        </button>
+        <button id="btn-podium-restart" type="button" class="btn-secondary" style="font-size: 1.1rem; padding: 0.9rem 2.2rem;">
           <span>← Return to Quiz Studio</span>
         </button>
       </div>
@@ -672,6 +675,7 @@
         });
 
         socket.on('host:game_over', (data) => {
+          if (data && data.session_id) currentSessionId = data.session_id;
           renderFinalPodium(data);
           showStage(viewPodium);
           triggerConfetti();
@@ -1340,6 +1344,38 @@
         } catch (e) {
           alert('Error deleting quiz.');
         }
+      }
+
+      // Issue Winner Certificates to Top 3 Players
+      const btnIssueWinnerCerts = document.getElementById('btn-issue-winner-certs');
+      if (btnIssueWinnerCerts) {
+        btnIssueWinnerCerts.addEventListener('click', async () => {
+          if (!currentSessionId) {
+            alert('Session ID is missing or has not ended yet.');
+            return;
+          }
+          btnIssueWinnerCerts.disabled = true;
+          btnIssueWinnerCerts.innerHTML = '<span>Issuing Winner Certificates...</span>';
+          try {
+            const res = await fetch(`/api/admin/sessions/${currentSessionId}/issue-certificates`, {
+              method: 'POST',
+              headers: { 'x-admin-token': adminToken }
+            });
+            const data = await res.json();
+            if (res.ok && data.success) {
+              btnIssueWinnerCerts.innerHTML = '<span>✓ Winner Certificates Issued!</span>';
+              alert(data.message || 'Winner certificates successfully issued to top 3 players!');
+            } else {
+              btnIssueWinnerCerts.disabled = false;
+              btnIssueWinnerCerts.innerHTML = '<span>📜 Issue Winner Certificates (Top 3)</span>';
+              alert(data.error || 'Failed to issue winner certificates.');
+            }
+          } catch (err) {
+            btnIssueWinnerCerts.disabled = false;
+            btnIssueWinnerCerts.innerHTML = '<span>📜 Issue Winner Certificates (Top 3)</span>';
+            alert('Network communication error while issuing certificates.');
+          }
+        });
       }
     });
   </script>

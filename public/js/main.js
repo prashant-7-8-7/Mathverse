@@ -1088,7 +1088,7 @@ document.addEventListener('DOMContentLoaded', () => {
                   ? '<span class="ticket-badge badge-sold-out" style="font-size: 0.72rem; font-weight: 700;">SOLD OUT</span>'
                   : (item.status === 'upcoming'
                     ? '<span class="status-upcoming-dot"></span><span class="status-upcoming-text">Upcoming</span>'
-                    : '<span class="status-past-text">Past Event</span>'
+                    : `<span class="status-past-text">Past Event</span>${(item.feedback_count >= 3 && item.avg_rating) ? ` <span class="ticket-badge" style="background: rgba(251, 191, 36, 0.15); border-color: rgba(251, 191, 36, 0.4); color: #fbbf24; font-size: 0.75rem; margin-left: 0.35rem;" title="${item.feedback_count} verified attendee reviews">★ ${Number(item.avg_rating).toFixed(1)} (${item.feedback_count})</span>` : ''}`
                   )
                 }
               </div>

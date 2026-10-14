@@ -82,7 +82,9 @@ db.exec(`
     final_score INTEGER DEFAULT 0,
     final_rank INTEGER DEFAULT 0,
     joined_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY(session_id) REFERENCES sessions(id) ON DELETE CASCADE
+    member_id INTEGER NULL,
+    FOREIGN KEY(session_id) REFERENCES sessions(id) ON DELETE CASCADE,
+    FOREIGN KEY(member_id) REFERENCES members(id)
   );
 
   CREATE TABLE IF NOT EXISTS answers (
@@ -99,11 +101,33 @@ db.exec(`
     FOREIGN KEY(player_id) REFERENCES session_players(id) ON DELETE CASCADE
   );
 
+  CREATE TABLE IF NOT EXISTS members (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    member_code TEXT UNIQUE NOT NULL,
+    name TEXT NOT NULL,
+    email TEXT UNIQUE NOT NULL,
+    password_hash TEXT NOT NULL,
+    branch TEXT NOT NULL,
+    year TEXT NOT NULL,
+    bio TEXT DEFAULT '',
+    joined_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
+
   CREATE INDEX IF NOT EXISTS idx_questions_quiz ON questions(quiz_id);
   CREATE INDEX IF NOT EXISTS idx_sessions_room ON sessions(room_code);
   CREATE INDEX IF NOT EXISTS idx_session_players_session ON session_players(session_id);
   CREATE INDEX IF NOT EXISTS idx_answers_session ON answers(session_id);
+  CREATE INDEX IF NOT EXISTS idx_members_code ON members(member_code);
+  CREATE INDEX IF NOT EXISTS idx_members_email ON members(email);
 `);
+
+// Safe migration: Add member_id column to session_players if existing table didn't have it
+const sessionPlayerCols = db.prepare("PRAGMA table_info(session_players)").all();
+if (!sessionPlayerCols.some(c => c.name === 'member_id')) {
+  db.exec("ALTER TABLE session_players ADD COLUMN member_id INTEGER NULL REFERENCES members(id);");
+  console.log('[DB] Safely migrated session_players table: added member_id column.');
+}
+db.exec("CREATE INDEX IF NOT EXISTS idx_session_players_member ON session_players(member_id);");
 
 // Seed events if table is empty
 const countStmt = db.prepare('SELECT COUNT(*) as count FROM events');

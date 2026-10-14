@@ -3,8 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Leaderboard & Rankings — MathVerse</title>
-  
+  <title>Season Leaderboard & Hall of Fame — MathVerse</title>
+  <meta name="description" content="Official competitive rankings, tournament win streaks, and Elo standings of the MathVerse Mathematics Club.">
+
+  <!-- Google Fonts: Space Grotesk, Inter, JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700;800&display=swap" rel="stylesheet">
@@ -13,7 +15,7 @@
   <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
-  <!-- Ambient Cosmic Nebula -->
+  <!-- Ambient Cosmic Nebula Glows -->
   <div class="cosmic-nebula" aria-hidden="true">
     <div class="nebula-orb orb-violet"></div>
     <div class="nebula-orb orb-cyan"></div>
@@ -28,6 +30,7 @@
         <span class="brand-text">Math<span class="brand-accent">Verse</span></span>
       </a>
 
+      <!-- Desktop Nav Links -->
       <nav class="nav-menu" aria-label="Primary Navigation">
         <ul class="nav-links">
           <li><a href="index.html" class="nav-link">Home</a></li>
@@ -43,12 +46,15 @@
         </ul>
       </nav>
 
+      <!-- Nav Actions -->
       <div class="nav-actions">
-        <div id="status-badge" class="status-badge status-disconnected" aria-live="polite">
+        <div id="status-badge" class="status-badge status-disconnected" title="Socket.IO real-time connection status" aria-live="polite">
           <span class="status-dot"></span>
           <span id="status-text" class="status-text">Disconnected</span>
         </div>
-        <a href="contact.html" class="btn-nav-join">Join the Club</a>
+
+        <a href="member-login.html" class="btn-nav-join">Join the Club</a>
+
         <button id="nav-toggle" class="nav-toggle" aria-label="Toggle navigation menu" aria-expanded="false" aria-controls="mobile-menu">
           <span class="toggle-line"></span>
           <span class="toggle-line"></span>
@@ -72,22 +78,79 @@
       <li><a href="feedback.html" class="mobile-link">Feedback</a></li>
       <li><a href="contact.html" class="mobile-link">Contact</a></li>
     </ul>
-    <a href="contact.html" class="btn-nav-join" style="padding: 0.8rem 2rem; font-size: 1rem;">Join the Club</a>
+    <a href="member-login.html" class="btn-nav-join" style="padding: 0.8rem 2rem; font-size: 1rem;">Join the Club</a>
   </div>
 
-  <!-- Main Content: Coming Soon Card -->
-  <main class="page-wrapper">
-    <div class="coming-soon-card">
-      <div class="coming-soon-halo" aria-hidden="true"></div>
-      <div class="coming-soon-glyph">🏆</div>
-      <span class="coming-soon-badge">Hall of Fame</span>
-      <h1 class="coming-soon-title">Club Leaderboard</h1>
-      <p class="coming-soon-desc">
-        Tracking Elo ratings, speed-solve records, problem streaks, and semester tournament championships. Check back once competitive season opens!
+  <!-- Page Header -->
+  <main class="page-wrapper" style="flex-direction: column;">
+    <section class="subpage-header">
+      <div class="subpage-badge">Competitive Season 2026</div>
+      <h1 class="subpage-title">
+        Season <span class="gradient-text">Leaderboard</span> & Hall of Fame
+      </h1>
+      <p class="subpage-subtitle">
+        Points accumulated across official Arena quiz battles. Climb the ranks, claim podium finishes, and earn prestige badges.
       </p>
-      <a href="index.html" class="btn-primary">
-        <span>← Return to Universe</span>
-      </a>
+    </section>
+
+    <!-- Top 3 Podium Showcase -->
+    <div id="podium-section" style="width: 100%; max-width: 1100px; margin: 0 auto;">
+      <div id="podium-container" class="podium-container">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+
+    <!-- Table Controls & Search Filter -->
+    <div style="width: 100%; max-width: 1100px; margin: 0 auto 1.5rem;">
+      <div class="admin-table-controls" style="margin-bottom: 0;">
+        <div style="display: flex; gap: 1rem; align-items: center; flex: 1; flex-wrap: wrap;">
+          <div class="events-search-box" style="max-width: 380px; width: 100%; margin: 0;">
+            <span class="search-icon" aria-hidden="true">🔍</span>
+            <input type="text" id="lb-search-input" class="search-input" placeholder="Search members by name, code, branch...">
+          </div>
+
+          <div style="min-width: 240px;">
+            <select id="lb-quiz-filter" class="form-select" style="padding: 0.75rem 1rem; font-size: 0.9rem;">
+              <option value="all">Overall Season (All Quizzes)</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <span id="lb-count-label" style="font-family: var(--font-mono); font-size: 0.85rem; color: var(--text-muted);">
+            Loading ranked members...
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Leaderboard Full Table -->
+    <div style="width: 100%; max-width: 1100px; margin: 0 auto;">
+      <div class="lb-table-wrapper">
+        <div style="overflow-x: auto;">
+          <table class="lb-table">
+            <thead>
+              <tr>
+                <th style="width: 70px; text-align: center;">Rank</th>
+                <th>Member</th>
+                <th>Department & Year</th>
+                <th style="text-align: center;">Quizzes</th>
+                <th style="text-align: center;">Wins</th>
+                <th style="text-align: center;">Streak</th>
+                <th style="text-align: center;">Accuracy</th>
+                <th style="text-align: right;">Season Points</th>
+              </tr>
+            </thead>
+            <tbody id="lb-table-body">
+              <tr>
+                <td colspan="8" style="text-align: center; padding: 3rem; color: var(--text-muted);">
+                  Loading season leaderboard data...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   </main>
 
@@ -99,61 +162,272 @@
           <span class="brand-glyph">∫</span>
           <span class="brand-text">Math<span class="brand-accent">Verse</span></span>
         </div>
-        <p class="footer-tagline">
-          The official digital universe and live competition arena of the College Mathematics Club. Fostering pure rigor, applied mastery, and intellectual camaraderie.
-        </p>
-        <div class="footer-socials">
-          <a href="#" class="social-icon-btn" aria-label="GitHub">gh</a>
-          <a href="#" class="social-icon-btn" aria-label="Discord">dc</a>
-          <a href="#" class="social-icon-btn" aria-label="LinkedIn">in</a>
-          <a href="#" class="social-icon-btn" aria-label="Instagram">ig</a>
-          <a href="#" class="social-icon-btn" aria-label="Twitter">𝕏</a>
+        <p class="footer-tagline">Where curiosity converges with infinity.</p>
+        <p class="footer-copy">© 2026 MathVerse Mathematics Club. All rights reserved.</p>
+      </div>
+
+      <nav class="footer-nav" aria-label="Footer Navigation">
+        <div class="footer-col">
+          <h4>Navigation</h4>
+          <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="about.html">About</a></li>
+            <li><a href="events.html">Events</a></li>
+            <li><a href="gallery.html">Gallery</a></li>
+            <li><a href="arena.html">Arena</a></li>
+          </ul>
         </div>
-      </div>
-
-      <div class="footer-col">
-        <h4 class="footer-column-title">Platform</h4>
-        <ul class="footer-nav-list">
-          <li><a href="index.html" class="footer-nav-link">Home</a></li>
-          <li><a href="arena.html" class="footer-nav-link">Live Arena</a></li>
-          <li><a href="leaderboard.html" class="footer-nav-link">Leaderboard</a></li>
-          <li><a href="certificates.html" class="footer-nav-link">Certificates</a></li>
-        </ul>
-      </div>
-
-      <div class="footer-col">
-        <h4 class="footer-column-title">Community</h4>
-        <ul class="footer-nav-list">
-          <li><a href="about.html" class="footer-nav-link">About Us</a></li>
-          <li><a href="events.html" class="footer-nav-link">Club Events</a></li>
-          <li><a href="gallery.html" class="footer-nav-link">Math Art Gallery</a></li>
-          <li><a href="members.html" class="footer-nav-link">Members</a></li>
-          <li><a href="feedback.html" class="footer-nav-link">Feedback</a></li>
-        </ul>
-      </div>
-
-      <div class="footer-col">
-        <h4 class="footer-column-title">Contact & Join</h4>
-        <ul class="footer-nav-list">
-          <li><a href="contact.html" class="footer-nav-link">Contact Desk</a></li>
-          <li><a href="contact.html" class="footer-nav-link">Join the Club</a></li>
-          <li><span class="footer-nav-link" style="color: var(--text-subtle);">Department of Mathematics</span></li>
-          <li><span class="footer-nav-link" style="color: var(--text-subtle);">Science Hall, Room 402</span></li>
-        </ul>
-      </div>
-    </div>
-
-    <div class="footer-bottom">
-      <p>&copy; 2026 MathVerse &bull; College Mathematics Club. All mathematical rights reserved.</p>
-      <p>Crafted with rigor, curiosity, and code. &bull; <a href="admin.html" class="footer-admin-link">Admin</a></p>
+        <div class="footer-col">
+          <h4>Community</h4>
+          <ul>
+            <li><a href="leaderboard.html">Leaderboard</a></li>
+            <li><a href="members.html">Members</a></li>
+            <li><a href="certificates.html">Certificates</a></li>
+            <li><a href="feedback.html">Feedback</a></li>
+            <li><a href="contact.html">Contact</a></li>
+          </ul>
+        </div>
+      </nav>
     </div>
   </footer>
 
   <script src="/socket.io/socket.io.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script>
   <script src="/js/data.js"></script>
   <script src="/js/main.js"></script>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      let fullLeaderboard = [];
+      const podiumContainer = document.getElementById('podium-container');
+      const tableBody = document.getElementById('lb-table-body');
+      const searchInput = document.getElementById('lb-search-input');
+      const quizFilter = document.getElementById('lb-quiz-filter');
+      const countLabel = document.getElementById('lb-count-label');
+
+      // Check current user
+      let currentMemberCode = null;
+      try {
+        const stored = localStorage.getItem('mathverse_member_user');
+        if (stored) {
+          const u = JSON.parse(stored);
+          if (u && u.member_code) currentMemberCode = u.member_code;
+        }
+      } catch (e) {}
+
+      async function fetchLeaderboard(quizId = 'all') {
+        try {
+          const url = (quizId && quizId !== 'all') ? `/api/leaderboard?quiz=${encodeURIComponent(quizId)}` : '/api/leaderboard';
+          const res = await fetch(url);
+          const data = await res.json();
+
+          if (!res.ok) throw new Error(data.error || 'Failed to load leaderboard');
+
+          fullLeaderboard = data.leaderboard || [];
+
+          // Populate quiz dropdown if not already done
+          if (data.quizzes && quizFilter.options.length <= 1) {
+            data.quizzes.forEach(q => {
+              const opt = document.createElement('option');
+              opt.value = q.id;
+              opt.textContent = q.title;
+              quizFilter.appendChild(opt);
+            });
+          }
+
+          renderPodium(fullLeaderboard);
+          renderTable(filterLeaderboard(fullLeaderboard));
+        } catch (err) {
+          console.error(err);
+          tableBody.innerHTML = `
+            <tr>
+              <td colspan="8" style="text-align: center; padding: 3rem; color: #fca5a5;">
+                Unable to load leaderboard. Please ensure the server is active.
+              </td>
+            </tr>
+          `;
+        }
+      }
+
+      function filterLeaderboard(list) {
+        const q = searchInput.value.trim().toLowerCase();
+        if (!q) return list;
+        return list.filter(m => 
+          (m.name && m.name.toLowerCase().includes(q)) ||
+          (m.member_code && m.member_code.toLowerCase().includes(q)) ||
+          (m.branch && m.branch.toLowerCase().includes(q))
+        );
+      }
+
+      function getInitials(name) {
+        if (!name) return 'MV';
+        return name.split(' ').map(p => p[0]).join('').slice(0, 2).toUpperCase();
+      }
+
+      function animateCountUp(element, endVal, duration = 1.2) {
+        const startVal = 0;
+        const startTime = performance.now();
+        function update(currentTime) {
+          const elapsed = (currentTime - startTime) / 1000;
+          const progress = Math.min(elapsed / duration, 1);
+          // Ease-out expo
+          const easeProgress = (progress === 1) ? 1 : 1 - Math.pow(2, -10 * progress);
+          const currentVal = Math.round(startVal + (endVal - startVal) * easeProgress);
+          element.textContent = currentVal.toLocaleString();
+          if (progress < 1) requestAnimationFrame(update);
+        }
+        requestAnimationFrame(update);
+      }
+
+      function renderPodium(list) {
+        if (!list || list.length === 0) {
+          podiumContainer.innerHTML = '';
+          return;
+        }
+
+        const top1 = list[0] || null;
+        const top2 = list[1] || null;
+        const top3 = list[2] || null;
+
+        let html = '';
+
+        // Rank 2 (Left)
+        if (top2) {
+          html += `
+            <div class="podium-col podium-col-2">
+              <div class="podium-stand">
+                <div class="podium-avatar">${getInitials(top2.name)}</div>
+                <div class="podium-rank-tag">#2 RANK</div>
+                <a href="profile.html?code=${encodeURIComponent(top2.member_code)}" class="podium-name">${top2.name}</a>
+                <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.6rem;">${top2.branch}</div>
+                <div class="podium-points" data-val="${top2.points}">0</div>
+                <div style="font-size: 0.75rem; color: var(--text-subtle); margin-top: 0.2rem;">pts</div>
+              </div>
+            </div>
+          `;
+        }
+
+        // Rank 1 (Center)
+        if (top1) {
+          html += `
+            <div class="podium-col podium-col-1">
+              <span class="podium-crown" title="Season Leader">👑</span>
+              <div class="podium-stand">
+                <div class="podium-avatar">${getInitials(top1.name)}</div>
+                <div class="podium-rank-tag">🏆 #1 CHAMPION</div>
+                <a href="profile.html?code=${encodeURIComponent(top1.member_code)}" class="podium-name" style="font-size: 1.25rem;">${top1.name}</a>
+                <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.6rem;">${top1.branch}</div>
+                <div class="podium-points" data-val="${top1.points}" style="color: var(--neon-gold); text-shadow: 0 0 20px var(--neon-gold-glow);">0</div>
+                <div style="font-size: 0.75rem; color: var(--text-subtle); margin-top: 0.2rem;">pts</div>
+              </div>
+            </div>
+          `;
+        }
+
+        // Rank 3 (Right)
+        if (top3) {
+          html += `
+            <div class="podium-col podium-col-3">
+              <div class="podium-stand">
+                <div class="podium-avatar">${getInitials(top3.name)}</div>
+                <div class="podium-rank-tag">#3 RANK</div>
+                <a href="profile.html?code=${encodeURIComponent(top3.member_code)}" class="podium-name">${top3.name}</a>
+                <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.6rem;">${top3.branch}</div>
+                <div class="podium-points" data-val="${top3.points}">0</div>
+                <div style="font-size: 0.75rem; color: var(--text-subtle); margin-top: 0.2rem;">pts</div>
+              </div>
+            </div>
+          `;
+        }
+
+        podiumContainer.innerHTML = html;
+
+        // Animate podium numbers
+        podiumContainer.querySelectorAll('.podium-points').forEach(el => {
+          const target = parseInt(el.getAttribute('data-val'), 10) || 0;
+          animateCountUp(el, target);
+        });
+      }
+
+      function renderTable(list) {
+        countLabel.textContent = `Showing ${list.length} ranked member${list.length === 1 ? '' : 's'}`;
+
+        if (!list || list.length === 0) {
+          tableBody.innerHTML = `
+            <tr>
+              <td colspan="8" style="text-align: center; padding: 3rem; color: var(--text-muted);">
+                No ranked members found matching criteria.
+              </td>
+            </tr>
+          `;
+          return;
+        }
+
+        tableBody.innerHTML = list.map((m) => {
+          const isMe = currentMemberCode && (m.member_code === currentMemberCode);
+          let rankBadge = `<span class="lb-rank-badge lb-rank-other">${m.rank}</span>`;
+          if (m.rank === 1) rankBadge = `<span class="lb-rank-badge lb-rank-1" title="1st Place Champion">🥇 1</span>`;
+          else if (m.rank === 2) rankBadge = `<span class="lb-rank-badge lb-rank-2" title="2nd Place Silver">🥈 2</span>`;
+          else if (m.rank === 3) rankBadge = `<span class="lb-rank-badge lb-rank-3" title="3rd Place Bronze">🥉 3</span>`;
+
+          return `
+            <tr class="${isMe ? 'lb-row-me' : ''}">
+              <td style="text-align: center;">${rankBadge}</td>
+              <td>
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                  <div class="nav-member-avatar" style="width: 34px; height: 34px; font-size: 0.85rem;">
+                    ${getInitials(m.name)}
+                  </div>
+                  <div>
+                    <a href="profile.html?code=${encodeURIComponent(m.member_code)}" style="font-weight: 700; color: #ffffff; text-decoration: none; font-size: 0.95rem;" onmouseover="this.style.color='var(--neon-cyan)'" onmouseout="this.style.color='#ffffff'">
+                      ${m.name} ${isMe ? '<span style="font-family: var(--font-mono); font-size: 0.7rem; background: var(--neon-cyan); color: #080c1f; padding: 0.1rem 0.4rem; border-radius: 4px; margin-left: 0.4rem; font-weight: 700;">YOU</span>' : ''}
+                    </a>
+                    <div style="font-family: var(--font-mono); font-size: 0.76rem; color: var(--neon-cyan);">${m.member_code}</div>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div style="font-size: 0.9rem; color: var(--text-main);">${m.branch || '—'}</div>
+                <div style="font-size: 0.75rem; color: var(--text-muted);">${m.year || ''}</div>
+              </td>
+              <td style="text-align: center; font-family: var(--font-mono); font-weight: 600;">
+                ${m.quizzes_played || 0}
+              </td>
+              <td style="text-align: center; font-family: var(--font-mono); font-weight: 600; color: var(--neon-gold);">
+                ${m.wins > 0 ? `🏆 ${m.wins}` : '—'}
+              </td>
+              <td style="text-align: center; font-family: var(--font-mono); font-weight: 600; color: #f97316;">
+                ${m.best_streak > 0 ? `🔥 ${m.best_streak}` : '—'}
+              </td>
+              <td style="text-align: center; font-family: var(--font-mono); font-weight: 600;">
+                ${m.accuracy_pct !== undefined ? `${m.accuracy_pct}%` : '—'}
+              </td>
+              <td style="text-align: right; font-family: var(--font-mono); font-size: 1.15rem; font-weight: 800; color: var(--neon-cyan);">
+                <span class="count-up-points" data-val="${m.points || 0}">0</span>
+              </td>
+            </tr>
+          `;
+        }).join('');
+
+        // Animate numbers in table
+        tableBody.querySelectorAll('.count-up-points').forEach(el => {
+          const target = parseInt(el.getAttribute('data-val'), 10) || 0;
+          animateCountUp(el, target);
+        });
+      }
+
+      searchInput.addEventListener('input', () => {
+        renderTable(filterLeaderboard(fullLeaderboard));
+      });
+
+      quizFilter.addEventListener('change', () => {
+        fetchLeaderboard(quizFilter.value);
+      });
+
+      // Initial fetch
+      fetchLeaderboard();
+    });
+  </script>
 </body>
 </html>

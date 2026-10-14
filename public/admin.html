@@ -142,95 +142,178 @@
         </div>
       </div>
 
-      <!-- High-Level Metric Stat Cards -->
-      <div class="admin-stats-strip">
-        <div class="admin-stat-card">
-          <div class="admin-stat-label">Total Registrations</div>
-          <div id="stat-total-regs" class="admin-stat-value">0</div>
-          <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.4rem;">Across all club competitions</p>
-        </div>
-
-        <div class="admin-stat-card">
-          <div class="admin-stat-label">Total Events</div>
-          <div id="stat-total-events" class="admin-stat-value">0</div>
-          <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.4rem;">Scheduled & past symposiums</p>
-        </div>
-
-        <div class="admin-stat-card">
-          <div class="admin-stat-label">Overall Seat Capacity</div>
-          <div id="stat-total-cap" class="admin-stat-value">0</div>
-          <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.4rem;">Combined hall allocation</p>
-        </div>
-
-        <div class="admin-stat-card">
-          <div class="admin-stat-label">Capacity Utilization</div>
-          <div id="stat-utilization" class="admin-stat-value">0%</div>
-          <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.4rem;">Seat fulfillment rate</p>
-        </div>
+      <!-- Admin Navigation Tabs: Registrations vs Members -->
+      <div class="admin-nav-tabs" role="tablist">
+        <button type="button" id="tab-admin-events" class="admin-nav-tab active" role="tab" aria-selected="true">
+          🎟️ Event Registrations
+        </button>
+        <button type="button" id="tab-admin-members" class="admin-nav-tab" role="tab" aria-selected="false">
+          👥 Club Members Roster
+        </button>
       </div>
 
-      <!-- Per-Event Breakdown Grid -->
-      <div style="margin-bottom: 2.5rem;">
-        <h3 style="font-family: var(--font-heading); font-size: 1.25rem; color: var(--text-pure); margin-bottom: 1rem;">
-          Event Capacity Breakdown
-        </h3>
-        <div id="per-event-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem;">
-          <!-- Rendered dynamically -->
-        </div>
-      </div>
-
-      <!-- Registrations Table Header & Filter Controls -->
-      <div class="admin-table-controls">
-        <div style="display: flex; gap: 1rem; align-items: center; flex: 1; flex-wrap: wrap;">
-          <div class="events-search-box" style="max-width: 380px; width: 100%; margin: 0;">
-            <span class="search-icon" aria-hidden="true">🔍</span>
-            <input type="text" id="admin-search-input" class="search-input" placeholder="Search by name, email, ticket code, ID...">
+      <!-- TAB PANEL 1: Event Registrations -->
+      <div id="panel-admin-events">
+        <!-- High-Level Metric Stat Cards -->
+        <div class="admin-stats-strip">
+          <div class="admin-stat-card">
+            <div class="admin-stat-label">Total Registrations</div>
+            <div id="stat-total-regs" class="admin-stat-value">0</div>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.4rem;">Across all club competitions</p>
           </div>
 
-          <div style="min-width: 220px;">
-            <select id="admin-event-filter" class="form-select" style="padding: 0.75rem 1rem; font-size: 0.9rem;">
-              <option value="all">All Events</option>
-            </select>
+          <div class="admin-stat-card">
+            <div class="admin-stat-label">Total Events</div>
+            <div id="stat-total-events" class="admin-stat-value">0</div>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.4rem;">Scheduled & past symposiums</p>
+          </div>
+
+          <div class="admin-stat-card">
+            <div class="admin-stat-label">Overall Seat Capacity</div>
+            <div id="stat-total-cap" class="admin-stat-value">0</div>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.4rem;">Combined hall allocation</p>
+          </div>
+
+          <div class="admin-stat-card">
+            <div class="admin-stat-label">Capacity Utilization</div>
+            <div id="stat-utilization" class="admin-stat-value">0%</div>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.4rem;">Seat fulfillment rate</p>
           </div>
         </div>
 
-        <div>
-          <span id="admin-count-label" style="font-family: var(--font-mono); font-size: 0.85rem; color: var(--text-muted);">
-            Showing 0 registrations
-          </span>
+        <!-- Per-Event Breakdown Grid -->
+        <div style="margin-bottom: 2.5rem;">
+          <h3 style="font-family: var(--font-heading); font-size: 1.25rem; color: var(--text-pure); margin-bottom: 1rem;">
+            Event Capacity Breakdown
+          </h3>
+          <div id="per-event-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem;">
+            <!-- Rendered dynamically -->
+          </div>
+        </div>
+
+        <!-- Registrations Table Header & Filter Controls -->
+        <div class="admin-table-controls">
+          <div style="display: flex; gap: 1rem; align-items: center; flex: 1; flex-wrap: wrap;">
+            <div class="events-search-box" style="max-width: 380px; width: 100%; margin: 0;">
+              <span class="search-icon" aria-hidden="true">🔍</span>
+              <input type="text" id="admin-search-input" class="search-input" placeholder="Search by name, email, ticket code, ID...">
+            </div>
+
+            <div style="min-width: 220px;">
+              <select id="admin-event-filter" class="form-select" style="padding: 0.75rem 1rem; font-size: 0.9rem;">
+                <option value="all">All Events</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <span id="admin-count-label" style="font-family: var(--font-mono); font-size: 0.85rem; color: var(--text-muted);">
+              Showing 0 registrations
+            </span>
+          </div>
+        </div>
+
+        <!-- Attendee Registrations Table -->
+        <div class="admin-table-container">
+          <table class="admin-table" aria-label="Event Attendee Registrations">
+            <thead>
+              <tr>
+                <th>Ticket Code</th>
+                <th>Attendee Name</th>
+                <th>Contact Details</th>
+                <th>Enrollment & Major</th>
+                <th>Registered Event</th>
+                <th>Date Registered</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="admin-table-body">
+              <!-- Dynamic rows -->
+            </tbody>
+          </table>
+
+          <!-- Table Empty State -->
+          <div id="admin-table-empty" style="display: none; padding: 4rem 1.5rem; text-align: center; color: var(--text-muted);">
+            <div style="font-size: 2.5rem; margin-bottom: 0.75rem;">📋</div>
+            <h4 style="font-family: var(--font-heading); font-size: 1.2rem; color: var(--text-pure); margin-bottom: 0.4rem;">
+              No Registrations Found
+            </h4>
+            <p style="font-size: 0.92rem;">No attendee entries match your current search or filter query.</p>
+          </div>
         </div>
       </div>
 
-      <!-- Attendee Registrations Table -->
-      <div class="admin-table-container">
-        <table class="admin-table" aria-label="Event Attendee Registrations">
-          <thead>
-            <tr>
-              <th>Ticket Code</th>
-              <th>Attendee Name</th>
-              <th>Contact Details</th>
-              <th>Enrollment & Major</th>
-              <th>Registered Event</th>
-              <th>Date Registered</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody id="admin-table-body">
-            <!-- Dynamic rows -->
-          </tbody>
-        </table>
+      <!-- TAB PANEL 2: Club Members Roster -->
+      <div id="panel-admin-members" style="display: none;">
+        <!-- Members Table Toolbar -->
+        <div class="admin-table-controls">
+          <div style="display: flex; gap: 1rem; align-items: center; flex: 1; flex-wrap: wrap;">
+            <div class="events-search-box" style="max-width: 380px; width: 100%; margin: 0;">
+              <span class="search-icon" aria-hidden="true">🔍</span>
+              <input type="text" id="admin-member-search" class="search-input" placeholder="Search members by name, email, code, branch...">
+            </div>
+            <button id="btn-refresh-members" type="button" class="btn-secondary" style="padding: 0.7rem 1.2rem; font-size: 0.88rem;">
+              <span>🔄 Refresh Roster</span>
+            </button>
+          </div>
+          <div>
+            <span id="admin-member-count-label" style="font-family: var(--font-mono); font-size: 0.85rem; color: var(--text-muted);">
+              Showing 0 members
+            </span>
+          </div>
+        </div>
 
-        <!-- Table Empty State -->
-        <div id="admin-table-empty" style="display: none; padding: 4rem 1.5rem; text-align: center; color: var(--text-muted);">
-          <div style="font-size: 2.5rem; margin-bottom: 0.75rem;">📋</div>
-          <h4 style="font-family: var(--font-heading); font-size: 1.2rem; color: var(--text-pure); margin-bottom: 0.4rem;">
-            No Registrations Found
-          </h4>
-          <p style="font-size: 0.92rem;">No attendee entries match your current search or filter query.</p>
+        <!-- Members Table -->
+        <div class="admin-table-container">
+          <table class="admin-table" aria-label="Club Members Roster">
+            <thead>
+              <tr>
+                <th>Member Code</th>
+                <th>Name & Email</th>
+                <th>Branch & Year</th>
+                <th style="text-align: center;">Quizzes Played</th>
+                <th style="text-align: center;">Season Points</th>
+                <th>Joined Date</th>
+                <th style="text-align: right;">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="admin-members-tbody">
+              <!-- Rendered dynamically -->
+            </tbody>
+          </table>
+
+          <div id="admin-members-empty" style="display: none; text-align: center; padding: 4rem 1rem;">
+            <div style="font-size: 2.5rem; margin-bottom: 0.8rem;">👥</div>
+            <h4 style="font-family: var(--font-heading); color: #ffffff; margin-bottom: 0.35rem;">No Members Found</h4>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">No members match the current search query or none have registered yet.</p>
+          </div>
         </div>
       </div>
 
     </section>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="delete-member-modal" style="display: none; position: fixed; inset: 0; z-index: 2500; background: rgba(5, 7, 17, 0.85); backdrop-filter: blur(12px); align-items: center; justify-content: center; padding: 1.5rem;">
+      <div class="auth-card" style="width: 100%; max-width: 440px; padding: 2rem; position: relative;">
+        <div style="width: 52px; height: 52px; margin: 0 auto 1.25rem; border-radius: 16px; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); display: flex; align-items: center; justify-content: center; font-size: 1.6rem; color: #fca5a5;">
+          🗑️
+        </div>
+        <h3 style="font-family: var(--font-heading); font-size: 1.4rem; color: #ffffff; text-align: center; margin-bottom: 0.5rem;">
+          Confirm Member Deletion
+        </h3>
+        <p id="delete-modal-msg" style="color: var(--text-muted); font-size: 0.9rem; text-align: center; line-height: 1.5; margin-bottom: 1.75rem;">
+          Are you sure you want to remove this member?
+        </p>
+        <div style="display: flex; gap: 0.75rem;">
+          <button type="button" id="btn-cancel-delete" class="btn-secondary" style="flex: 1; justify-content: center;">
+            Cancel
+          </button>
+          <button type="button" id="btn-confirm-delete" class="btn-primary" style="flex: 1; justify-content: center; background: #ef4444; border-color: #ef4444; color: #fff;">
+            <span>Delete Member</span>
+          </button>
+        </div>
+      </div>
+    </div>
 
   </main>
 
@@ -564,6 +647,184 @@
 
       eventFilter.addEventListener('change', () => {
         loadRegistrations();
+      });
+
+      /* ====================================================================
+         Members Roster Management Logic
+         ==================================================================== */
+      const tabEvents = document.getElementById('tab-admin-events');
+      const tabMembers = document.getElementById('tab-admin-members');
+      const panelEvents = document.getElementById('panel-admin-events');
+      const panelMembers = document.getElementById('panel-admin-members');
+
+      const membersTbody = document.getElementById('admin-members-tbody');
+      const membersEmpty = document.getElementById('admin-members-empty');
+      const memberCountLabel = document.getElementById('admin-member-count-label');
+      const memberSearchInput = document.getElementById('admin-member-search');
+      const btnRefreshMembers = document.getElementById('btn-refresh-members');
+
+      const deleteModal = document.getElementById('delete-member-modal');
+      const deleteModalMsg = document.getElementById('delete-modal-msg');
+      const btnCancelDelete = document.getElementById('btn-cancel-delete');
+      const btnConfirmDelete = document.getElementById('btn-confirm-delete');
+
+      let currentMembers = [];
+      let memberToDelete = null;
+
+      function switchAdminTab(toMembers) {
+        if (toMembers) {
+          tabMembers.classList.add('active');
+          tabMembers.setAttribute('aria-selected', 'true');
+          tabEvents.classList.remove('active');
+          tabEvents.setAttribute('aria-selected', 'false');
+          panelMembers.style.display = 'block';
+          panelEvents.style.display = 'none';
+          loadMembers();
+        } else {
+          tabEvents.classList.add('active');
+          tabEvents.setAttribute('aria-selected', 'true');
+          tabMembers.classList.remove('active');
+          tabMembers.setAttribute('aria-selected', 'false');
+          panelEvents.style.display = 'block';
+          panelMembers.style.display = 'none';
+        }
+      }
+
+      tabEvents.addEventListener('click', () => switchAdminTab(false));
+      tabMembers.addEventListener('click', () => switchAdminTab(true));
+
+      async function loadMembers() {
+        try {
+          const res = await fetch('/api/admin/members', {
+            headers: { 'x-admin-token': adminToken }
+          });
+
+          if (res.status === 401) {
+            sessionStorage.removeItem(STORAGE_KEY);
+            showLogin();
+            return;
+          }
+
+          const data = await res.json();
+          if (!data.success) return;
+
+          currentMembers = data.members || [];
+          renderMembersTable(filterMembers(currentMembers));
+        } catch (err) {
+          console.error('[Admin loadMembers error]', err);
+        }
+      }
+
+      function filterMembers(list) {
+        const q = memberSearchInput.value.trim().toLowerCase();
+        if (!q) return list;
+        return list.filter(m =>
+          (m.name && m.name.toLowerCase().includes(q)) ||
+          (m.email && m.email.toLowerCase().includes(q)) ||
+          (m.member_code && m.member_code.toLowerCase().includes(q)) ||
+          (m.branch && m.branch.toLowerCase().includes(q))
+        );
+      }
+
+      function renderMembersTable(list) {
+        memberCountLabel.textContent = `Showing ${list.length} member${list.length === 1 ? '' : 's'}`;
+
+        if (!list || list.length === 0) {
+          membersTbody.innerHTML = '';
+          membersEmpty.style.display = 'block';
+          return;
+        }
+
+        membersEmpty.style.display = 'none';
+        membersTbody.innerHTML = list.map(m => `
+          <tr>
+            <td>
+              <span class="badge-ticket-code" style="color: var(--neon-cyan); border-color: rgba(34, 211, 238, 0.4);">${m.member_code}</span>
+            </td>
+            <td>
+              <strong style="color: var(--text-pure); display: block; font-size: 0.95rem;">${m.name}</strong>
+              <div style="font-size: 0.8rem; color: var(--text-muted);">${m.email}</div>
+            </td>
+            <td>
+              <div style="font-size: 0.88rem; color: var(--text-main); font-weight: 600;">${m.branch || '—'}</div>
+              <div style="font-size: 0.78rem; color: var(--text-muted);">${m.year || ''}</div>
+            </td>
+            <td style="text-align: center; font-family: var(--font-mono); font-weight: 700;">
+              ${m.quizzes_played || 0}
+            </td>
+            <td style="text-align: center; font-family: var(--font-mono); font-weight: 800; color: var(--neon-cyan);">
+              ${(m.points || 0).toLocaleString()}
+            </td>
+            <td style="font-size: 0.825rem; color: var(--text-muted); white-space: nowrap;">
+              ${m.joined_at ? new Date(m.joined_at).toLocaleDateString() : '—'}
+            </td>
+            <td style="text-align: right;">
+              <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
+                <a href="profile.html?code=${encodeURIComponent(m.member_code)}" target="_blank" class="btn-secondary" style="padding: 0.35rem 0.75rem; font-size: 0.78rem;" title="View public profile">
+                  <span>Profile ↗</span>
+                </a>
+                <button type="button" class="btn-secondary btn-delete-member" data-id="${m.id}" data-name="${m.name}" data-code="${m.member_code}" style="padding: 0.35rem 0.75rem; font-size: 0.78rem; border-color: rgba(239, 68, 68, 0.4); color: #fca5a5;" title="Remove member account">
+                  <span>🗑️ Delete</span>
+                </button>
+              </div>
+            </td>
+          </tr>
+        `).join('');
+
+        // Attach delete listeners
+        membersTbody.querySelectorAll('.btn-delete-member').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const id = btn.getAttribute('data-id');
+            const name = btn.getAttribute('data-name');
+            const code = btn.getAttribute('data-code');
+            memberToDelete = { id, name, code };
+
+            deleteModalMsg.innerHTML = `Are you sure you want to remove <strong>${name}</strong> (<code>${code}</code>)?<br><br>Their account and profile will be deleted. Past tournament score records will be preserved anonymously.`;
+            deleteModal.style.display = 'flex';
+          });
+        });
+      }
+
+      btnCancelDelete.addEventListener('click', () => {
+        deleteModal.style.display = 'none';
+        memberToDelete = null;
+      });
+
+      btnConfirmDelete.addEventListener('click', async () => {
+        if (!memberToDelete || !adminToken) return;
+        btnConfirmDelete.disabled = true;
+        btnConfirmDelete.textContent = 'Deleting...';
+
+        try {
+          const res = await fetch(`/api/admin/members/${memberToDelete.id}`, {
+            method: 'DELETE',
+            headers: { 'x-admin-token': adminToken }
+          });
+          const data = await res.json();
+
+          deleteModal.style.display = 'none';
+          memberToDelete = null;
+          btnConfirmDelete.disabled = false;
+          btnConfirmDelete.textContent = 'Delete Member';
+
+          if (res.ok) {
+            loadMembers();
+          } else {
+            alert(data.error || 'Failed to delete member.');
+          }
+        } catch (err) {
+          alert('Network error while deleting member.');
+          btnConfirmDelete.disabled = false;
+          btnConfirmDelete.textContent = 'Delete Member';
+        }
+      });
+
+      memberSearchInput.addEventListener('input', () => {
+        renderMembersTable(filterMembers(currentMembers));
+      });
+
+      btnRefreshMembers.addEventListener('click', () => {
+        loadMembers();
       });
 
       // Socket.IO live updates for admin

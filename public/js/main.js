@@ -98,6 +98,141 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   /* ========================================================================
+     2.1 Member Account Nav State & Dropdown
+     ======================================================================== */
+  function initMemberNavState() {
+    const token = localStorage.getItem('mathverse_member_token');
+    const userJson = localStorage.getItem('mathverse_member_user');
+    const joinBtns = document.querySelectorAll('.btn-nav-join');
+
+    if (!token || !userJson) {
+      // If not logged in, point "Join the Club" buttons to member-login.html
+      joinBtns.forEach(btn => {
+        btn.setAttribute('href', 'member-login.html');
+      });
+      return;
+    }
+
+    let member;
+    try {
+      member = JSON.parse(userJson);
+    } catch (e) {
+      localStorage.removeItem('mathverse_member_token');
+      localStorage.removeItem('mathverse_member_user');
+      return;
+    }
+
+    const firstName = member.name ? member.name.split(' ')[0] : 'Member';
+    const initials = member.name ? member.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() : 'MV';
+
+    // Update desktop button
+    const desktopJoinBtn = document.querySelector('.nav-actions .btn-nav-join');
+    if (desktopJoinBtn) {
+      const container = document.createElement('div');
+      container.className = 'nav-user-dropdown';
+      container.id = 'nav-user-menu';
+      container.innerHTML = `
+        <button class="btn-nav-member" id="btn-nav-user-toggle" aria-expanded="false" aria-haspopup="true">
+          <span class="nav-member-avatar">${initials}</span>
+          <span class="nav-member-name">${firstName}</span>
+          <span style="font-size: 0.72rem; opacity: 0.7;">▼</span>
+        </button>
+        <div class="nav-dropdown-menu" id="nav-user-dropdown-panel" role="menu">
+          <div style="padding: 0.75rem 1.2rem 0.5rem; border-bottom: 1px solid rgba(255,255,255,0.08);">
+            <div style="font-weight: 700; color: #fff; font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${member.name}</div>
+            <div style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--neon-cyan);">${member.member_code}</div>
+          </div>
+          <a href="profile.html?code=${encodeURIComponent(member.member_code)}" class="nav-dropdown-item" role="menuitem">
+            <span>👤</span> My Profile & Badges
+          </a>
+          <a href="leaderboard.html" class="nav-dropdown-item" role="menuitem">
+            <span>🏆</span> Season Leaderboard
+          </a>
+          <div class="nav-dropdown-divider"></div>
+          <button type="button" id="btn-nav-logout" class="nav-dropdown-item" style="color: #fca5a5;" role="menuitem">
+            <span>🚪</span> Log Out
+          </button>
+        </div>
+      `;
+      desktopJoinBtn.replaceWith(container);
+
+      const toggle = container.querySelector('#btn-nav-user-toggle');
+      const panel = container.querySelector('#nav-user-dropdown-panel');
+      const logoutBtn = container.querySelector('#btn-nav-logout');
+
+      toggle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isOpen = panel.classList.contains('open');
+        panel.classList.toggle('open', !isOpen);
+        toggle.setAttribute('aria-expanded', !isOpen);
+      });
+
+      document.addEventListener('click', (e) => {
+        if (!container.contains(e.target)) {
+          panel.classList.remove('open');
+          toggle.setAttribute('aria-expanded', 'false');
+        }
+      });
+
+      if (logoutBtn) {
+        logoutBtn.addEventListener('click', async () => {
+          try {
+            await fetch('/api/members/logout', {
+              method: 'POST',
+              headers: { 'Authorization': `Bearer ${token}` }
+            });
+          } catch (err) {
+            console.error('Logout error:', err);
+          }
+          localStorage.removeItem('mathverse_member_token');
+          localStorage.removeItem('mathverse_member_user');
+          window.location.reload();
+        });
+      }
+    }
+
+    // Update mobile menu join button
+    const mobileJoinBtn = document.querySelector('#mobile-menu .btn-nav-join');
+    if (mobileJoinBtn) {
+      const mobileMemberBox = document.createElement('div');
+      mobileMemberBox.style.cssText = 'padding: 1rem 2rem; border-top: 1px solid rgba(255,255,255,0.1); width: 100%; display: flex; flex-direction: column; gap: 0.75rem;';
+      mobileMemberBox.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+          <span class="nav-member-avatar" style="width: 36px; height: 36px; font-size: 0.9rem;">${initials}</span>
+          <div>
+            <div style="font-weight: 700; color: #fff; font-size: 1rem;">${member.name}</div>
+            <div style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--neon-cyan);">${member.member_code}</div>
+          </div>
+        </div>
+        <a href="profile.html?code=${encodeURIComponent(member.member_code)}" class="btn-primary" style="justify-content: center; padding: 0.7rem;">
+          <span>👤 View Profile</span>
+        </a>
+        <button type="button" id="btn-mobile-nav-logout" class="btn-secondary" style="border-color: rgba(239, 68, 68, 0.4); color: #fca5a5; justify-content: center; padding: 0.65rem;">
+          <span>🚪 Log Out</span>
+        </button>
+      `;
+      mobileJoinBtn.replaceWith(mobileMemberBox);
+
+      const mobileLogout = mobileMemberBox.querySelector('#btn-mobile-nav-logout');
+      if (mobileLogout) {
+        mobileLogout.addEventListener('click', async () => {
+          try {
+            await fetch('/api/members/logout', {
+              method: 'POST',
+              headers: { 'Authorization': `Bearer ${token}` }
+            });
+          } catch (err) {}
+          localStorage.removeItem('mathverse_member_token');
+          localStorage.removeItem('mathverse_member_user');
+          window.location.reload();
+        });
+      }
+    }
+  }
+
+  initMemberNavState();
+
+  /* ========================================================================
      3. Socket.IO Connection & Live Status Indicator
      ======================================================================== */
   const statusBadge = document.getElementById('status-badge');

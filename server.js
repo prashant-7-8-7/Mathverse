@@ -46,6 +46,85 @@ function requireAdmin(req, res, next) {
 }
 
 /* ==========================================================================
+   Member Authentication & Security Utilities (scrypt + rate limiting)
+   ========================================================================== */
+
+// Helper: Secure password hashing with Node.js built-in crypto.scrypt
+function hashPassword(password) {
+  const salt = crypto.randomBytes(16).toString('hex');
+  const derivedKey = crypto.scryptSync(password, salt, 64).toString('hex');
+  return `${salt}:${derivedKey}`;
+}
+
+function verifyPassword(password, storedHash) {
+  try {
+    if (!storedHash || !storedHash.includes(':')) return false;
+    const [salt, key] = storedHash.split(':');
+    const keyBuffer = Buffer.from(key, 'hex');
+    const derivedKey = crypto.scryptSync(password, salt, 64);
+    return crypto.timingSafeEqual(keyBuffer, derivedKey);
+  } catch (e) {
+    return false;
+  }
+}
+
+// In-memory active member session tokens (token -> { memberId, email, name, memberCode, loginTime })
+const memberTokens = new Map();
+
+// In-memory login rate limiter (ip -> { count, resetAt })
+const loginAttempts = new Map();
+
+function checkLoginRateLimit(ip) {
+  const now = Date.now();
+  const attempt = loginAttempts.get(ip);
+  if (!attempt) return { limited: false };
+  if (now > attempt.resetAt) {
+    loginAttempts.delete(ip);
+    return { limited: false };
+  }
+  if (attempt.count >= 5) {
+    const minutesLeft = Math.ceil((attempt.resetAt - now) / 60000);
+    return { limited: true, minutesLeft };
+  }
+  return { limited: false };
+}
+
+function recordFailedLogin(ip) {
+  const now = Date.now();
+  const attempt = loginAttempts.get(ip);
+  if (!attempt || now > attempt.resetAt) {
+    loginAttempts.set(ip, { count: 1, resetAt: now + 10 * 60 * 1000 });
+  } else {
+    attempt.count++;
+  }
+}
+
+function clearFailedLogins(ip) {
+  loginAttempts.delete(ip);
+}
+
+// Helper: Member authentication middleware
+function requireMember(req, res, next) {
+  let token = req.headers['x-member-token'];
+  if (!token && req.headers['authorization']) {
+    const parts = req.headers['authorization'].split(' ');
+    if (parts.length === 2 && parts[0].toLowerCase() === 'bearer') {
+      token = parts[1];
+    }
+  }
+  if (!token && req.query.member_token) {
+    token = req.query.member_token;
+  }
+
+  if (!token || !memberTokens.has(token)) {
+    return res.status(401).json({ error: 'Unauthorized: Please log in to your MathVerse member account.' });
+  }
+
+  req.memberSession = memberTokens.get(token);
+  next();
+}
+
+/* ==========================================================================
    Public APIs: Events, Registration & Tickets
    ========================================================================== */
 
@@ -434,6 +513,64 @@ app.get('/api/admin/export.csv', requireAdmin, (req, res) => {
   }
 });
 
+// GET /api/admin/members - Roster of all club members with aggregated points
+app.get('/api/admin/members', requireAdmin, (req, res) => {
+  try {
+    const members = db.prepare(`
+      SELECT 
+        m.id,
+        m.member_code,
+        m.name,
+        m.email,
+        m.branch,
+        m.year,
+        m.bio,
+        m.joined_at,
+        COALESCE(SUM(sp.final_score), 0) AS points,
+        COUNT(DISTINCT sp.session_id) AS quizzes_played
+      FROM members m
+      LEFT JOIN session_players sp ON m.id = sp.member_id
+      LEFT JOIN sessions s ON sp.session_id = s.id AND s.ended_at IS NOT NULL
+      GROUP BY m.id
+      ORDER BY m.id DESC
+    `).all();
+    res.json({ success: true, count: members.length, members });
+  } catch (err) {
+    console.error('[API GET /api/admin/members error]', err);
+    res.status(500).json({ error: 'Failed to retrieve members.' });
+  }
+});
+
+// DELETE /api/admin/members/:id - Remove a member account
+app.delete('/api/admin/members/:id', requireAdmin, (req, res) => {
+  try {
+    const memberId = Number(req.params.id);
+    const member = db.prepare('SELECT * FROM members WHERE id = ?').get(memberId);
+    if (!member) {
+      return res.status(404).json({ error: 'Member not found.' });
+    }
+
+    const delTx = db.transaction(() => {
+      // Nullify member_id in session_players so past tournament records stay intact
+      db.prepare('UPDATE session_players SET member_id = NULL WHERE member_id = ?').run(memberId);
+      db.prepare('DELETE FROM members WHERE id = ?').run(memberId);
+    });
+    delTx();
+
+    // Revoke any active token sessions for this member
+    for (const [token, sess] of memberTokens.entries()) {
+      if (sess.memberId === memberId) {
+        memberTokens.delete(token);
+      }
+    }
+
+    res.json({ success: true, message: `Member ${member.name} (${member.member_code}) removed successfully.` });
+  } catch (err) {
+    console.error('[API DELETE /api/admin/members/:id error]', err);
+    res.status(500).json({ error: 'Failed to delete member.' });
+  }
+});
+
 /* ==========================================================================
    Quiz Management & Live Arena REST APIs
    ========================================================================== */
@@ -672,6 +809,567 @@ app.get('/api/arena/room/:code', (req, res) => {
 });
 
 /* ==========================================================================
+   Member Accounts, Public Directory, Profiles, Badges & Season Leaderboard
+   ========================================================================== */
+
+// POST /api/members/signup - Register new member account
+app.post('/api/members/signup', (req, res) => {
+  try {
+    const { name, email, password, branch, year, bio } = req.body;
+    if (!name || !email || !password || !branch || !year) {
+      return res.status(400).json({ error: 'Name, email, password, branch, and academic year are required.' });
+    }
+
+    const cleanName = String(name).trim();
+    const cleanEmail = String(email).trim().toLowerCase();
+    const cleanBranch = String(branch).trim();
+    const cleanYear = String(year).trim();
+    const cleanBio = bio ? String(bio).trim().slice(0, 300) : '';
+
+    if (cleanName.length < 2 || cleanName.length > 50) {
+      return res.status(400).json({ error: 'Full name must be between 2 and 50 characters.' });
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(cleanEmail)) {
+      return res.status(400).json({ error: 'Please enter a valid email address.' });
+    }
+
+    if (String(password).length < 6) {
+      return res.status(400).json({ error: 'Password must be at least 6 characters in length.' });
+    }
+
+    // Check duplicate email
+    const existing = db.prepare('SELECT id FROM members WHERE LOWER(email) = ?').get(cleanEmail);
+    if (existing) {
+      return res.status(409).json({ error: 'An account with this email address already exists. Please log in.' });
+    }
+
+    // Generate next unique member code (e.g. MV-M-0001)
+    const maxRow = db.prepare('SELECT COALESCE(MAX(id), 0) + 1 AS next_id FROM members').get();
+    let codeNum = maxRow.next_id;
+    let memberCode = `MV-M-${String(codeNum).padStart(4, '0')}`;
+    while (db.prepare('SELECT id FROM members WHERE member_code = ?').get(memberCode)) {
+      codeNum++;
+      memberCode = `MV-M-${String(codeNum).padStart(4, '0')}`;
+    }
+
+    const passHash = hashPassword(password);
+    const result = db.prepare(`
+      INSERT INTO members (member_code, name, email, password_hash, branch, year, bio)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+    `).run(memberCode, cleanName, cleanEmail, passHash, cleanBranch, cleanYear, cleanBio);
+
+    const memberId = result.lastInsertRowid;
+    const token = crypto.randomBytes(32).toString('hex');
+    memberTokens.set(token, {
+      memberId,
+      email: cleanEmail,
+      name: cleanName,
+      memberCode,
+      loginTime: Date.now()
+    });
+
+    const memberRecord = {
+      id: memberId,
+      member_code: memberCode,
+      name: cleanName,
+      email: cleanEmail,
+      branch: cleanBranch,
+      year: cleanYear,
+      bio: cleanBio,
+      joined_at: new Date().toISOString()
+    };
+
+    res.status(201).json({
+      success: true,
+      message: 'Welcome to MathVerse! Your membership account has been created.',
+      token,
+      member: memberRecord
+    });
+  } catch (err) {
+    console.error('[API POST /api/members/signup error]', err);
+    res.status(500).json({ error: 'Failed to create member account.' });
+  }
+});
+
+// POST /api/members/login - Log in to member account with rate limiting
+app.post('/api/members/login', (req, res) => {
+  try {
+    const ip = req.ip || req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown';
+    const rateStatus = checkLoginRateLimit(ip);
+    if (rateStatus.limited) {
+      return res.status(429).json({
+        error: `Too many failed login attempts. Please wait ${rateStatus.minutesLeft} minute(s) before trying again.`
+      });
+    }
+
+    const { email, password } = req.body;
+    if (!email || !password) {
+      return res.status(400).json({ error: 'Email and password are required.' });
+    }
+
+    const cleanEmail = String(email).trim().toLowerCase();
+    const member = db.prepare('SELECT * FROM members WHERE LOWER(email) = ?').get(cleanEmail);
+
+    if (!member || !verifyPassword(password, member.password_hash)) {
+      recordFailedLogin(ip);
+      return res.status(401).json({ error: 'Invalid email or password.' });
+    }
+
+    // Success: clear failed attempts
+    clearFailedLogins(ip);
+
+    const token = crypto.randomBytes(32).toString('hex');
+    memberTokens.set(token, {
+      memberId: member.id,
+      email: member.email,
+      name: member.name,
+      memberCode: member.member_code,
+      loginTime: Date.now()
+    });
+
+    res.json({
+      success: true,
+      message: `Welcome back, ${member.name}!`,
+      token,
+      member: {
+        id: member.id,
+        member_code: member.member_code,
+        name: member.name,
+        email: member.email,
+        branch: member.branch,
+        year: member.year,
+        bio: member.bio,
+        joined_at: member.joined_at
+      }
+    });
+  } catch (err) {
+    console.error('[API POST /api/members/login error]', err);
+    res.status(500).json({ error: 'Login service failed.' });
+  }
+});
+
+// POST /api/members/logout - Invalidate member session token
+app.post('/api/members/logout', (req, res) => {
+  let token = req.headers['x-member-token'];
+  if (!token && req.headers['authorization']) {
+    const parts = req.headers['authorization'].split(' ');
+    if (parts.length === 2 && parts[0].toLowerCase() === 'bearer') token = parts[1];
+  }
+  if (token && memberTokens.has(token)) {
+    memberTokens.delete(token);
+  }
+  res.json({ success: true, message: 'Logged out successfully.' });
+});
+
+// GET /api/members/me - Get currently logged-in member info and season stats
+app.get('/api/members/me', requireMember, (req, res) => {
+  try {
+    const member = db.prepare(`
+      SELECT id, member_code, name, email, branch, year, bio, joined_at
+      FROM members
+      WHERE id = ?
+    `).get(req.memberSession.memberId);
+
+    if (!member) {
+      return res.status(404).json({ error: 'Member not found.' });
+    }
+
+    const stats = db.prepare(`
+      SELECT 
+        COALESCE(SUM(sp.final_score), 0) AS season_points,
+        COUNT(DISTINCT sp.session_id) AS quizzes_played,
+        COALESCE(SUM(CASE WHEN sp.final_rank = 1 THEN 1 ELSE 0 END), 0) AS wins
+      FROM session_players sp
+      JOIN sessions s ON sp.session_id = s.id AND s.ended_at IS NOT NULL
+      WHERE sp.member_id = ?
+    `).get(member.id);
+
+    res.json({
+      success: true,
+      member: {
+        ...member,
+        season_points: stats ? stats.season_points : 0,
+        quizzes_played: stats ? stats.quizzes_played : 0,
+        wins: stats ? stats.wins : 0
+      }
+    });
+  } catch (err) {
+    console.error('[API GET /api/members/me error]', err);
+    res.status(500).json({ error: 'Failed to retrieve profile.' });
+  }
+});
+
+// PUT /api/members/me - Update bio, branch, year (and optionally name)
+app.put('/api/members/me', requireMember, (req, res) => {
+  try {
+    const { bio, branch, year, name } = req.body;
+    const memberId = req.memberSession.memberId;
+    const current = db.prepare('SELECT * FROM members WHERE id = ?').get(memberId);
+    if (!current) {
+      return res.status(404).json({ error: 'Member not found.' });
+    }
+
+    const newName = name ? String(name).trim().slice(0, 50) : current.name;
+    const newBranch = branch ? String(branch).trim() : current.branch;
+    const newYear = year ? String(year).trim() : current.year;
+    const newBio = (bio !== undefined) ? String(bio).trim().slice(0, 300) : current.bio;
+
+    db.prepare(`
+      UPDATE members
+      SET name = ?, branch = ?, year = ?, bio = ?
+      WHERE id = ?
+    `).run(newName, newBranch, newYear, newBio, memberId);
+
+    req.memberSession.name = newName;
+
+    const updated = db.prepare('SELECT id, member_code, name, email, branch, year, bio, joined_at FROM members WHERE id = ?').get(memberId);
+    res.json({ success: true, message: 'Profile updated successfully.', member: updated });
+  } catch (err) {
+    console.error('[API PUT /api/members/me error]', err);
+    res.status(500).json({ error: 'Failed to update profile.' });
+  }
+});
+
+// GET /api/members - Public members directory (NO emails, NO passwords)
+app.get('/api/members', (req, res) => {
+  try {
+    const { search, branch, year, sort } = req.query;
+    let query = `
+      SELECT 
+        m.id,
+        m.member_code,
+        m.name,
+        m.branch,
+        m.year,
+        m.bio,
+        m.joined_at,
+        COALESCE(SUM(sp.final_score), 0) AS points,
+        COUNT(DISTINCT sp.session_id) AS quizzes_played,
+        COALESCE(SUM(CASE WHEN sp.final_rank = 1 THEN 1 ELSE 0 END), 0) AS wins
+      FROM members m
+      LEFT JOIN session_players sp ON m.id = sp.member_id
+      LEFT JOIN sessions s ON sp.session_id = s.id AND s.ended_at IS NOT NULL
+      WHERE 1=1
+    `;
+    const params = [];
+
+    if (search && String(search).trim()) {
+      const q = `%${String(search).trim()}%`;
+      query += ` AND (m.name LIKE ? OR m.member_code LIKE ? OR m.bio LIKE ? OR m.branch LIKE ?)`;
+      params.push(q, q, q, q);
+    }
+
+    if (branch && branch !== 'all') {
+      query += ` AND m.branch = ?`;
+      params.push(branch);
+    }
+
+    if (year && year !== 'all') {
+      query += ` AND m.year = ?`;
+      params.push(year);
+    }
+
+    query += ` GROUP BY m.id`;
+
+    if (sort === 'name') {
+      query += ` ORDER BY m.name ASC`;
+    } else if (sort === 'recent') {
+      query += ` ORDER BY m.joined_at DESC`;
+    } else {
+      query += ` ORDER BY points DESC, wins DESC, m.name ASC`;
+    }
+
+    const members = db.prepare(query).all(...params);
+    res.json({ success: true, count: members.length, members });
+  } catch (err) {
+    console.error('[API GET /api/members error]', err);
+    res.status(500).json({ error: 'Failed to retrieve members directory.' });
+  }
+});
+
+// GET /api/members/:code - Public member profile by member_code with badges & tournament history
+app.get('/api/members/:code', (req, res) => {
+  try {
+    const code = String(req.params.code).trim().toUpperCase();
+    const member = db.prepare(`
+      SELECT id, member_code, name, branch, year, bio, joined_at
+      FROM members
+      WHERE UPPER(member_code) = ?
+    `).get(code);
+
+    if (!member) {
+      return res.status(404).json({ error: 'Member not found with code: ' + code });
+    }
+
+    // Season stats
+    const statsRow = db.prepare(`
+      SELECT 
+        COALESCE(SUM(sp.final_score), 0) AS season_points,
+        COUNT(DISTINCT sp.session_id) AS quizzes_played,
+        COALESCE(SUM(CASE WHEN sp.final_rank = 1 THEN 1 ELSE 0 END), 0) AS wins,
+        COALESCE(SUM(CASE WHEN sp.final_rank <= 3 THEN 1 ELSE 0 END), 0) AS top3
+      FROM session_players sp
+      JOIN sessions s ON sp.session_id = s.id AND s.ended_at IS NOT NULL
+      WHERE sp.member_id = ?
+    `).get(member.id);
+
+    const seasonPoints = statsRow ? statsRow.season_points : 0;
+    const quizzesPlayed = statsRow ? statsRow.quizzes_played : 0;
+    const wins = statsRow ? statsRow.wins : 0;
+    const top3 = statsRow ? statsRow.top3 : 0;
+
+    // Season Rank calculation
+    const rankRow = db.prepare(`
+      SELECT COUNT(*) + 1 AS season_rank
+      FROM (
+        SELECT m.id, COALESCE(SUM(sp.final_score), 0) AS pts
+        FROM members m
+        LEFT JOIN session_players sp ON m.id = sp.member_id
+        LEFT JOIN sessions s ON sp.session_id = s.id AND s.ended_at IS NOT NULL
+        GROUP BY m.id
+        HAVING pts > ?
+      )
+    `).get(seasonPoints);
+    const seasonRank = rankRow ? rankRow.season_rank : 1;
+
+    // Accuracy calculation
+    const ansStats = db.prepare(`
+      SELECT 
+        COUNT(*) AS total_answers,
+        COALESCE(SUM(CASE WHEN a.is_correct = 1 THEN 1 ELSE 0 END), 0) AS correct_answers
+      FROM answers a
+      JOIN session_players sp ON a.player_id = sp.id
+      JOIN sessions s ON sp.session_id = s.id AND s.ended_at IS NOT NULL
+      WHERE sp.member_id = ?
+    `).get(member.id);
+
+    const totalAnswers = ansStats ? ansStats.total_answers : 0;
+    const correctAnswers = ansStats ? ansStats.correct_answers : 0;
+    const accuracyPct = totalAnswers > 0 ? Math.round((correctAnswers / totalAnswers) * 100) : 0;
+
+    // Best streak calculation across single sessions
+    const memberAnswers = db.prepare(`
+      SELECT a.session_id, a.is_correct
+      FROM answers a
+      JOIN session_players sp ON a.player_id = sp.id
+      JOIN sessions s ON sp.session_id = s.id AND s.ended_at IS NOT NULL
+      WHERE sp.member_id = ?
+      ORDER BY a.session_id ASC, a.id ASC
+    `).all(member.id);
+
+    let maxStreak = 0;
+    let curStreak = 0;
+    let lastSession = null;
+    for (const a of memberAnswers) {
+      if (a.session_id !== lastSession) {
+        lastSession = a.session_id;
+        curStreak = 0;
+      }
+      if (a.is_correct === 1) {
+        curStreak++;
+        if (curStreak > maxStreak) maxStreak = curStreak;
+      } else {
+        curStreak = 0;
+      }
+    }
+
+    // Dynamic Badges calculation
+    const badges = [
+      {
+        id: 'first_steps',
+        name: 'First Steps',
+        icon: '🚀',
+        description: 'Participated in at least 1 live quiz battle in the Arena.',
+        earned: quizzesPlayed >= 1,
+        progress: quizzesPlayed >= 1 ? 'Unlocked' : `${quizzesPlayed}/1 Quiz`
+      },
+      {
+        id: 'podium_finisher',
+        name: 'Podium Finisher',
+        icon: '🥉',
+        description: 'Achieved a top-3 podium finish on the live quiz leaderboard.',
+        earned: top3 >= 1,
+        progress: top3 >= 1 ? `${top3} Podium Finish${top3 === 1 ? '' : 'es'}` : '0/1 Podium'
+      },
+      {
+        id: 'champion',
+        name: 'Champion',
+        icon: '👑',
+        description: 'Claimed 1st place victory in an Arena tournament.',
+        earned: wins >= 1,
+        progress: wins >= 1 ? `${wins} Victory${wins === 1 ? '' : 'ies'}` : '0/1 Win'
+      },
+      {
+        id: 'streak_master',
+        name: 'Streak Master',
+        icon: '🔥',
+        description: 'Answered 5 or more consecutive questions correctly in a single quiz.',
+        earned: maxStreak >= 5,
+        progress: maxStreak >= 5 ? `Max Streak: ${maxStreak}` : `${maxStreak}/5 Streak`
+      },
+      {
+        id: 'sharp_mind',
+        name: 'Sharp Mind',
+        icon: '🧠',
+        description: 'Maintained 80%+ accuracy across at least 10 answered questions.',
+        earned: (totalAnswers >= 10 && accuracyPct >= 80),
+        progress: `${accuracyPct}% (${totalAnswers}/10 answers)`
+      },
+      {
+        id: 'regular',
+        name: 'Regular',
+        icon: '⚡',
+        description: 'Competed in 5 or more live Arena tournaments.',
+        earned: quizzesPlayed >= 5,
+        progress: `${Math.min(quizzesPlayed, 5)}/5 Quizzes`
+      }
+    ];
+
+    // Recent tournament sessions played
+    const recentGames = db.prepare(`
+      SELECT 
+        s.id AS session_id,
+        s.room_code,
+        s.started_at,
+        s.ended_at,
+        q.title AS quiz_title,
+        sp.final_score,
+        sp.final_rank,
+        (SELECT COUNT(*) FROM session_players sp2 WHERE sp2.session_id = s.id) AS total_players
+      FROM session_players sp
+      JOIN sessions s ON sp.session_id = s.id
+      JOIN quizzes q ON s.quiz_id = q.id
+      WHERE sp.member_id = ? AND s.ended_at IS NOT NULL
+      ORDER BY s.id DESC
+      LIMIT 10
+    `).all(member.id);
+
+    res.json({
+      success: true,
+      member: {
+        ...member,
+        season_points: seasonPoints,
+        quizzes_played: quizzesPlayed,
+        wins,
+        top3,
+        season_rank: seasonRank,
+        accuracy_pct: accuracyPct,
+        best_streak: maxStreak,
+        total_answers: totalAnswers,
+        correct_answers: correctAnswers,
+        badges,
+        recent_games: recentGames
+      }
+    });
+  } catch (err) {
+    console.error('[API GET /api/members/:code error]', err);
+    res.status(500).json({ error: 'Failed to retrieve member profile.' });
+  }
+});
+
+// GET /api/leaderboard - Season leaderboard with optional ?quiz= filter
+app.get('/api/leaderboard', (req, res) => {
+  try {
+    const { quiz } = req.query;
+    let filterClause = '';
+    const params = [];
+    if (quiz && quiz !== 'all') {
+      filterClause = 'AND s.quiz_id = ?';
+      params.push(Number(quiz));
+    }
+
+    const membersList = db.prepare(`
+      SELECT 
+        m.id,
+        m.member_code,
+        m.name,
+        m.branch,
+        m.year,
+        m.bio,
+        COALESCE(SUM(sp.final_score), 0) AS season_points,
+        COUNT(DISTINCT sp.session_id) AS quizzes_played,
+        COALESCE(SUM(CASE WHEN sp.final_rank = 1 THEN 1 ELSE 0 END), 0) AS wins
+      FROM members m
+      LEFT JOIN session_players sp ON m.id = sp.member_id
+      LEFT JOIN sessions s ON sp.session_id = s.id AND s.ended_at IS NOT NULL ${filterClause}
+      GROUP BY m.id
+      ORDER BY season_points DESC, wins DESC, m.name ASC
+    `).all(...params);
+
+    const leaderboard = membersList.map((m, index) => {
+      // Accuracy stats for this member
+      const accRow = db.prepare(`
+        SELECT 
+          COUNT(*) AS total_answers,
+          COALESCE(SUM(CASE WHEN a.is_correct = 1 THEN 1 ELSE 0 END), 0) AS correct_answers
+        FROM answers a
+        JOIN session_players sp ON a.player_id = sp.id
+        JOIN sessions s ON sp.session_id = s.id AND s.ended_at IS NOT NULL ${filterClause}
+        WHERE sp.member_id = ?
+      `).get(...(filterClause ? [Number(quiz), m.id] : [m.id]));
+
+      const totalAns = accRow ? (accRow.total_answers || 0) : 0;
+      const correctAns = accRow ? (accRow.correct_answers || 0) : 0;
+      const accuracy = totalAns > 0 ? Math.round((correctAns / totalAns) * 100) : 0;
+
+      // Best streak in a single session
+      const ansRows = db.prepare(`
+        SELECT a.session_id, a.is_correct
+        FROM answers a
+        JOIN session_players sp ON a.player_id = sp.id
+        JOIN sessions s ON sp.session_id = s.id AND s.ended_at IS NOT NULL ${filterClause}
+        WHERE sp.member_id = ?
+        ORDER BY a.session_id ASC, a.id ASC
+      `).all(...(filterClause ? [Number(quiz), m.id] : [m.id]));
+
+      let maxStreak = 0;
+      let curStreak = 0;
+      let lastSess = null;
+      for (const row of ansRows) {
+        if (row.session_id !== lastSess) {
+          lastSess = row.session_id;
+          curStreak = 0;
+        }
+        if (row.is_correct === 1) {
+          curStreak++;
+          if (curStreak > maxStreak) maxStreak = curStreak;
+        } else {
+          curStreak = 0;
+        }
+      }
+
+      return {
+        rank: index + 1,
+        id: m.id,
+        member_code: m.member_code,
+        name: m.name,
+        branch: m.branch,
+        year: m.year,
+        bio: m.bio,
+        points: m.season_points,
+        quizzes_played: m.quizzes_played,
+        wins: m.wins,
+        best_streak: maxStreak,
+        accuracy_pct: accuracy
+      };
+    });
+
+    const quizzes = db.prepare('SELECT id, title FROM quizzes ORDER BY id ASC').all();
+
+    res.json({
+      success: true,
+      leaderboard,
+      quizzes
+    });
+  } catch (err) {
+    console.error('[API /api/leaderboard error]', err);
+    res.status(500).json({ error: 'Failed to retrieve leaderboard.' });
+  }
+});
+
+/* ==========================================================================
    Socket.IO Live Arena Real-Time Game Engine
    ========================================================================== */
 
@@ -680,7 +1378,8 @@ function getLobbyPlayers(room) {
     id: p.id,
     name: p.name,
     connected: p.connected,
-    score: p.score
+    score: p.score,
+    is_member: Boolean(p.member_id)
   }));
 }
 
@@ -879,7 +1578,7 @@ function endGame(room) {
   // Persist session, players, and answers to SQLite database
   try {
     const updateSession = db.prepare('UPDATE sessions SET ended_at = CURRENT_TIMESTAMP WHERE id = ?');
-    const insertPlayer = db.prepare('INSERT INTO session_players (session_id, name, final_score, final_rank) VALUES (?, ?, ?, ?)');
+    const insertPlayer = db.prepare('INSERT INTO session_players (session_id, name, final_score, final_rank, member_id) VALUES (?, ?, ?, ?, ?)');
     const insertAnswer = db.prepare(`
       INSERT INTO answers (session_id, question_id, player_id, chosen_index, is_correct, time_ms, points_awarded)
       VALUES (?, ?, ?, ?, ?, ?, ?)
@@ -889,7 +1588,7 @@ function endGame(room) {
       updateSession.run(room.sessionId);
 
       for (const p of sorted) {
-        const pRes = insertPlayer.run(room.sessionId, p.name, p.score, p.rank);
+        const pRes = insertPlayer.run(room.sessionId, p.name, p.score, p.rank, p.member_id || null);
         const dbPlayerId = pRes.lastInsertRowid;
 
         for (let qIdx = 0; qIdx < room.questions.length; qIdx++) {
@@ -1013,7 +1712,7 @@ io.on('connection', (socket) => {
   });
 
   // Player: Join room
-  socket.on('player:join', ({ room_code, name, player_id }) => {
+  socket.on('player:join', ({ room_code, name, player_id, member_token, member_id }) => {
     const cleanCode = String(room_code || '').trim().toUpperCase();
     const room = activeRooms.get(cleanCode);
 
@@ -1025,7 +1724,23 @@ io.on('connection', (socket) => {
       return socket.emit('join:error', { message: 'This quiz battle has already concluded.' });
     }
 
-    const cleanName = String(name || '').trim().slice(0, 20);
+    // Resolve member if logged in
+    let resolvedMemberId = null;
+    let resolvedMemberName = '';
+
+    if (member_token && memberTokens.has(member_token)) {
+      const sess = memberTokens.get(member_token);
+      resolvedMemberId = sess.memberId;
+      resolvedMemberName = sess.name.slice(0, 20);
+    } else if (member_id) {
+      const mem = db.prepare('SELECT id, name FROM members WHERE id = ?').get(member_id);
+      if (mem) {
+        resolvedMemberId = mem.id;
+        resolvedMemberName = mem.name.slice(0, 20);
+      }
+    }
+
+    const cleanName = (resolvedMemberName || String(name || '').trim()).slice(0, 20);
     if (!cleanName) {
       return socket.emit('join:error', { message: 'Please enter a valid display name (max 20 chars).' });
     }
@@ -1052,6 +1767,10 @@ io.on('connection', (socket) => {
       player.socketId = socket.id;
       player.name = cleanName;
       player.connected = true;
+      if (resolvedMemberId) {
+        player.member_id = resolvedMemberId;
+        player.is_member = true;
+      }
     } else {
       // New Player
       pId = 'p_' + crypto.randomBytes(4).toString('hex');
@@ -1064,7 +1783,9 @@ io.on('connection', (socket) => {
         rank: room.players.size + 1,
         answers: new Map(),
         pendingAnswer: null,
-        connected: true
+        connected: true,
+        member_id: resolvedMemberId,
+        is_member: Boolean(resolvedMemberId)
       };
       room.players.set(pId, player);
     }
@@ -1079,7 +1800,9 @@ io.on('connection', (socket) => {
       quiz_title: room.quizTitle,
       status: room.status,
       score: player.score,
-      streak: player.streak
+      streak: player.streak,
+      member_id: player.member_id,
+      is_member: Boolean(player.member_id)
     });
 
     // Notify room of updated lobby roster
@@ -1090,7 +1813,7 @@ io.on('connection', (socket) => {
 
     if (room.hostSocketId) {
       io.to(room.hostSocketId).emit('host:player_joined', {
-        player: { id: player.id, name: player.name },
+        player: { id: player.id, name: player.name, is_member: Boolean(player.member_id) },
         total_players: room.players.size
       });
     }

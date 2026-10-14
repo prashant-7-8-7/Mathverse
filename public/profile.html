@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Member Profile & Badges — MathVerse</title>
+  <meta name="description" content="Member profile, achievements, badges, tournament history, and seasonal points on MathVerse.">
+
+  <!-- Google Fonts: Space Grotesk, Inter, JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <!-- Ambient Cosmic Nebula Glows -->
+  <div class="cosmic-nebula" aria-hidden="true">
+    <div class="nebula-orb orb-violet"></div>
+    <div class="nebula-orb orb-cyan"></div>
+    <div class="nebula-orb orb-gold"></div>
+  </div>
+
+  <!-- Sticky Top Navigation -->
+  <header class="navbar" role="banner">
+    <div class="nav-container">
+      <a href="index.html" class="nav-brand" aria-label="MathVerse Home">
+        <span class="brand-glyph">∫</span>
+        <span class="brand-text">Math<span class="brand-accent">Verse</span></span>
+      </a>
+
+      <!-- Desktop Nav Links -->
+      <nav class="nav-menu" aria-label="Primary Navigation">
+        <ul class="nav-links">
+          <li><a href="index.html" class="nav-link">Home</a></li>
+          <li><a href="about.html" class="nav-link">About</a></li>
+          <li><a href="events.html" class="nav-link">Events</a></li>
+          <li><a href="gallery.html" class="nav-link">Gallery</a></li>
+          <li><a href="arena.html" class="nav-link">Arena</a></li>
+          <li><a href="leaderboard.html" class="nav-link">Leaderboard</a></li>
+          <li><a href="members.html" class="nav-link active">Members</a></li>
+          <li><a href="certificates.html" class="nav-link">Certificates</a></li>
+          <li><a href="feedback.html" class="nav-link">Feedback</a></li>
+          <li><a href="contact.html" class="nav-link">Contact</a></li>
+        </ul>
+      </nav>
+
+      <!-- Nav Actions -->
+      <div class="nav-actions">
+        <div id="status-badge" class="status-badge status-disconnected" title="Socket.IO real-time connection status" aria-live="polite">
+          <span class="status-dot"></span>
+          <span id="status-text" class="status-text">Disconnected</span>
+        </div>
+
+        <a href="member-login.html" class="btn-nav-join">Join the Club</a>
+
+        <button id="nav-toggle" class="nav-toggle" aria-label="Toggle navigation menu" aria-expanded="false" aria-controls="mobile-menu">
+          <span class="toggle-line"></span>
+          <span class="toggle-line"></span>
+          <span class="toggle-line"></span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Mobile Drawer Menu -->
+  <div id="mobile-menu" class="mobile-menu" aria-hidden="true">
+    <ul class="mobile-links">
+      <li><a href="index.html" class="mobile-link">Home</a></li>
+      <li><a href="about.html" class="mobile-link">About</a></li>
+      <li><a href="events.html" class="mobile-link">Events</a></li>
+      <li><a href="gallery.html" class="mobile-link">Gallery</a></li>
+      <li><a href="arena.html" class="mobile-link">Arena</a></li>
+      <li><a href="leaderboard.html" class="mobile-link">Leaderboard</a></li>
+      <li><a href="members.html" class="mobile-link active">Members</a></li>
+      <li><a href="certificates.html" class="mobile-link">Certificates</a></li>
+      <li><a href="feedback.html" class="mobile-link">Feedback</a></li>
+      <li><a href="contact.html" class="mobile-link">Contact</a></li>
+    </ul>
+    <a href="member-login.html" class="btn-nav-join" style="padding: 0.8rem 2rem; font-size: 1rem;">Join the Club</a>
+  </div>
+
+  <!-- Main View Container -->
+  <main class="page-wrapper" style="flex-direction: column;">
+    
+    <!-- Loading / Error Card -->
+    <div id="profile-loading" style="text-align: center; padding: 5rem 1rem;">
+      <div style="font-size: 2.5rem; margin-bottom: 1rem; animation: pulse 1.5s infinite;">🪐</div>
+      <p style="color: var(--text-muted); font-family: var(--font-mono);">Loading mathematician profile...</p>
+    </div>
+
+    <div id="profile-error" style="display: none; max-width: 500px; margin: 4rem auto; text-align: center; background: var(--space-surface); border: 1px solid var(--space-border); border-radius: 20px; padding: 3rem 2rem;">
+      <div style="font-size: 3rem; margin-bottom: 1rem;">🛸</div>
+      <h2 style="font-family: var(--font-heading); color: #ffffff; margin-bottom: 0.5rem;">Member Not Found</h2>
+      <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 2rem;">
+        The requested member profile could not be found in our constellation.
+      </p>
+      <a href="members.html" class="btn-primary" style="display: inline-flex; justify-content: center;">
+        <span>← Browse Member Directory</span>
+      </a>
+    </div>
+
+    <!-- Active Profile Content -->
+    <div id="profile-content" style="display: none; width: 100%; max-width: 1100px; margin: 0 auto;">
+      
+      <!-- Profile Header Hero Card -->
+      <div class="auth-card" style="max-width: 100%; padding: 2.5rem; margin-bottom: 2.5rem;">
+        <div style="display: flex; gap: 2rem; align-items: center; flex-wrap: wrap;">
+          
+          <div id="profile-avatar" style="width: 100px; height: 100px; border-radius: 50%; background: linear-gradient(135deg, var(--neon-violet), var(--neon-cyan)); display: flex; align-items: center; justify-content: center; font-family: var(--font-heading); font-size: 2.5rem; font-weight: 800; color: #ffffff; border: 3px solid rgba(255,255,255,0.25); box-shadow: 0 0 35px var(--neon-cyan-glow); flex-shrink: 0;">
+            MV
+          </div>
+
+          <div style="flex: 1; min-width: 260px;">
+            <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 0.4rem;">
+              <span id="profile-code" class="member-card-code" style="font-size: 0.9rem; padding: 0.25rem 0.75rem;">
+                MV-M-0001
+              </span>
+              <span id="profile-joined" style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-muted);">
+                Member since March 2026
+              </span>
+            </div>
+
+            <h1 id="profile-name" style="font-family: var(--font-heading); font-size: 2.4rem; color: var(--text-pure); margin-bottom: 0.5rem;">
+              Mathematician Name
+            </h1>
+
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem;">
+              <span id="profile-branch" style="background: rgba(139, 92, 246, 0.2); border: 1px solid rgba(139, 92, 246, 0.4); color: #c4b5fd; padding: 0.25rem 0.75rem; border-radius: 8px; font-size: 0.85rem; font-weight: 600;">
+                Department
+              </span>
+              <span id="profile-year" style="background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.15); color: var(--text-main); padding: 0.25rem 0.75rem; border-radius: 8px; font-size: 0.85rem; font-weight: 600;">
+                Academic Year
+              </span>
+            </div>
+
+            <p id="profile-bio" style="color: var(--text-muted); font-size: 1rem; line-height: 1.6; margin: 0; font-style: italic;">
+              "Passionate mathematics explorer."
+            </p>
+          </div>
+
+          <!-- Edit Profile Action Button (Owner Only) -->
+          <div id="owner-actions" style="display: none; align-self: flex-start;">
+            <button type="button" id="btn-open-edit-modal" class="btn-primary" style="padding: 0.75rem 1.4rem;">
+              <span>✏️ Edit Profile</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- High-Level Metric Stat Cards Strip -->
+      <div class="admin-stats-strip" style="margin-bottom: 3rem;">
+        <div class="admin-stat-card">
+          <div class="admin-stat-label">Season Standing</div>
+          <div id="stat-rank" class="admin-stat-value" style="color: var(--neon-gold);">#—</div>
+          <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.4rem;">Club leaderboard rank</p>
+        </div>
+
+        <div class="admin-stat-card">
+          <div class="admin-stat-label">Season Points</div>
+          <div id="stat-points" class="admin-stat-value" style="color: var(--neon-cyan);">0</div>
+          <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.4rem;">Total points from Arena</p>
+        </div>
+
+        <div class="admin-stat-card">
+          <div class="admin-stat-label">Arena Quizzes</div>
+          <div id="stat-quizzes" class="admin-stat-value">0</div>
+          <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.4rem;">Completed tournaments</p>
+        </div>
+
+        <div class="admin-stat-card">
+          <div class="admin-stat-label">Victories & Wins</div>
+          <div id="stat-wins" class="admin-stat-value" style="color: #f59e0b;">0</div>
+          <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.4rem;">Rank 1 tournament finishes</p>
+        </div>
+
+        <div class="admin-stat-card">
+          <div class="admin-stat-label">Best Streak</div>
+          <div id="stat-streak" class="admin-stat-value" style="color: #f97316;">0</div>
+          <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.4rem;">Consecutive correct solves</p>
+        </div>
+
+        <div class="admin-stat-card">
+          <div class="admin-stat-label">Overall Accuracy</div>
+          <div id="stat-accuracy" class="admin-stat-value" style="color: #10b981;">0%</div>
+          <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.4rem;">Correct question solve rate</p>
+        </div>
+      </div>
+
+      <!-- Badges Showcase Section -->
+      <div style="margin-bottom: 3.5rem;">
+        <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 1.25rem;">
+          <div>
+            <h2 style="font-family: var(--font-heading); font-size: 1.7rem; color: #ffffff; margin-bottom: 0.2rem;">
+              Mathematical <span class="gradient-text">Badges & Honors</span>
+            </h2>
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin: 0;">
+              Prestigious achievements unlocked through speed, knowledge, and consistency in live battles.
+            </p>
+          </div>
+          <div id="badges-count-badge" style="font-family: var(--font-mono); font-size: 0.85rem; color: var(--neon-cyan); background: rgba(34, 211, 238, 0.1); border: 1px solid rgba(34, 211, 238, 0.3); padding: 0.25rem 0.75rem; border-radius: 999px;">
+            0 / 6 Unlocked
+          </div>
+        </div>
+
+        <div id="badges-grid" class="badges-grid">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+
+      <!-- Recent Tournaments Played -->
+      <div style="margin-bottom: 4rem;">
+        <h2 style="font-family: var(--font-heading); font-size: 1.7rem; color: #ffffff; margin-bottom: 0.2rem;">
+          Recent Arena <span class="gradient-text">Battles</span>
+        </h2>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.25rem;">
+          Historical match record and scores across completed quiz sessions.
+        </p>
+
+        <div class="lb-table-wrapper">
+          <div style="overflow-x: auto;">
+            <table class="lb-table">
+              <thead>
+                <tr>
+                  <th>Tournament Quiz</th>
+                  <th>Room Code</th>
+                  <th>Date & Time</th>
+                  <th style="text-align: center;">Rank Finished</th>
+                  <th style="text-align: center;">Competitors</th>
+                  <th style="text-align: right;">Final Score</th>
+                </tr>
+              </thead>
+              <tbody id="recent-games-tbody">
+                <!-- Rendered dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Edit Profile Modal (Owner Only) -->
+  <div id="edit-modal" style="display: none; position: fixed; inset: 0; z-index: 2000; background: rgba(5, 7, 17, 0.85); backdrop-filter: blur(12px); align-items: center; justify-content: center; padding: 1.5rem;">
+    <div class="auth-card" style="width: 100%; max-width: 520px; padding: 2.5rem; position: relative;">
+      <button type="button" id="btn-close-edit-modal" style="position: absolute; top: 1.25rem; right: 1.25rem; background: none; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer;">
+        ✕
+      </button>
+
+      <div style="margin-bottom: 1.5rem;">
+        <div class="subpage-badge" style="margin-bottom: 0.3rem;">Member Settings</div>
+        <h2 style="font-family: var(--font-heading); font-size: 1.8rem; color: #ffffff; margin: 0;">
+          Edit Your <span class="gradient-text">Profile</span>
+        </h2>
+      </div>
+
+      <div id="edit-modal-alert" style="display: none; border-radius: 10px; padding: 0.75rem 1rem; font-size: 0.88rem; margin-bottom: 1.25rem;"></div>
+
+      <form id="form-edit-profile" novalidate>
+        <div class="form-group" style="text-align: left; margin-bottom: 1.1rem;">
+          <label for="edit-name" class="form-label">Display Name</label>
+          <input type="text" id="edit-name" class="form-input" required maxlength="50">
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem; margin-bottom: 1.1rem;">
+          <div class="form-group" style="text-align: left; margin: 0;">
+            <label for="edit-branch" class="form-label">Branch</label>
+            <select id="edit-branch" class="form-select" required style="padding: 0.75rem 0.85rem; font-size: 0.9rem;">
+              <option value="Mathematics">Mathematics</option>
+              <option value="Computer Science">Computer Science</option>
+              <option value="Data Science & AI">Data Science & AI</option>
+              <option value="Physics">Physics</option>
+              <option value="Electrical Engineering">Electrical Eng.</option>
+              <option value="Mechanical Engineering">Mechanical Eng.</option>
+              <option value="Other">Other Discipline</option>
+            </select>
+          </div>
+
+          <div class="form-group" style="text-align: left; margin: 0;">
+            <label for="edit-year" class="form-label">Academic Year</label>
+            <select id="edit-year" class="form-select" required style="padding: 0.75rem 0.85rem; font-size: 0.9rem;">
+              <option value="1st Year">1st Year</option>
+              <option value="2nd Year">2nd Year</option>
+              <option value="3rd Year">3rd Year</option>
+              <option value="4th Year">4th Year</option>
+              <option value="Postgraduate">Postgraduate / PhD</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group" style="text-align: left; margin-bottom: 1.5rem;">
+          <label for="edit-bio" class="form-label">Bio (Max 300 chars)</label>
+          <textarea id="edit-bio" class="form-textarea" rows="3" maxlength="300" placeholder="Share your favorite math theorem, paradox, or research area..."></textarea>
+        </div>
+
+        <div style="display: flex; gap: 0.75rem; justify-content: flex-end;">
+          <button type="button" id="btn-cancel-edit" class="btn-secondary" style="padding: 0.75rem 1.25rem;">
+            Cancel
+          </button>
+          <button type="submit" id="btn-save-edit" class="btn-primary" style="padding: 0.75rem 1.5rem;">
+            <span>Save Profile</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Shared Global Footer -->
+  <footer class="app-footer" role="contentinfo">
+    <div class="footer-container">
+      <div class="footer-brand">
+        <div class="brand-logo">
+          <span class="brand-glyph">∫</span>
+          <span class="brand-text">Math<span class="brand-accent">Verse</span></span>
+        </div>
+        <p class="footer-tagline">Where curiosity converges with infinity.</p>
+        <p class="footer-copy">© 2026 MathVerse Mathematics Club. All rights reserved.</p>
+      </div>
+
+      <nav class="footer-nav" aria-label="Footer Navigation">
+        <div class="footer-col">
+          <h4>Navigation</h4>
+          <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="about.html">About</a></li>
+            <li><a href="events.html">Events</a></li>
+            <li><a href="gallery.html">Gallery</a></li>
+            <li><a href="arena.html">Arena</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Community</h4>
+          <ul>
+            <li><a href="leaderboard.html">Leaderboard</a></li>
+            <li><a href="members.html">Members</a></li>
+            <li><a href="certificates.html">Certificates</a></li>
+            <li><a href="feedback.html">Feedback</a></li>
+            <li><a href="contact.html">Contact</a></li>
+          </ul>
+        </div>
+      </nav>
+    </div>
+  </footer>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="/js/data.js"></script>
+  <script src="/js/main.js"></script>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      let memberCode = urlParams.get('code');
+
+      // Check current user in local storage
+      const token = localStorage.getItem('mathverse_member_token');
+      const userJson = localStorage.getItem('mathverse_member_user');
+      let currentUser = null;
+      try {
+        if (userJson) currentUser = JSON.parse(userJson);
+      } catch (e) {}
+
+      // If no code provided in query param:
+      if (!memberCode) {
+        if (currentUser && currentUser.member_code) {
+          memberCode = currentUser.member_code;
+          window.history.replaceState(null, '', `profile.html?code=${encodeURIComponent(memberCode)}`);
+        } else {
+          window.location.href = 'members.html';
+          return;
+        }
+      }
+
+      const profileLoading = document.getElementById('profile-loading');
+      const profileError = document.getElementById('profile-error');
+      const profileContent = document.getElementById('profile-content');
+
+      const profileAvatar = document.getElementById('profile-avatar');
+      const profileCode = document.getElementById('profile-code');
+      const profileJoined = document.getElementById('profile-joined');
+      const profileName = document.getElementById('profile-name');
+      const profileBranch = document.getElementById('profile-branch');
+      const profileYear = document.getElementById('profile-year');
+      const profileBio = document.getElementById('profile-bio');
+
+      const ownerActions = document.getElementById('owner-actions');
+      const btnOpenEdit = document.getElementById('btn-open-edit-modal');
+      const editModal = document.getElementById('edit-modal');
+      const btnCloseEdit = document.getElementById('btn-close-edit-modal');
+      const btnCancelEdit = document.getElementById('btn-cancel-edit');
+      const formEdit = document.getElementById('form-edit-profile');
+      const editModalAlert = document.getElementById('edit-modal-alert');
+
+      let currentMemberData = null;
+
+      function getInitials(name) {
+        if (!name) return 'MV';
+        return name.split(' ').map(p => p[0]).join('').slice(0, 2).toUpperCase();
+      }
+
+      function animateCountUp(element, endVal, duration = 1.2) {
+        const startVal = 0;
+        const startTime = performance.now();
+        function update(currentTime) {
+          const elapsed = (currentTime - startTime) / 1000;
+          const progress = Math.min(elapsed / duration, 1);
+          const easeProgress = (progress === 1) ? 1 : 1 - Math.pow(2, -10 * progress);
+          const currentVal = Math.round(startVal + (endVal - startVal) * easeProgress);
+          element.textContent = currentVal.toLocaleString();
+          if (progress < 1) requestAnimationFrame(update);
+        }
+        requestAnimationFrame(update);
+      }
+
+      async function loadProfile() {
+        try {
+          const res = await fetch(`/api/members/${encodeURIComponent(memberCode)}`);
+          const data = await res.json();
+
+          if (!res.ok) {
+            profileLoading.style.display = 'none';
+            profileError.style.display = 'block';
+            return;
+          }
+
+          currentMemberData = data.member;
+          renderProfile(currentMemberData);
+        } catch (err) {
+          console.error(err);
+          profileLoading.style.display = 'none';
+          profileError.style.display = 'block';
+        }
+      }
+
+      function renderProfile(m) {
+        profileLoading.style.display = 'none';
+        profileError.style.display = 'none';
+        profileContent.style.display = 'block';
+
+        profileAvatar.textContent = getInitials(m.name);
+        profileCode.textContent = m.member_code;
+        profileName.textContent = m.name;
+        profileBranch.textContent = m.branch || 'Mathematics';
+        profileYear.textContent = m.year || 'Member';
+        profileBio.textContent = m.bio ? `"${m.bio}"` : '"Passionate mathematics explorer."';
+
+        if (m.joined_at) {
+          const d = new Date(m.joined_at);
+          profileJoined.textContent = `Member since ${d.toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}`;
+        }
+
+        // Check if viewing own profile
+        const isOwner = currentUser && (currentUser.member_code === m.member_code || currentUser.id === m.id);
+        if (isOwner && token) {
+          ownerActions.style.display = 'block';
+        } else {
+          ownerActions.style.display = 'none';
+        }
+
+        // Stats ribbon
+        const statRank = document.getElementById('stat-rank');
+        statRank.textContent = `#${m.season_rank || 1}`;
+
+        const statPoints = document.getElementById('stat-points');
+        animateCountUp(statPoints, m.season_points || 0);
+
+        const statQuizzes = document.getElementById('stat-quizzes');
+        animateCountUp(statQuizzes, m.quizzes_played || 0);
+
+        const statWins = document.getElementById('stat-wins');
+        animateCountUp(statWins, m.wins || 0);
+
+        const statStreak = document.getElementById('stat-streak');
+        animateCountUp(statStreak, m.best_streak || 0);
+
+        const statAccuracy = document.getElementById('stat-accuracy');
+        statAccuracy.textContent = `${m.accuracy_pct || 0}%`;
+
+        // Badges grid
+        const badgesGrid = document.getElementById('badges-grid');
+        const badgesCountBadge = document.getElementById('badges-count-badge');
+        let unlockedCount = 0;
+
+        if (m.badges && m.badges.length > 0) {
+          badgesGrid.innerHTML = m.badges.map(b => {
+            if (b.earned) unlockedCount++;
+            return `
+              <div class="badge-card ${b.earned ? 'unlocked' : 'locked'}">
+                <div class="badge-icon-box">${b.icon}</div>
+                <h3 style="font-family: var(--font-heading); font-size: 1.15rem; color: #ffffff; margin-bottom: 0.35rem;">
+                  ${b.name}
+                </h3>
+                <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 1.25rem; flex: 1;">
+                  ${b.description}
+                </p>
+                <div class="badge-status-tag">
+                  ${b.earned ? '✦ Unlocked' : '🔒 Locked'} • ${b.progress || ''}
+                </div>
+              </div>
+            `;
+          }).join('');
+          badgesCountBadge.textContent = `${unlockedCount} / ${m.badges.length} Unlocked`;
+        }
+
+        // Recent Battles table
+        const recentTbody = document.getElementById('recent-games-tbody');
+        if (m.recent_games && m.recent_games.length > 0) {
+          recentTbody.innerHTML = m.recent_games.map(g => {
+            const dateStr = g.ended_at ? new Date(g.ended_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—';
+            let rankDisplay = `#${g.final_rank}`;
+            if (g.final_rank === 1) rankDisplay = '🥇 1st Place';
+            else if (g.final_rank === 2) rankDisplay = '🥈 2nd Place';
+            else if (g.final_rank === 3) rankDisplay = '🥉 3rd Place';
+
+            return `
+              <tr>
+                <td style="font-weight: 700; color: #ffffff;">${g.quiz_title}</td>
+                <td><span style="font-family: var(--font-mono); color: var(--neon-cyan);">${g.room_code}</span></td>
+                <td style="font-size: 0.88rem; color: var(--text-muted);">${dateStr}</td>
+                <td style="text-align: center; font-family: var(--font-mono); font-weight: 700; color: ${g.final_rank === 1 ? 'var(--neon-gold)' : (g.final_rank <= 3 ? '#6ee7b7' : 'inherit')};">${rankDisplay}</td>
+                <td style="text-align: center; font-family: var(--font-mono);">${g.total_players} players</td>
+                <td style="text-align: right; font-family: var(--font-mono); font-weight: 800; color: var(--neon-cyan);">${(g.final_score || 0).toLocaleString()} pts</td>
+              </tr>
+            `;
+          }).join('');
+        } else {
+          recentTbody.innerHTML = `
+            <tr>
+              <td colspan="6" style="text-align: center; padding: 2.5rem; color: var(--text-muted);">
+                No tournament battles played yet. Join an Arena quiz to record your first game!
+              </td>
+            </tr>
+          `;
+        }
+      }
+
+      // Modal management
+      if (btnOpenEdit) {
+        btnOpenEdit.addEventListener('click', () => {
+          if (!currentMemberData) return;
+          document.getElementById('edit-name').value = currentMemberData.name || '';
+          document.getElementById('edit-branch').value = currentMemberData.branch || 'Mathematics';
+          document.getElementById('edit-year').value = currentMemberData.year || '1st Year';
+          document.getElementById('edit-bio').value = currentMemberData.bio || '';
+          editModalAlert.style.display = 'none';
+          editModal.style.display = 'flex';
+        });
+      }
+
+      function closeModal() {
+        editModal.style.display = 'none';
+      }
+
+      if (btnCloseEdit) btnCloseEdit.addEventListener('click', closeModal);
+      if (btnCancelEdit) btnCancelEdit.addEventListener('click', closeModal);
+
+      // Handle Edit Submit
+      if (formEdit) {
+        formEdit.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const name = document.getElementById('edit-name').value.trim();
+          const branch = document.getElementById('edit-branch').value;
+          const year = document.getElementById('edit-year').value;
+          const bio = document.getElementById('edit-bio').value.trim();
+          const btnSave = document.getElementById('btn-save-edit');
+
+          if (!name) {
+            editModalAlert.style.display = 'block';
+            editModalAlert.style.background = 'rgba(239, 68, 68, 0.2)';
+            editModalAlert.style.color = '#fca5a5';
+            editModalAlert.textContent = 'Display name cannot be empty.';
+            return;
+          }
+
+          btnSave.disabled = true;
+          btnSave.innerHTML = '<span>Saving...</span>';
+
+          try {
+            const res = await fetch('/api/members/me', {
+              method: 'PUT',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+              },
+              body: JSON.stringify({ name, branch, year, bio })
+            });
+            const data = await res.json();
+
+            if (!res.ok) {
+              editModalAlert.style.display = 'block';
+              editModalAlert.style.background = 'rgba(239, 68, 68, 0.2)';
+              editModalAlert.style.color = '#fca5a5';
+              editModalAlert.textContent = data.error || 'Failed to update profile.';
+              btnSave.disabled = false;
+              btnSave.innerHTML = '<span>Save Profile</span>';
+              return;
+            }
+
+            // Update stored user
+            if (currentUser) {
+              currentUser.name = data.member.name;
+              currentUser.branch = data.member.branch;
+              currentUser.year = data.member.year;
+              currentUser.bio = data.member.bio;
+              localStorage.setItem('mathverse_member_user', JSON.stringify(currentUser));
+            }
+
+            closeModal();
+            loadProfile();
+            btnSave.disabled = false;
+            btnSave.innerHTML = '<span>Save Profile</span>';
+          } catch (err) {
+            editModalAlert.style.display = 'block';
+            editModalAlert.style.background = 'rgba(239, 68, 68, 0.2)';
+            editModalAlert.style.color = '#fca5a5';
+            editModalAlert.textContent = 'Network error: could not save profile.';
+            btnSave.disabled = false;
+            btnSave.innerHTML = '<span>Save Profile</span>';
+          }
+        });
+      }
+
+      loadProfile();
+    });
+  </script>
+</body>
+</html>

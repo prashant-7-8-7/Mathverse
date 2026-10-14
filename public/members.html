@@ -3,8 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Club Members & Leadership — MathVerse</title>
-  
+  <title>Members Directory — MathVerse</title>
+  <meta name="description" content="Discover members of the MathVerse Mathematics Club, view seasonal point standings, and explore member profiles.">
+
+  <!-- Google Fonts: Space Grotesk, Inter, JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700;800&display=swap" rel="stylesheet">
@@ -13,7 +15,7 @@
   <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
-  <!-- Ambient Cosmic Nebula -->
+  <!-- Ambient Cosmic Nebula Glows -->
   <div class="cosmic-nebula" aria-hidden="true">
     <div class="nebula-orb orb-violet"></div>
     <div class="nebula-orb orb-cyan"></div>
@@ -28,6 +30,7 @@
         <span class="brand-text">Math<span class="brand-accent">Verse</span></span>
       </a>
 
+      <!-- Desktop Nav Links -->
       <nav class="nav-menu" aria-label="Primary Navigation">
         <ul class="nav-links">
           <li><a href="index.html" class="nav-link">Home</a></li>
@@ -43,12 +46,15 @@
         </ul>
       </nav>
 
+      <!-- Nav Actions -->
       <div class="nav-actions">
-        <div id="status-badge" class="status-badge status-disconnected" aria-live="polite">
+        <div id="status-badge" class="status-badge status-disconnected" title="Socket.IO real-time connection status" aria-live="polite">
           <span class="status-dot"></span>
           <span id="status-text" class="status-text">Disconnected</span>
         </div>
-        <a href="contact.html" class="btn-nav-join">Join the Club</a>
+
+        <a href="member-login.html" class="btn-nav-join">Join the Club</a>
+
         <button id="nav-toggle" class="nav-toggle" aria-label="Toggle navigation menu" aria-expanded="false" aria-controls="mobile-menu">
           <span class="toggle-line"></span>
           <span class="toggle-line"></span>
@@ -72,22 +78,76 @@
       <li><a href="feedback.html" class="mobile-link">Feedback</a></li>
       <li><a href="contact.html" class="mobile-link">Contact</a></li>
     </ul>
-    <a href="contact.html" class="btn-nav-join" style="padding: 0.8rem 2rem; font-size: 1rem;">Join the Club</a>
+    <a href="member-login.html" class="btn-nav-join" style="padding: 0.8rem 2rem; font-size: 1rem;">Join the Club</a>
   </div>
 
-  <!-- Main Content: Coming Soon Card -->
-  <main class="page-wrapper">
-    <div class="coming-soon-card">
-      <div class="coming-soon-halo" aria-hidden="true"></div>
-      <div class="coming-soon-glyph">👥</div>
-      <span class="coming-soon-badge">Mathematicians Guild</span>
-      <h1 class="coming-soon-title">Members & Leadership</h1>
-      <p class="coming-soon-desc">
-        Meet our peer problem-solving circles, faculty mentors, research scholars, and executive board. Check the About page for full leadership bios!
+  <!-- Page Header -->
+  <main class="page-wrapper" style="flex-direction: column;">
+    <section class="subpage-header">
+      <div class="subpage-badge">Guild Directory</div>
+      <h1 class="subpage-title">
+        Club <span class="gradient-text">Members</span> & Explorers
+      </h1>
+      <p class="subpage-subtitle">
+        Meet our peer problem-solving community, academic scholars, and tournament champions across university branches.
       </p>
-      <a href="about.html" class="btn-primary">
-        <span>View Leadership Board →</span>
-      </a>
+    </section>
+
+    <!-- Filters & Search Toolbar -->
+    <div style="width: 100%; max-width: 1100px; margin: 0 auto 2rem;">
+      <div class="admin-table-controls" style="margin-bottom: 0;">
+        <div style="display: flex; gap: 1rem; align-items: center; flex: 1; flex-wrap: wrap;">
+          <div class="events-search-box" style="max-width: 320px; width: 100%; margin: 0;">
+            <span class="search-icon" aria-hidden="true">🔍</span>
+            <input type="text" id="member-search-input" class="search-input" placeholder="Search by name, code, bio...">
+          </div>
+
+          <div style="min-width: 190px;">
+            <select id="member-branch-filter" class="form-select" style="padding: 0.75rem 0.85rem; font-size: 0.9rem;">
+              <option value="all">All Branches</option>
+              <option value="Mathematics">Mathematics</option>
+              <option value="Computer Science">Computer Science</option>
+              <option value="Data Science & AI">Data Science & AI</option>
+              <option value="Physics">Physics</option>
+              <option value="Electrical Engineering">Electrical Eng.</option>
+              <option value="Mechanical Engineering">Mechanical Eng.</option>
+              <option value="Other">Other Disciplines</option>
+            </select>
+          </div>
+
+          <div style="min-width: 160px;">
+            <select id="member-year-filter" class="form-select" style="padding: 0.75rem 0.85rem; font-size: 0.9rem;">
+              <option value="all">All Years</option>
+              <option value="1st Year">1st Year</option>
+              <option value="2nd Year">2nd Year</option>
+              <option value="3rd Year">3rd Year</option>
+              <option value="4th Year">4th Year</option>
+              <option value="Postgraduate">Postgraduate</option>
+            </select>
+          </div>
+
+          <div style="min-width: 180px;">
+            <select id="member-sort-filter" class="form-select" style="padding: 0.75rem 0.85rem; font-size: 0.9rem;">
+              <option value="points">Sort: Most Season Points</option>
+              <option value="name">Sort: Name (A to Z)</option>
+              <option value="recent">Sort: Recently Joined</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <span id="member-count-label" style="font-family: var(--font-mono); font-size: 0.85rem; color: var(--text-muted);">
+            Loading directory...
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Members Cards Grid -->
+    <div style="width: 100%; max-width: 1100px; margin: 0 auto;">
+      <div id="members-grid" class="members-grid">
+        <!-- Rendered dynamically -->
+      </div>
     </div>
   </main>
 
@@ -99,61 +159,166 @@
           <span class="brand-glyph">∫</span>
           <span class="brand-text">Math<span class="brand-accent">Verse</span></span>
         </div>
-        <p class="footer-tagline">
-          The official digital universe and live competition arena of the College Mathematics Club. Fostering pure rigor, applied mastery, and intellectual camaraderie.
-        </p>
-        <div class="footer-socials">
-          <a href="#" class="social-icon-btn" aria-label="GitHub">gh</a>
-          <a href="#" class="social-icon-btn" aria-label="Discord">dc</a>
-          <a href="#" class="social-icon-btn" aria-label="LinkedIn">in</a>
-          <a href="#" class="social-icon-btn" aria-label="Instagram">ig</a>
-          <a href="#" class="social-icon-btn" aria-label="Twitter">𝕏</a>
+        <p class="footer-tagline">Where curiosity converges with infinity.</p>
+        <p class="footer-copy">© 2026 MathVerse Mathematics Club. All rights reserved.</p>
+      </div>
+
+      <nav class="footer-nav" aria-label="Footer Navigation">
+        <div class="footer-col">
+          <h4>Navigation</h4>
+          <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="about.html">About</a></li>
+            <li><a href="events.html">Events</a></li>
+            <li><a href="gallery.html">Gallery</a></li>
+            <li><a href="arena.html">Arena</a></li>
+          </ul>
         </div>
-      </div>
-
-      <div class="footer-col">
-        <h4 class="footer-column-title">Platform</h4>
-        <ul class="footer-nav-list">
-          <li><a href="index.html" class="footer-nav-link">Home</a></li>
-          <li><a href="arena.html" class="footer-nav-link">Live Arena</a></li>
-          <li><a href="leaderboard.html" class="footer-nav-link">Leaderboard</a></li>
-          <li><a href="certificates.html" class="footer-nav-link">Certificates</a></li>
-        </ul>
-      </div>
-
-      <div class="footer-col">
-        <h4 class="footer-column-title">Community</h4>
-        <ul class="footer-nav-list">
-          <li><a href="about.html" class="footer-nav-link">About Us</a></li>
-          <li><a href="events.html" class="footer-nav-link">Club Events</a></li>
-          <li><a href="gallery.html" class="footer-nav-link">Math Art Gallery</a></li>
-          <li><a href="members.html" class="footer-nav-link">Members</a></li>
-          <li><a href="feedback.html" class="footer-nav-link">Feedback</a></li>
-        </ul>
-      </div>
-
-      <div class="footer-col">
-        <h4 class="footer-column-title">Contact & Join</h4>
-        <ul class="footer-nav-list">
-          <li><a href="contact.html" class="footer-nav-link">Contact Desk</a></li>
-          <li><a href="contact.html" class="footer-nav-link">Join the Club</a></li>
-          <li><span class="footer-nav-link" style="color: var(--text-subtle);">Department of Mathematics</span></li>
-          <li><span class="footer-nav-link" style="color: var(--text-subtle);">Science Hall, Room 402</span></li>
-        </ul>
-      </div>
-    </div>
-
-    <div class="footer-bottom">
-      <p>&copy; 2026 MathVerse &bull; College Mathematics Club. All mathematical rights reserved.</p>
-      <p>Crafted with rigor, curiosity, and code. &bull; <a href="admin.html" class="footer-admin-link">Admin</a></p>
+        <div class="footer-col">
+          <h4>Community</h4>
+          <ul>
+            <li><a href="leaderboard.html">Leaderboard</a></li>
+            <li><a href="members.html">Members</a></li>
+            <li><a href="certificates.html">Certificates</a></li>
+            <li><a href="feedback.html">Feedback</a></li>
+            <li><a href="contact.html">Contact</a></li>
+          </ul>
+        </div>
+      </nav>
     </div>
   </footer>
 
   <script src="/socket.io/socket.io.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script>
   <script src="/js/data.js"></script>
   <script src="/js/main.js"></script>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      let allMembers = [];
+      const grid = document.getElementById('members-grid');
+      const searchInput = document.getElementById('member-search-input');
+      const branchFilter = document.getElementById('member-branch-filter');
+      const yearFilter = document.getElementById('member-year-filter');
+      const sortFilter = document.getElementById('member-sort-filter');
+      const countLabel = document.getElementById('member-count-label');
+
+      function getInitials(name) {
+        if (!name) return 'MV';
+        return name.split(' ').map(p => p[0]).join('').slice(0, 2).toUpperCase();
+      }
+
+      async function fetchMembers() {
+        try {
+          const params = new URLSearchParams();
+          if (searchInput.value.trim()) params.append('search', searchInput.value.trim());
+          if (branchFilter.value !== 'all') params.append('branch', branchFilter.value);
+          if (yearFilter.value !== 'all') params.append('year', yearFilter.value);
+          if (sortFilter.value) params.append('sort', sortFilter.value);
+
+          const res = await fetch(`/api/members?${params.toString()}`);
+          const data = await res.json();
+
+          if (!res.ok) throw new Error(data.error || 'Failed to load members');
+
+          allMembers = data.members || [];
+          renderMembers(allMembers);
+        } catch (err) {
+          console.error(err);
+          grid.innerHTML = `
+            <div style="grid-column: 1 / -1; text-align: center; padding: 3rem; color: #fca5a5;">
+              Unable to load members directory. Please verify server status.
+            </div>
+          `;
+        }
+      }
+
+      function renderMembers(list) {
+        countLabel.textContent = `Showing ${list.length} club member${list.length === 1 ? '' : 's'}`;
+
+        if (!list || list.length === 0) {
+          grid.innerHTML = `
+            <div style="grid-column: 1 / -1; text-align: center; padding: 4rem 1rem; background: var(--space-surface); border: 1px dashed var(--space-border); border-radius: 20px;">
+              <div style="font-size: 2.5rem; margin-bottom: 0.8rem;">🔍</div>
+              <h3 style="font-family: var(--font-heading); font-size: 1.3rem; color: #ffffff; margin-bottom: 0.4rem;">No Members Found</h3>
+              <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 1.5rem;">
+                No registered club members match your search or filter settings.
+              </p>
+              <a href="member-login.html" class="btn-primary" style="display: inline-flex; margin: 0 auto;">
+                <span>Be the Next to Join MathVerse ✦</span>
+              </a>
+            </div>
+          `;
+          return;
+        }
+
+        grid.innerHTML = list.map(m => {
+          const initials = getInitials(m.name);
+          const bioText = m.bio ? m.bio : 'Curious mathematical thinker exploring algorithms, calculus, and discrete logic.';
+
+          return `
+            <div class="member-card">
+              <div class="member-card-header">
+                <div class="member-card-avatar">${initials}</div>
+                <div style="overflow: hidden;">
+                  <span class="member-card-code">${m.member_code}</span>
+                  <h3 class="member-card-name" title="${m.name}" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                    ${m.name}
+                  </h3>
+                </div>
+              </div>
+
+              <div style="display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 1rem;">
+                <span style="font-size: 0.75rem; background: rgba(139, 92, 246, 0.15); color: #c4b5fd; border: 1px solid rgba(139, 92, 246, 0.3); padding: 0.18rem 0.55rem; border-radius: 6px;">
+                  ${m.branch || 'Discipline'}
+                </span>
+                <span style="font-size: 0.75rem; background: rgba(255, 255, 255, 0.06); color: var(--text-muted); padding: 0.18rem 0.55rem; border-radius: 6px;">
+                  ${m.year || 'Member'}
+                </span>
+              </div>
+
+              <p style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 1.25rem; flex: 1; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">
+                "${bioText}"
+              </p>
+
+              <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 1rem; border-top: 1px solid rgba(255, 255, 255, 0.07); margin-bottom: 1rem;">
+                <div>
+                  <div style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-subtle);">SEASON PTS</div>
+                  <div style="font-family: var(--font-mono); font-size: 1.2rem; font-weight: 800; color: var(--neon-cyan);">
+                    ${(m.points || 0).toLocaleString()}
+                  </div>
+                </div>
+
+                <div style="text-align: right;">
+                  <div style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-subtle);">BATTLES</div>
+                  <div style="font-family: var(--font-mono); font-size: 0.95rem; font-weight: 700; color: #ffffff;">
+                    ${m.quizzes_played || 0} played ${m.wins > 0 ? `• 🏆 ${m.wins}` : ''}
+                  </div>
+                </div>
+              </div>
+
+              <a href="profile.html?code=${encodeURIComponent(m.member_code)}" class="btn-secondary" style="justify-content: center; font-size: 0.9rem; padding: 0.65rem;">
+                <span>View Full Profile →</span>
+              </a>
+            </div>
+          `;
+        }).join('');
+      }
+
+      let debounceTimeout;
+      searchInput.addEventListener('input', () => {
+        clearTimeout(debounceTimeout);
+        debounceTimeout = setTimeout(fetchMembers, 250);
+      });
+
+      branchFilter.addEventListener('change', fetchMembers);
+      yearFilter.addEventListener('change', fetchMembers);
+      sortFilter.addEventListener('change', fetchMembers);
+
+      // Initial fetch
+      fetchMembers();
+    });
+  </script>
 </body>
 </html>

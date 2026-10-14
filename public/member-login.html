@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Member Portal & Sign In — MathVerse</title>
+  <meta name="description" content="Join the MathVerse guild or log in to track season leaderboard points, earn tournament badges, and customize your profile.">
+
+  <!-- Google Fonts: Space Grotesk, Inter, JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <!-- Ambient Cosmic Nebula Glows -->
+  <div class="cosmic-nebula" aria-hidden="true">
+    <div class="nebula-orb orb-violet"></div>
+    <div class="nebula-orb orb-cyan"></div>
+    <div class="nebula-orb orb-gold"></div>
+  </div>
+
+  <!-- Sticky Top Navigation -->
+  <header class="navbar" role="banner">
+    <div class="nav-container">
+      <a href="index.html" class="nav-brand" aria-label="MathVerse Home">
+        <span class="brand-glyph">∫</span>
+        <span class="brand-text">Math<span class="brand-accent">Verse</span></span>
+      </a>
+
+      <!-- Desktop Nav Links -->
+      <nav class="nav-menu" aria-label="Primary Navigation">
+        <ul class="nav-links">
+          <li><a href="index.html" class="nav-link">Home</a></li>
+          <li><a href="about.html" class="nav-link">About</a></li>
+          <li><a href="events.html" class="nav-link">Events</a></li>
+          <li><a href="gallery.html" class="nav-link">Gallery</a></li>
+          <li><a href="arena.html" class="nav-link">Arena</a></li>
+          <li><a href="leaderboard.html" class="nav-link">Leaderboard</a></li>
+          <li><a href="members.html" class="nav-link">Members</a></li>
+          <li><a href="certificates.html" class="nav-link">Certificates</a></li>
+          <li><a href="feedback.html" class="nav-link">Feedback</a></li>
+          <li><a href="contact.html" class="nav-link">Contact</a></li>
+        </ul>
+      </nav>
+
+      <!-- Nav Actions -->
+      <div class="nav-actions">
+        <div id="status-badge" class="status-badge status-disconnected" title="Socket.IO real-time connection status" aria-live="polite">
+          <span class="status-dot"></span>
+          <span id="status-text" class="status-text">Disconnected</span>
+        </div>
+
+        <a href="member-login.html" class="btn-nav-join">Join the Club</a>
+
+        <button id="nav-toggle" class="nav-toggle" aria-label="Toggle navigation menu" aria-expanded="false" aria-controls="mobile-menu">
+          <span class="toggle-line"></span>
+          <span class="toggle-line"></span>
+          <span class="toggle-line"></span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Mobile Drawer Menu -->
+  <div id="mobile-menu" class="mobile-menu" aria-hidden="true">
+    <ul class="mobile-links">
+      <li><a href="index.html" class="mobile-link">Home</a></li>
+      <li><a href="about.html" class="mobile-link">About</a></li>
+      <li><a href="events.html" class="mobile-link">Events</a></li>
+      <li><a href="gallery.html" class="mobile-link">Gallery</a></li>
+      <li><a href="arena.html" class="mobile-link">Arena</a></li>
+      <li><a href="leaderboard.html" class="mobile-link">Leaderboard</a></li>
+      <li><a href="members.html" class="mobile-link">Members</a></li>
+      <li><a href="certificates.html" class="mobile-link">Certificates</a></li>
+      <li><a href="feedback.html" class="mobile-link">Feedback</a></li>
+      <li><a href="contact.html" class="mobile-link">Contact</a></li>
+    </ul>
+    <a href="member-login.html" class="btn-nav-join" style="padding: 0.8rem 2rem; font-size: 1rem;">Join the Club</a>
+  </div>
+
+  <!-- Main Auth Wrapper -->
+  <main class="page-wrapper auth-wrapper">
+    <div class="auth-card">
+      <div style="width: 58px; height: 58px; margin: 0 auto 1.25rem; border-radius: 18px; background: rgba(139, 92, 246, 0.15); border: 1px solid rgba(139, 92, 246, 0.4); display: flex; align-items: center; justify-content: center; font-size: 1.8rem; box-shadow: 0 0 25px var(--neon-violet-glow);">
+        ✨
+      </div>
+
+      <div style="text-align: center; margin-bottom: 1.75rem;">
+        <div class="subpage-badge" style="margin-bottom: 0.4rem;">Mathematicians Guild</div>
+        <h1 id="auth-title" style="font-family: var(--font-heading); font-size: 2.1rem; color: var(--text-pure); margin-bottom: 0.35rem;">
+          Sign In to <span class="gradient-text">MathVerse</span>
+        </h1>
+        <p id="auth-subtitle" style="color: var(--text-muted); font-size: 0.9rem; margin: 0;">
+          Unlock your seasonal ranking, unlock math badges, and enter live Arena tournaments.
+        </p>
+      </div>
+
+      <!-- Auth Tabs: Sign In / Create Account -->
+      <div class="auth-tabs" role="tablist">
+        <button type="button" id="tab-login" class="auth-tab active" role="tab" aria-selected="true" aria-controls="view-login">
+          Sign In
+        </button>
+        <button type="button" id="tab-signup" class="auth-tab" role="tab" aria-selected="false" aria-controls="view-signup">
+          Join MathVerse
+        </button>
+      </div>
+
+      <!-- Live Error / Notification Banner -->
+      <div id="auth-alert" style="display: none; border-radius: 12px; padding: 0.85rem 1rem; font-size: 0.88rem; margin-bottom: 1.5rem; text-align: left;">
+      </div>
+
+      <!-- VIEW 1: Log In Form -->
+      <form id="form-login" novalidate>
+        <div class="form-group" style="text-align: left; margin-bottom: 1.25rem;">
+          <label for="login-email" class="form-label">Email Address *</label>
+          <input type="email" id="login-email" class="form-input" placeholder="e.g. euler@mathverse.edu" required autocomplete="email">
+        </div>
+
+        <div class="form-group" style="text-align: left; margin-bottom: 1.75rem;">
+          <label for="login-password" class="form-label">Password *</label>
+          <input type="password" id="login-password" class="form-input" placeholder="Enter your password..." required autocomplete="current-password">
+        </div>
+
+        <button type="submit" id="btn-login-submit" class="btn-primary" style="width: 100%; justify-content: center; padding: 0.9rem; font-size: 1.05rem;">
+          <span>Sign In to Your Universe</span>
+          <span aria-hidden="true">→</span>
+        </button>
+
+        <p style="font-size: 0.85rem; color: var(--text-muted); text-align: center; margin-top: 1.5rem; margin-bottom: 0;">
+          New to the Mathematics Club? 
+          <a href="#" id="link-to-signup" style="color: var(--neon-cyan); font-weight: 600; text-decoration: underline;">Create an account</a>
+        </p>
+      </form>
+
+      <!-- VIEW 2: Sign Up Form -->
+      <form id="form-signup" style="display: none;" novalidate>
+        <div class="form-group" style="text-align: left; margin-bottom: 1.1rem;">
+          <label for="signup-name" class="form-label">Full Name *</label>
+          <input type="text" id="signup-name" class="form-input" placeholder="e.g. Srinivasa Ramanujan" required maxlength="50" autocomplete="name">
+        </div>
+
+        <div class="form-group" style="text-align: left; margin-bottom: 1.1rem;">
+          <label for="signup-email" class="form-label">Email Address *</label>
+          <input type="email" id="signup-email" class="form-input" placeholder="e.g. ramanujan@mathverse.edu" required autocomplete="email">
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem; margin-bottom: 1.1rem;">
+          <div class="form-group" style="text-align: left; margin: 0;">
+            <label for="signup-branch" class="form-label">Branch *</label>
+            <select id="signup-branch" class="form-select" required style="padding: 0.75rem 0.85rem; font-size: 0.9rem;">
+              <option value="">Select Branch</option>
+              <option value="Mathematics">Mathematics</option>
+              <option value="Computer Science">Computer Science</option>
+              <option value="Data Science & AI">Data Science & AI</option>
+              <option value="Physics">Physics</option>
+              <option value="Electrical Engineering">Electrical Eng.</option>
+              <option value="Mechanical Engineering">Mechanical Eng.</option>
+              <option value="Other">Other Discipline</option>
+            </select>
+          </div>
+
+          <div class="form-group" style="text-align: left; margin: 0;">
+            <label for="signup-year" class="form-label">Academic Year *</label>
+            <select id="signup-year" class="form-select" required style="padding: 0.75rem 0.85rem; font-size: 0.9rem;">
+              <option value="">Select Year</option>
+              <option value="1st Year">1st Year</option>
+              <option value="2nd Year">2nd Year</option>
+              <option value="3rd Year">3rd Year</option>
+              <option value="4th Year">4th Year</option>
+              <option value="Postgraduate">Postgraduate / PhD</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group" style="text-align: left; margin-bottom: 0.5rem;">
+          <label for="signup-password" class="form-label">Password * (Min 6 characters)</label>
+          <input type="password" id="signup-password" class="form-input" placeholder="Choose a secure password..." required autocomplete="new-password">
+        </div>
+
+        <!-- Password Strength Meter -->
+        <div class="strength-meter">
+          <div class="strength-bar-bg">
+            <div id="strength-bar" class="strength-bar"></div>
+          </div>
+          <div class="strength-label">
+            <span id="strength-text">Password strength: None</span>
+            <span id="strength-hint">Use 6+ chars, numbers & uppercase</span>
+          </div>
+        </div>
+
+        <div class="form-group" style="text-align: left; margin-bottom: 1.6rem;">
+          <label for="signup-bio" class="form-label">Short Bio (Optional, max 300 chars)</label>
+          <textarea id="signup-bio" class="form-textarea" rows="2" placeholder="Tell the club about your favorite mathematical field (e.g. Number theory, topology, cryptography)..." maxlength="300"></textarea>
+        </div>
+
+        <button type="submit" id="btn-signup-submit" class="btn-primary" style="width: 100%; justify-content: center; padding: 0.9rem; font-size: 1.05rem;">
+          <span>Complete Membership Registration ✦</span>
+        </button>
+
+        <p style="font-size: 0.85rem; color: var(--text-muted); text-align: center; margin-top: 1.5rem; margin-bottom: 0;">
+          Already have an account? 
+          <a href="#" id="link-to-login" style="color: var(--neon-cyan); font-weight: 600; text-decoration: underline;">Sign in here</a>
+        </p>
+      </form>
+    </div>
+  </main>
+
+  <!-- Shared Global Footer -->
+  <footer class="app-footer" role="contentinfo">
+    <div class="footer-container">
+      <div class="footer-brand">
+        <div class="brand-logo">
+          <span class="brand-glyph">∫</span>
+          <span class="brand-text">Math<span class="brand-accent">Verse</span></span>
+        </div>
+        <p class="footer-tagline">Where curiosity converges with infinity.</p>
+        <p class="footer-copy">© 2026 MathVerse Mathematics Club. All rights reserved.</p>
+      </div>
+
+      <nav class="footer-nav" aria-label="Footer Navigation">
+        <div class="footer-col">
+          <h4>Navigation</h4>
+          <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="about.html">About</a></li>
+            <li><a href="events.html">Events</a></li>
+            <li><a href="gallery.html">Gallery</a></li>
+            <li><a href="arena.html">Arena</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Community</h4>
+          <ul>
+            <li><a href="leaderboard.html">Leaderboard</a></li>
+            <li><a href="members.html">Members</a></li>
+            <li><a href="certificates.html">Certificates</a></li>
+            <li><a href="feedback.html">Feedback</a></li>
+            <li><a href="contact.html">Contact</a></li>
+          </ul>
+        </div>
+      </nav>
+    </div>
+  </footer>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="/js/data.js"></script>
+  <script src="/js/main.js"></script>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Check if already logged in -> redirect to own profile
+      const existingToken = localStorage.getItem('mathverse_member_token');
+      const existingUser = localStorage.getItem('mathverse_member_user');
+      if (existingToken && existingUser) {
+        try {
+          const user = JSON.parse(existingUser);
+          if (user && user.member_code) {
+            window.location.href = `profile.html?code=${encodeURIComponent(user.member_code)}`;
+            return;
+          }
+        } catch (e) {}
+      }
+
+      const tabLogin = document.getElementById('tab-login');
+      const tabSignup = document.getElementById('tab-signup');
+      const formLogin = document.getElementById('form-login');
+      const formSignup = document.getElementById('form-signup');
+      const authTitle = document.getElementById('auth-title');
+      const authSubtitle = document.getElementById('auth-subtitle');
+      const authAlert = document.getElementById('auth-alert');
+      const linkToSignup = document.getElementById('link-to-signup');
+      const linkToLogin = document.getElementById('link-to-login');
+
+      const passInput = document.getElementById('signup-password');
+      const strengthBar = document.getElementById('strength-bar');
+      const strengthText = document.getElementById('strength-text');
+      const strengthHint = document.getElementById('strength-hint');
+
+      function showAlert(msg, isSuccess = false) {
+        authAlert.style.display = 'block';
+        if (isSuccess) {
+          authAlert.style.background = 'rgba(16, 185, 129, 0.15)';
+          authAlert.style.border = '1px solid rgba(16, 185, 129, 0.4)';
+          authAlert.style.color = '#6ee7b7';
+        } else {
+          authAlert.style.background = 'rgba(239, 68, 68, 0.15)';
+          authAlert.style.border = '1px solid rgba(239, 68, 68, 0.4)';
+          authAlert.style.color = '#fca5a5';
+        }
+        authAlert.innerHTML = msg;
+      }
+
+      function hideAlert() {
+        authAlert.style.display = 'none';
+        authAlert.innerHTML = '';
+      }
+
+      function switchTab(toSignup) {
+        hideAlert();
+        if (toSignup) {
+          tabSignup.classList.add('active');
+          tabSignup.setAttribute('aria-selected', 'true');
+          tabLogin.classList.remove('active');
+          tabLogin.setAttribute('aria-selected', 'false');
+          formSignup.style.display = 'block';
+          formLogin.style.display = 'none';
+          authTitle.innerHTML = 'Join <span class="gradient-text">MathVerse</span>';
+          authSubtitle.textContent = 'Create your club membership to compete for season rank and earn badges.';
+        } else {
+          tabLogin.classList.add('active');
+          tabLogin.setAttribute('aria-selected', 'true');
+          tabSignup.classList.remove('active');
+          tabSignup.setAttribute('aria-selected', 'false');
+          formLogin.style.display = 'block';
+          formSignup.style.display = 'none';
+          authTitle.innerHTML = 'Sign In to <span class="gradient-text">MathVerse</span>';
+          authSubtitle.textContent = 'Unlock your seasonal ranking, unlock math badges, and enter live Arena tournaments.';
+        }
+      }
+
+      tabLogin.addEventListener('click', () => switchTab(false));
+      tabSignup.addEventListener('click', () => switchTab(true));
+      linkToSignup.addEventListener('click', (e) => { e.preventDefault(); switchTab(true); });
+      linkToLogin.addEventListener('click', (e) => { e.preventDefault(); switchTab(false); });
+
+      // Live Password Strength Meter
+      passInput.addEventListener('input', () => {
+        const val = passInput.value;
+        if (!val) {
+          strengthBar.style.width = '0%';
+          strengthBar.style.background = 'none';
+          strengthText.textContent = 'Password strength: None';
+          strengthHint.textContent = 'Use 6+ chars, numbers & uppercase';
+          return;
+        }
+
+        let score = 0;
+        if (val.length >= 6) score++;
+        if (val.length >= 9) score++;
+        if (/[A-Z]/.test(val)) score++;
+        if (/[0-9]/.test(val)) score++;
+        if (/[^A-Za-z0-9]/.test(val)) score++;
+
+        if (score <= 1) {
+          strengthBar.style.width = '25%';
+          strengthBar.style.background = '#ef4444';
+          strengthText.textContent = 'Strength: Weak';
+          strengthHint.textContent = 'Add uppercase or digits';
+        } else if (score === 2 || score === 3) {
+          strengthBar.style.width = '60%';
+          strengthBar.style.background = '#fbbf24';
+          strengthText.textContent = 'Strength: Moderate';
+          strengthHint.textContent = 'Add special characters for extra security';
+        } else {
+          strengthBar.style.width = '100%';
+          strengthBar.style.background = '#10b981';
+          strengthText.textContent = 'Strength: Strong ✦';
+          strengthHint.textContent = 'Excellent password';
+        }
+      });
+
+      // Handle Sign In Submit
+      formLogin.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        hideAlert();
+        const email = document.getElementById('login-email').value.trim();
+        const password = document.getElementById('login-password').value;
+        const btnSubmit = document.getElementById('btn-login-submit');
+
+        if (!email || !password) {
+          showAlert('Please fill in both your email address and password.');
+          return;
+        }
+
+        btnSubmit.disabled = true;
+        btnSubmit.innerHTML = '<span>Verifying credentials...</span>';
+
+        try {
+          const res = await fetch('/api/members/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
+          });
+          const data = await res.json();
+
+          if (!res.ok) {
+            showAlert(data.error || 'Login failed. Please check your credentials.');
+            btnSubmit.disabled = false;
+            btnSubmit.innerHTML = '<span>Sign In to Your Universe</span> <span aria-hidden="true">→</span>';
+            return;
+          }
+
+          showAlert(`✦ Success! Welcome back, <strong>${data.member.name}</strong>. Redirecting...`, true);
+          localStorage.setItem('mathverse_member_token', data.token);
+          localStorage.setItem('mathverse_member_user', JSON.stringify(data.member));
+
+          setTimeout(() => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const redirect = urlParams.get('redirect') || `profile.html?code=${encodeURIComponent(data.member.member_code)}`;
+            window.location.href = redirect;
+          }, 900);
+        } catch (err) {
+          showAlert('Network error: Unable to contact authentication server. Please try again.');
+          btnSubmit.disabled = false;
+          btnSubmit.innerHTML = '<span>Sign In to Your Universe</span> <span aria-hidden="true">→</span>';
+        }
+      });
+
+      // Handle Sign Up Submit
+      formSignup.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        hideAlert();
+
+        const name = document.getElementById('signup-name').value.trim();
+        const email = document.getElementById('signup-email').value.trim();
+        const branch = document.getElementById('signup-branch').value;
+        const year = document.getElementById('signup-year').value;
+        const password = document.getElementById('signup-password').value;
+        const bio = document.getElementById('signup-bio').value.trim();
+        const btnSubmit = document.getElementById('btn-signup-submit');
+
+        if (!name || !email || !branch || !year || !password) {
+          showAlert('Please complete all required fields (Name, Email, Branch, Year, Password).');
+          return;
+        }
+
+        if (password.length < 6) {
+          showAlert('Password must contain at least 6 characters.');
+          return;
+        }
+
+        btnSubmit.disabled = true;
+        btnSubmit.innerHTML = '<span>Creating membership...</span>';
+
+        try {
+          const res = await fetch('/api/members/signup', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, email, branch, year, password, bio })
+          });
+          const data = await res.json();
+
+          if (!res.ok) {
+            showAlert(data.error || 'Registration failed.');
+            btnSubmit.disabled = false;
+            btnSubmit.innerHTML = '<span>Complete Membership Registration ✦</span>';
+            return;
+          }
+
+          showAlert(`✦ Welcome to MathVerse, <strong>${data.member.name}</strong>! Member Code: <strong>${data.member.member_code}</strong>. Initializing profile...`, true);
+          localStorage.setItem('mathverse_member_token', data.token);
+          localStorage.setItem('mathverse_member_user', JSON.stringify(data.member));
+
+          setTimeout(() => {
+            window.location.href = `profile.html?code=${encodeURIComponent(data.member.member_code)}`;
+          }, 1100);
+        } catch (err) {
+          showAlert('Network error: Could not complete registration.');
+          btnSubmit.disabled = false;
+          btnSubmit.innerHTML = '<span>Complete Membership Registration ✦</span>';
+        }
+      });
+    });
+  </script>
+</body>
+</html>

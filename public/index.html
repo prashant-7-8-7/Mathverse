@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MathVerse — Official Mathematics Club & Live Arena</title>
+  <meta name="description" content="The official website and living mathematical arena of the College Mathematics Club. Explore events, real-time math quizzes, leaderboards, and community brilliance.">
+
+  <!-- Google Fonts: Space Grotesk (Headings), Inter (Body), JetBrains Mono (Math/Code) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- KaTeX CDN Stylesheet -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous">
+
+  <!-- Main Design System CSS -->
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+  <!-- Ambient Cosmic Nebula Glows -->
+  <div class="cosmic-nebula" aria-hidden="true">
+    <div class="nebula-orb orb-violet"></div>
+    <div class="nebula-orb orb-cyan"></div>
+    <div class="nebula-orb orb-gold"></div>
+  </div>
+
+  <!-- Sticky Top Navigation -->
+  <header class="navbar" role="banner">
+    <div class="nav-container">
+      <a href="index.html" class="nav-brand" aria-label="MathVerse Home">
+        <span class="brand-glyph">∫</span>
+        <span class="brand-text">Math<span class="brand-accent">Verse</span></span>
+      </a>
+
+      <!-- Desktop Nav Links -->
+      <nav class="nav-menu" aria-label="Primary Navigation">
+        <ul class="nav-links">
+          <li><a href="index.html" class="nav-link active">Home</a></li>
+          <li><a href="about.html" class="nav-link">About</a></li>
+          <li><a href="events.html" class="nav-link">Events</a></li>
+          <li><a href="arena.html" class="nav-link">Arena</a></li>
+          <li><a href="leaderboard.html" class="nav-link">Leaderboard</a></li>
+          <li><a href="members.html" class="nav-link">Members</a></li>
+          <li><a href="certificates.html" class="nav-link">Certificates</a></li>
+          <li><a href="feedback.html" class="nav-link">Feedback</a></li>
+          <li><a href="contact.html" class="nav-link">Contact</a></li>
+        </ul>
+      </nav>
+
+      <!-- Nav Actions: Live Socket Status + CTA + Mobile Hamburger -->
+      <div class="nav-actions">
+        <div id="status-badge" class="status-badge status-disconnected" title="Socket.IO real-time connection status" aria-live="polite">
+          <span class="status-dot"></span>
+          <span id="status-text" class="status-text">Disconnected</span>
+        </div>
+
+        <a href="contact.html" class="btn-nav-join">Join the Club</a>
+
+        <button id="nav-toggle" class="nav-toggle" aria-label="Toggle navigation menu" aria-expanded="false" aria-controls="mobile-menu">
+          <span class="toggle-line"></span>
+          <span class="toggle-line"></span>
+          <span class="toggle-line"></span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Mobile Drawer Menu -->
+  <div id="mobile-menu" class="mobile-menu" aria-hidden="true">
+    <ul class="mobile-links">
+      <li><a href="index.html" class="mobile-link active">Home</a></li>
+      <li><a href="about.html" class="mobile-link">About</a></li>
+      <li><a href="events.html" class="mobile-link">Events</a></li>
+      <li><a href="arena.html" class="mobile-link">Arena</a></li>
+      <li><a href="leaderboard.html" class="mobile-link">Leaderboard</a></li>
+      <li><a href="members.html" class="mobile-link">Members</a></li>
+      <li><a href="certificates.html" class="mobile-link">Certificates</a></li>
+      <li><a href="feedback.html" class="mobile-link">Feedback</a></li>
+      <li><a href="contact.html" class="mobile-link">Contact</a></li>
+    </ul>
+    <a href="contact.html" class="btn-nav-join" style="padding: 0.8rem 2rem; font-size: 1rem;">Join the Club</a>
+  </div>
+
+  <!-- Hero Section with Math Particle Universe Canvas -->
+  <section class="hero-universe" aria-label="Hero Section">
+    <canvas id="hero-canvas" aria-label="Interactive mathematical particle visualization"></canvas>
+
+    <div class="hero-content">
+      <div class="universe-badge">
+        <span class="badge-sparkle">✦</span>
+        <span>The Official Mathematics Club Arena</span>
+      </div>
+
+      <h1 class="hero-title">
+        The Living <span class="glow-gradient-text">Mathematics</span> Universe
+      </h1>
+
+      <p class="hero-tagline">
+        Where abstract theorems transform into <strong>real-time competition</strong>, cosmic intuition, and collective mathematical brilliance.
+      </p>
+
+      <div class="hero-buttons hero-interactive">
+        <a href="arena.html" class="btn-primary">
+          <span>Enter the Arena</span>
+          <span aria-hidden="true">⚡</span>
+        </a>
+        <a href="events.html" class="btn-secondary">
+          <span>Explore Events</span>
+          <span aria-hidden="true">→</span>
+        </a>
+      </div>
+
+      <div class="hero-morph-indicator">
+        <span class="morph-pulse"></span>
+        <span>Cosmic Geometry: </span>
+        <strong id="morph-shape-name">Lissajous Resonance</strong>
+      </div>
+    </div>
+  </section>
+
+  <!-- Live Stats Strip Section -->
+  <section class="stats-section" aria-label="Club Statistics">
+    <div class="stats-grid">
+      <div class="stat-card">
+        <span class="stat-glyph glyph-1">∑</span>
+        <div class="stat-number-wrap">
+          <span class="stat-count" data-target="520" data-suffix="+">0</span>
+        </div>
+        <div class="stat-label">Active Members</div>
+      </div>
+
+      <div class="stat-card">
+        <span class="stat-glyph glyph-2">Ω</span>
+        <div class="stat-number-wrap">
+          <span class="stat-count" data-target="48" data-suffix="+">0</span>
+        </div>
+        <div class="stat-label">Events Hosted</div>
+      </div>
+
+      <div class="stat-card">
+        <span class="stat-glyph glyph-3">Δ</span>
+        <div class="stat-number-wrap">
+          <span class="stat-count" data-target="186" data-suffix="+">0</span>
+        </div>
+        <div class="stat-label">Quizzes Played</div>
+      </div>
+
+      <div class="stat-card">
+        <span class="stat-glyph glyph-4">∞</span>
+        <div class="stat-number-wrap">
+          <span class="stat-count" data-target="14800" data-suffix="+">0</span>
+        </div>
+        <div class="stat-label">Problems Solved</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Equation of the Day Section (KaTeX Rendered) -->
+  <section class="equation-section" aria-label="Equation of the Day">
+    <div class="section-header">
+      <div class="section-eyebrow">Mathematical Inspiration</div>
+      <h2 class="section-title">Equation of the Day</h2>
+    </div>
+
+    <div class="equation-card">
+      <div id="equation-tag" class="equation-tag">Mathematical Beauty</div>
+      <div id="equation-target" class="equation-math-target" aria-live="polite">
+        <!-- KaTeX renders here -->
+      </div>
+      <h3 id="equation-name" class="equation-name">Euler's Identity</h3>
+      <p id="equation-desc" class="equation-description">
+        Universally hailed as the most beautiful formula in mathematics, harmonizing 0, 1, e, i, and π in a single profound truth.
+      </p>
+
+      <div class="equation-controls">
+        <button id="btn-next-equation" class="btn-rotate-equation" type="button" aria-label="Rotate to next equation">
+          <span>Next Equation</span>
+          <span aria-hidden="true">↻</span>
+        </button>
+        <div id="equation-dots" class="equation-dots" role="tablist" aria-label="Equation indicators"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Home Page Teaser Cards Grid (3D Hover Tilt) -->
+  <section class="teasers-section" aria-label="Club Portal Teasers">
+    <div class="section-header">
+      <div class="section-eyebrow">Explore the Universe</div>
+      <h2 class="section-title">Club Portals & Programs</h2>
+    </div>
+
+    <div class="teasers-grid">
+      <!-- Events Teaser -->
+      <a href="events.html" class="tilt-card" aria-label="Explore Events">
+        <div class="card-top">
+          <div class="card-icon-pill icon-violet">📅</div>
+          <h3 class="card-title">Events & Workshops</h3>
+          <p class="card-description">
+            Hackathons, guest lectures, Integration Bees, and competitive Olympiads designed to stretch your intellect.
+          </p>
+        </div>
+        <div class="card-bottom">
+          <span class="card-link-text">Explore calendar <span class="arrow">→</span></span>
+          <span class="card-badge-pill">Upcoming</span>
+        </div>
+      </a>
+
+      <!-- Arena Teaser -->
+      <a href="arena.html" class="tilt-card" aria-label="Enter the Arena">
+        <div class="card-top">
+          <div class="card-icon-pill icon-cyan">⚡</div>
+          <h3 class="card-title">Live Quiz Arena</h3>
+          <p class="card-description">
+            Step into the multiplayer battleground. Compete against peers in real-time speed mathematics challenges.
+          </p>
+        </div>
+        <div class="card-bottom">
+          <span class="card-link-text">Enter battleground <span class="arrow">→</span></span>
+          <span class="card-badge-pill">Real-Time</span>
+        </div>
+      </a>
+
+      <!-- Leaderboard Teaser -->
+      <a href="leaderboard.html" class="tilt-card" aria-label="View Leaderboard">
+        <div class="card-top">
+          <div class="card-icon-pill icon-gold">🏆</div>
+          <h3 class="card-title">Hall of Fame</h3>
+          <p class="card-description">
+            Real-time Elo rankings, seasonal tournament podiums, and the most consistent problem solvers of our university.
+          </p>
+        </div>
+        <div class="card-bottom">
+          <span class="card-link-text">View rankings <span class="arrow">→</span></span>
+          <span class="card-badge-pill">Top Solvers</span>
+        </div>
+      </a>
+
+      <!-- Members Teaser -->
+      <a href="members.html" class="tilt-card" aria-label="Meet Members">
+        <div class="card-top">
+          <div class="card-icon-pill icon-violet">👥</div>
+          <h3 class="card-title">Club Community</h3>
+          <p class="card-description">
+            Connect with math majors, faculty advisors, student researchers, and alumni working in top quantitative roles.
+          </p>
+        </div>
+        <div class="card-bottom">
+          <span class="card-link-text">Meet the team <span class="arrow">→</span></span>
+          <span class="card-badge-pill">500+ Strong</span>
+        </div>
+      </a>
+
+      <!-- Certificates Teaser -->
+      <a href="certificates.html" class="tilt-card" aria-label="Verify Certificates">
+        <div class="card-top">
+          <div class="card-icon-pill icon-cyan">📜</div>
+          <h3 class="card-title">Certificates & Awards</h3>
+          <p class="card-description">
+            Cryptographically verifiable credentials, tournament badges, and event participation achievements.
+          </p>
+        </div>
+        <div class="card-bottom">
+          <span class="card-link-text">Verify credentials <span class="arrow">→</span></span>
+          <span class="card-badge-pill">Digital Pass</span>
+        </div>
+      </a>
+
+      <!-- Feedback Teaser -->
+      <a href="feedback.html" class="tilt-card" aria-label="Provide Feedback">
+        <div class="card-top">
+          <div class="card-icon-pill icon-gold">💬</div>
+          <h3 class="card-title">Voice & Insights</h3>
+          <p class="card-description">
+            Propose problem sets, review recent competitions, and help us curate the next frontier of club initiatives.
+          </p>
+        </div>
+        <div class="card-bottom">
+          <span class="card-link-text">Share feedback <span class="arrow">→</span></span>
+          <span class="card-badge-pill">Open Forum</span>
+        </div>
+      </a>
+    </div>
+  </section>
+
+  <!-- Shared Global Footer -->
+  <footer class="app-footer" role="contentinfo">
+    <div class="footer-container">
+      <div class="footer-brand">
+        <div class="brand-logo">
+          <span class="brand-glyph">∫</span>
+          <span class="brand-text">Math<span class="brand-accent">Verse</span></span>
+        </div>
+        <p class="footer-tagline">
+          The official digital universe and live competition arena of the College Mathematics Club. Fostering pure rigor, applied mastery, and intellectual camaraderie.
+        </p>
+        <div class="footer-socials">
+          <a href="#" class="social-icon-btn" aria-label="GitHub">gh</a>
+          <a href="#" class="social-icon-btn" aria-label="Discord">dc</a>
+          <a href="#" class="social-icon-btn" aria-label="LinkedIn">in</a>
+          <a href="#" class="social-icon-btn" aria-label="Instagram">ig</a>
+          <a href="#" class="social-icon-btn" aria-label="Twitter">𝕏</a>
+        </div>
+      </div>
+
+      <div class="footer-col">
+        <h4 class="footer-column-title">Platform</h4>
+        <ul class="footer-nav-list">
+          <li><a href="index.html" class="footer-nav-link">Home</a></li>
+          <li><a href="arena.html" class="footer-nav-link">Live Arena</a></li>
+          <li><a href="leaderboard.html" class="footer-nav-link">Leaderboard</a></li>
+          <li><a href="certificates.html" class="footer-nav-link">Certificates</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4 class="footer-column-title">Community</h4>
+        <ul class="footer-nav-list">
+          <li><a href="about.html" class="footer-nav-link">About Us</a></li>
+          <li><a href="events.html" class="footer-nav-link">Club Events</a></li>
+          <li><a href="members.html" class="footer-nav-link">Members</a></li>
+          <li><a href="feedback.html" class="footer-nav-link">Feedback</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4 class="footer-column-title">Contact & Join</h4>
+        <ul class="footer-nav-list">
+          <li><a href="contact.html" class="footer-nav-link">Contact Desk</a></li>
+          <li><a href="contact.html" class="footer-nav-link">Join the Club</a></li>
+          <li><span class="footer-nav-link" style="color: var(--text-subtle);">Department of Mathematics</span></li>
+          <li><span class="footer-nav-link" style="color: var(--text-subtle);">Science Hall, Room 402</span></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <p>&copy; 2026 MathVerse &bull; College Mathematics Club. All mathematical rights reserved.</p>
+      <p>Crafted with rigor, curiosity, and code.</p>
+    </div>
+  </footer>
+
+  <!-- Socket.IO Client -->
+  <script src="/socket.io/socket.io.js"></script>
+
+  <!-- GSAP & ScrollTrigger CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+
+  <!-- KaTeX CDN Script -->
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script>
+
+  <!-- Main Application Script -->
+  <script src="/js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,26 @@
+{
+  "name": "mathverse",
+  "version": "1.0.0",
+  "description": "Digital solution for the Mathematics Club",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/prashant-7-8-7/Mathverse.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/prashant-7-8-7/Mathverse/issues"
+  },
+  "homepage": "https://github.com/prashant-7-8-7/Mathverse#readme",
+  "dependencies": {
+    "express": "^5.3.0",
+    "socket.io": "^4.8.4"
+  }
+}

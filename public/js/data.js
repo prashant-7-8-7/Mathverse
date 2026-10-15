@@ -11,77 +11,53 @@
 
 const MathVerseData = {
   // ------------------------------------------------------------------------
-  // 1. BASIC CLUB IDENTITY (EDIT HERE)
+  // 1. BASIC CLUB IDENTITY & STATS
   // ------------------------------------------------------------------------
   clubName: "Mathematics Club",
   collegeName: "MITS Gwalior",
   tagline: "Where abstract mathematics meets real-time competition, cosmic intuition, and collective brilliance.",
-  foundingYear: 2018,
   department: "Department of Mathematics & Computer Science",
   location: "Science Hall, Room 402",
+  stats: {
+    activeMembers: 50,
+    eventsHosted: 15
+  },
 
   // ------------------------------------------------------------------------
-  // 2. MISSION & CORE PILLARS (EDIT HERE)
+  // 2. WHAT WE DO (Core Activities)
   // ------------------------------------------------------------------------
-  missionText: "To cultivate an open, vibrant mathematical universe where students across all disciplines uncover the boundless beauty of pure mathematics, master applied quantitative reasoning, and compete in exhilarating real-time arenas.",
-  storyText: "Founded in 2018 by seven passionate undergraduates in a chalkboard-walled corner of Room 402, our Mathematics Club began with informal puzzle hours and Putnam problem circles. Over eight years, it has transformed into a 500+ member student powerhouse: hosting regional olympiads, publishing student research, competing in speed integration bees, and pioneering MathVerse—our custom real-time battleground.",
+  introText: "The Mathematics Club of MITS Gwalior is a vibrant student-led community dedicated to making mathematical exploration engaging, collaborative, and rewarding. We bring curious minds together across all engineering and science branches to build analytical intuition, solve complex problems, and compete in live speed challenges. Through hands-on workshops, peer mentorship, and college-wide festivals, we bridge pure mathematics with practical problem solving and competitive excellence.",
 
-  missionPillars: [
+  whatWeDo: [
     {
-      icon: "∫",
-      title: "Pure Rigor",
-      description: "Delving into abstract algebra, real analysis, and number theory with mathematical depth and intellectual honesty."
+      icon: "🏆",
+      title: "Quizzes and Competitions",
+      description: "Fast-paced math trivia, speed integration bees, and timed multiplayer challenges that test analytical reflexes and problem-solving acumen."
     },
     {
-      icon: "∑",
-      title: "Applied Impact",
-      description: "Bridging pure mathematics with quantum computing, machine learning, algorithmic game theory, and cryptography."
+      icon: "💡",
+      title: "Workshops and Guest Talks",
+      description: "Hands-on masterclasses and interactive sessions led by professors, industry experts, and senior peers exploring practical mathematics and modern tools."
     },
     {
-      icon: "⚡",
-      title: "Real-Time Arena",
-      description: "Pioneering speed math competitions and live multiplayer quiz battles to hone instant analytical intuition."
+      icon: "🧩",
+      title: "Problem Solving Sessions",
+      description: "Collaborative circles breaking down elegant proofs, tricky puzzles, Olympiad problems, and deep theoretical concepts together."
     },
     {
-      icon: "∞",
-      title: "Inclusive Cosmos",
-      description: "Welcoming all curious minds regardless of major—from freshman enthusiasts to graduate research scholars."
-    }
-  ],
-
-  // ------------------------------------------------------------------------
-  // 3. CLUB MILESTONES / TIMELINE (EDIT HERE - 5 Milestones)
-  // ------------------------------------------------------------------------
-  timeline: [
-    {
-      year: "2018",
-      title: "Genesis in Room 402",
-      description: "Seven math and physics students founded the club, initiating weekly blackboard problem-solving circles and calculus tutoring.",
-      badge: "Founding"
+      icon: "🎪",
+      title: "Flagship Events and Fests",
+      description: "Grand celebrations including Pi Day, National Mathematics Day celebrations, and campus-wide analytical festivals with fun stalls and prizes."
     },
     {
-      year: "2020",
-      title: "The Digital Frontier",
-      description: "Pioneered virtual calculus hackathons and launched our first livestreamed Inter-Collegiate Integration Bee during lockdowns.",
-      badge: "Evolution"
+      icon: "👥",
+      title: "Peer Learning and Mentoring",
+      description: "A supportive peer network where seniors mentor juniors in calculus, linear algebra, discrete math, and challenging technical coursework."
     },
     {
-      year: "2022",
-      title: "National Podium",
-      description: "Our club contest delegation secured 1st Place in the National Collegiate Mathematics Olympiad among 64 competing universities.",
-      badge: "Championship"
-    },
-    {
-      year: "2024",
-      title: "Quantitative Research Grants",
-      description: "Established the Undergraduate Research Colloquium with faculty endowments, sponsoring 14 student research papers in applied topology.",
-      badge: "Research"
-    },
-    {
-      year: "2026",
-      title: "Launch of MathVerse",
-      description: "Unveiled MathVerse, our proprietary real-time live arena, interactive knowledge hub, and official club operating universe.",
-      badge: "Milestone"
+      icon: "📊",
+      title: "Exam and Placement Aptitude Prep",
+      description: "Focused practice sessions on quantitative aptitude, logical reasoning, data interpretation, and mental math shortcuts for campus placements and competitive exams."
     }
   ],
 
@@ -156,8 +132,8 @@ const MathVerseData = {
   ],
 
   // ------------------------------------------------------------------------
-  // 5. EVENTS (EDIT HERE - 6 Events: 3 Upcoming, 3 Past)
-  // Date format: YYYY-MM-DDTHH:MM:SS for accurate live countdown calculation
+  // 5. EVENTS (Relative Dynamic Dates & MITS-Style Venues)
+  // Generated relative to today so upcoming events are always in the future
   // ------------------------------------------------------------------------
   events: [
     {
@@ -165,10 +141,21 @@ const MathVerseData = {
       title: "Euler Quiz Night",
       category: "Competition",
       status: "upcoming",
-      dateStr: "March 28, 2026",
-      dateTimeISO: "2026-03-28T18:00:00",
-      time: "6:00 PM – 8:30 PM",
-      venue: "Ramanujan Hall 302 & Discord Live",
+      dateStr: (() => {
+        const d = new Date();
+        d.setDate(d.getDate() + 6);
+        d.setHours(10, 0, 0, 0);
+        return d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+      })(),
+      dateTimeISO: (() => {
+        const d = new Date();
+        d.setDate(d.getDate() + 6);
+        d.setHours(10, 0, 0, 0);
+        const Y = d.getFullYear(), M = String(d.getMonth() + 1).padStart(2, '0'), D = String(d.getDate()).padStart(2, '0');
+        return `${Y}-${M}-${D}T10:00:00`;
+      })(),
+      time: "10:00 AM – 1:00 PM",
+      venue: "Colloquium Hall",
       badge: "High Stakes",
       description: "Our signature seasonal trivia and speed problem contest celebrating Leonhard Euler's masterworks across number theory, graph analysis, and infinite series. Teams of 2 or 3 compete for the coveted Euler Chalice and cash prizes.",
       details: "Format: 4 rounds of increasing difficulty (Speed Mental Math, Visual Geometry, Proof Quick-Fire, Final Lightning Buzzer). Open to all undergraduate and graduate students. Free pizza and refreshments provided."
@@ -178,36 +165,93 @@ const MathVerseData = {
       title: "Integration Bee",
       category: "Tournament",
       status: "upcoming",
-      dateStr: "April 11, 2026",
-      dateTimeISO: "2026-04-11T17:30:00",
-      time: "5:30 PM – 9:00 PM",
-      venue: "Science Amphitheater A",
+      dateStr: (() => {
+        const d = new Date();
+        d.setDate(d.getDate() + 13);
+        d.setHours(14, 0, 0, 0);
+        return d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+      })(),
+      dateTimeISO: (() => {
+        const d = new Date();
+        d.setDate(d.getDate() + 13);
+        d.setHours(14, 0, 0, 0);
+        const Y = d.getFullYear(), M = String(d.getMonth() + 1).padStart(2, '0'), D = String(d.getDate()).padStart(2, '0');
+        return `${Y}-${M}-${D}T14:00:00`;
+      })(),
+      time: "2:00 PM – 5:30 PM",
+      venue: "Student Activity Center (SAC)",
       badge: "Flagship",
       description: "The ultimate 1-on-1 single-elimination tournament of definite and indefinite integrals. Competitors face off at opposite blackboards with 3-minute timers to solve devilish calculus problems under intense stage lighting.",
-      details: "Grand prize: $300 scholarship grant + custom engraved Integration Bee Trophy. Warm-up problem sets will be distributed to registrants 48 hours prior."
+      details: "Grand prize: engraved Integration Bee Trophy and club credentials. Warm-up problem sets will be distributed to registrants 48 hours prior."
     },
     {
       id: "event-3",
       title: "Fibonacci Fest",
       category: "Festival",
       status: "upcoming",
-      dateStr: "April 25, 2026",
-      dateTimeISO: "2026-04-25T11:00:00",
-      time: "11:00 AM – 4:00 PM",
-      venue: "Mathematics Quad Lawn",
+      dateStr: (() => {
+        const d = new Date();
+        d.setDate(d.getDate() + 20);
+        d.setHours(10, 0, 0, 0);
+        return d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+      })(),
+      dateTimeISO: (() => {
+        const d = new Date();
+        d.setDate(d.getDate() + 20);
+        d.setHours(10, 0, 0, 0);
+        const Y = d.getFullYear(), M = String(d.getMonth() + 1).padStart(2, '0'), D = String(d.getDate()).padStart(2, '0');
+        return `${Y}-${M}-${D}T10:00:00`;
+      })(),
+      time: "10:00 AM – 4:00 PM",
+      venue: "SH1",
       badge: "Open Fair",
       description: "A campus-wide carnival celebrating recurrent sequences, the golden ratio, modular origami, fractal generation booths, and interactive algorithmic art installations.",
       details: "Interactive stations include: 3D printed polyhedral geometry, algorithmic music synthesis, spiral botany workshops, and open math puzzle lounges."
+    },
+    {
+      id: "event-7",
+      title: "Maths Aptitude & Placement Masterclass",
+      category: "Workshop",
+      status: "upcoming",
+      dateStr: (() => {
+        const d = new Date();
+        d.setDate(d.getDate() + 34);
+        d.setHours(14, 0, 0, 0);
+        return d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+      })(),
+      dateTimeISO: (() => {
+        const d = new Date();
+        d.setDate(d.getDate() + 34);
+        d.setHours(14, 0, 0, 0);
+        const Y = d.getFullYear(), M = String(d.getMonth() + 1).padStart(2, '0'), D = String(d.getDate()).padStart(2, '0');
+        return `${Y}-${M}-${D}T14:00:00`;
+      })(),
+      time: "2:00 PM – 5:00 PM",
+      venue: "SH3",
+      badge: "Career Prep",
+      description: "A comprehensive placement preparation masterclass focusing on high-speed quantitative arithmetic, probability models, logical deduction puzzles, and analytical problem solving for top recruitment tests.",
+      details: "Features timed speed-test drills, shortcuts for combinatorics and statistical distributions, and quantitative interview tips."
     },
     {
       id: "event-4",
       title: "Mathematical Modelling Workshop",
       category: "Workshop",
       status: "past",
-      dateStr: "February 14, 2026",
-      dateTimeISO: "2026-02-14T14:00:00",
+      dateStr: (() => {
+        const d = new Date();
+        d.setDate(d.getDate() - 20);
+        d.setHours(14, 0, 0, 0);
+        return d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+      })(),
+      dateTimeISO: (() => {
+        const d = new Date();
+        d.setDate(d.getDate() - 20);
+        d.setHours(14, 0, 0, 0);
+        const Y = d.getFullYear(), M = String(d.getMonth() + 1).padStart(2, '0'), D = String(d.getDate()).padStart(2, '0');
+        return `${Y}-${M}-${D}T14:00:00`;
+      })(),
       time: "2:00 PM – 5:30 PM",
-      venue: "Turing Computational Lab",
+      venue: "Computer Lab",
       badge: "Hands-on",
       description: "A hands-on masterclass translating differential equations and Markov chains into Python and MATLAB simulations to forecast epidemiological spreads and financial markets.",
       details: "Over 80 students built and backtested real-world quantitative models with guidance from our faculty and industry quant mentors."
@@ -217,12 +261,23 @@ const MathVerseData = {
       title: "Pi Day Carnival 2026",
       category: "Celebration",
       status: "past",
-      dateStr: "March 14, 2026",
-      dateTimeISO: "2026-03-14T13:59:00",
-      time: "1:59 PM – 5:00 PM",
-      venue: "Campus Student Union",
+      dateStr: (() => {
+        const d = new Date();
+        d.setDate(d.getDate() - 45);
+        d.setHours(10, 0, 0, 0);
+        return d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+      })(),
+      dateTimeISO: (() => {
+        const d = new Date();
+        d.setDate(d.getDate() - 45);
+        d.setHours(10, 0, 0, 0);
+        const Y = d.getFullYear(), M = String(d.getMonth() + 1).padStart(2, '0'), D = String(d.getDate()).padStart(2, '0');
+        return `${Y}-${M}-${D}T10:00:00`;
+      })(),
+      time: "10:00 AM – 3:00 PM",
+      venue: "Seminar Hall 4",
       badge: "Annual Tradition",
-      description: "The annual March 14 celebration featuring the 100-digit Pi recitation contest, pie eating championship, and Monte Carlo dartboard estimation of π.",
+      description: "The annual celebration featuring the 100-digit Pi recitation contest, pie eating championship, and Monte Carlo dartboard estimation of π.",
       details: "Congratulations to winner Sarah Jenkins for reciting 384 digits of π without hesitation!"
     },
     {
@@ -230,10 +285,21 @@ const MathVerseData = {
       title: "Cipher Hunt & Cryptography Night",
       category: "Hackathon",
       status: "past",
-      dateStr: "January 23, 2026",
-      dateTimeISO: "2026-01-23T18:00:00",
-      time: "6:00 PM – 11:00 PM",
-      venue: "Cyber Security Wing & Online",
+      dateStr: (() => {
+        const d = new Date();
+        d.setDate(d.getDate() - 80);
+        d.setHours(14, 0, 0, 0);
+        return d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+      })(),
+      dateTimeISO: (() => {
+        const d = new Date();
+        d.setDate(d.getDate() - 80);
+        d.setHours(14, 0, 0, 0);
+        const Y = d.getFullYear(), M = String(d.getMonth() + 1).padStart(2, '0'), D = String(d.getDate()).padStart(2, '0');
+        return `${Y}-${M}-${D}T14:00:00`;
+      })(),
+      time: "2:00 PM – 8:00 PM",
+      venue: "SH2",
       badge: "Security",
       description: "An evening of cryptographic puzzle solving: deciphering classical substitution ciphers, breaking RSA vulnerabilities, and cracking elliptic curve handshakes.",
       details: "24 student teams raced against the clock to decrypt five progressively encrypted treasure chests scattered across campus servers."

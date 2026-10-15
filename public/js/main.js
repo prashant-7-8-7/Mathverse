@@ -762,66 +762,18 @@ document.addEventListener('DOMContentLoaded', () => {
   /* ========================================================================
      9. ABOUT PAGE INITIALIZER (about.html)
      ======================================================================== */
-  const missionGrid = document.getElementById('about-mission-grid');
-  const timelineContainer = document.getElementById('about-timeline-list');
+  const whatWeDoGrid = document.getElementById('about-what-we-do-grid');
   const teamGrid = document.getElementById('about-team-grid');
-  const storyContainer = document.getElementById('about-story-text');
 
-  if (storyContainer && data.storyText) {
-    storyContainer.textContent = data.storyText;
-  }
-
-  // Populate Mission Pillars
-  if (missionGrid && Array.isArray(data.missionPillars)) {
-    missionGrid.innerHTML = data.missionPillars.map(p => `
-      <div class="mission-card">
-        <div class="mission-icon">${p.icon}</div>
-        <h3 class="mission-title">${p.title}</h3>
-        <p class="mission-desc">${p.description}</p>
+  // Populate What We Do Grid dynamically from data.js if empty
+  if (whatWeDoGrid && Array.isArray(data.whatWeDo) && whatWeDoGrid.children.length === 0) {
+    whatWeDoGrid.innerHTML = data.whatWeDo.map(item => `
+      <div class="what-we-do-card">
+        <div class="what-we-do-icon">${item.icon}</div>
+        <h3 class="what-we-do-title">${item.title}</h3>
+        <p class="what-we-do-desc">${item.description}</p>
       </div>
     `).join('');
-  }
-
-  // Populate Vertical Animated Timeline
-  if (timelineContainer && Array.isArray(data.timeline)) {
-    timelineContainer.innerHTML = data.timeline.map((item, idx) => `
-      <div class="timeline-item" data-index="${idx}">
-        <div class="timeline-node" aria-hidden="true"></div>
-        <div class="timeline-content">
-          <span class="timeline-year">${item.year} &bull; ${item.badge}</span>
-          <h3 class="timeline-heading">${item.title}</h3>
-          <p class="timeline-desc">${item.description}</p>
-        </div>
-      </div>
-    `).join('');
-
-    // Timeline scroll progress bar tracker
-    const timelineSection = document.querySelector('.timeline-section');
-    const progressBar = document.getElementById('timeline-progress-bar');
-    if (timelineSection && progressBar) {
-      window.addEventListener('scroll', () => {
-        const rect = timelineSection.getBoundingClientRect();
-        const windowHeight = window.innerHeight;
-        const totalHeight = rect.height;
-        const startOffset = windowHeight * 0.65;
-        const currentY = startOffset - rect.top;
-
-        let pct = (currentY / totalHeight) * 100;
-        pct = Math.max(0, Math.min(100, pct));
-        progressBar.style.height = `${pct}%`;
-
-        // Highlight active nodes
-        const items = timelineContainer.querySelectorAll('.timeline-item');
-        items.forEach(el => {
-          const itemRect = el.getBoundingClientRect();
-          if (itemRect.top < windowHeight * 0.7) {
-            el.classList.add('active-node');
-          } else {
-            el.classList.remove('active-node');
-          }
-        });
-      }, { passive: true });
-    }
   }
 
   // Populate Team Members Grid (Hover 3D Tilt Cards)
@@ -880,7 +832,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnDownloadModalTicket = document.getElementById('btn-download-modal-ticket');
   const btnViewTicketPage = document.getElementById('btn-view-ticket-page');
 
-  let activeFilter = 'all';
+  let activeFilter = 'upcoming';
   let searchQuery = '';
   let eventsData = [];
 
@@ -972,43 +924,136 @@ document.addEventListener('DOMContentLoaded', () => {
     qrImg.src = qrDataUrl;
   };
 
+  let countdownTimerInterval = null;
+
   // Live Countdown Timer for Next Upcoming Event
   function initUpcomingCountdown(events) {
-    if (!Array.isArray(events) || events.length === 0) return;
-    const upcomingEvents = events.filter(e => e.status === 'upcoming');
+    if (countdownTimerInterval) {
+      clearInterval(countdownTimerInterval);
+      countdownTimerInterval = null;
+    }
+
+    const titleEl = document.getElementById('next-event-title');
+    const dateEl = document.getElementById('next-event-date');
+    const venueEl = document.getElementById('next-event-venue');
+    const metaRowEl = document.getElementById('next-event-meta-row');
+    const timerContainer = document.getElementById('countdown-timer-container');
+    const registerBtn = document.getElementById('btn-next-event-register');
+
+    if (!titleEl) return;
+
+    const now = Date.now();
+    const upcomingEvents = (events || [])
+      .filter(e => {
+        if (e.status !== 'upcoming') return false;
+        if (e.dateTimeISO) {
+          const t = new Date(e.dateTimeISO).getTime();
+          return !isNaN(t) && t > now;
+        }
+        return true;
+      })
+      .sort((a, b) => {
+        const timeA = a.dateTimeISO ? new Date(a.dateTimeISO).getTime() : 0;
+        const timeB = b.dateTimeISO ? new Date(b.dateTimeISO).getTime() : 0;
+        return timeA - timeB;
+      });
+
     const nextEvent = upcomingEvents[0];
 
-    if (nextEvent && document.getElementById('next-event-title')) {
-      document.getElementById('next-event-title').textContent = nextEvent.title;
-      document.getElementById('next-event-date').textContent = nextEvent.dateStr || nextEvent.date;
-      document.getElementById('next-event-venue').textContent = nextEvent.venue;
-
-      const isoTime = nextEvent.dateTimeISO || '2026-03-28T18:00:00';
-      const targetTime = new Date(isoTime).getTime();
-
-      function updateCountdown() {
-        const now = Date.now();
-        const diff = Math.max(0, targetTime - now);
-
-        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-        const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
-        const minutes = Math.floor((diff / (1000 * 60)) % 60);
-        const seconds = Math.floor((diff / 1000) % 60);
-
-        const dEl = document.getElementById('timer-days');
-        const hEl = document.getElementById('timer-hours');
-        const mEl = document.getElementById('timer-minutes');
-        const sEl = document.getElementById('timer-seconds');
-
-        if (dEl) dEl.textContent = String(days).padStart(2, '0');
-        if (hEl) hEl.textContent = String(hours).padStart(2, '0');
-        if (mEl) mEl.textContent = String(minutes).padStart(2, '0');
-        if (sEl) sEl.textContent = String(seconds).padStart(2, '0');
+    if (!nextEvent) {
+      // Friendly message when there are no upcoming events
+      titleEl.textContent = 'New events coming soon';
+      if (metaRowEl) {
+        metaRowEl.innerHTML = '<span style="color: var(--text-muted); font-size: 0.95rem;">✦ Stay tuned! We are preparing our next round of quizzes, workshops, and competitions.</span>';
       }
+      if (registerBtn) registerBtn.style.display = 'none';
 
-      updateCountdown();
-      setInterval(updateCountdown, 1000);
+      if (timerContainer) {
+        timerContainer.innerHTML = `
+          <div style="background: rgba(9, 13, 31, 0.7); border: 1px dashed rgba(34, 211, 238, 0.35); border-radius: 20px; padding: 1.5rem; text-align: center;">
+            <div style="font-size: 2rem; margin-bottom: 0.5rem;">✦</div>
+            <div style="font-family: var(--font-heading); font-size: 1.15rem; color: var(--neon-cyan); font-weight: 700; margin-bottom: 0.25rem;">New events coming soon</div>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">Check back soon for new club events, workshops, and tournament registrations.</p>
+          </div>
+        `;
+      }
+      return;
     }
+
+    // Nearest upcoming event found
+    titleEl.textContent = nextEvent.title;
+    if (dateEl) dateEl.textContent = `${nextEvent.dateStr || nextEvent.date} • ${nextEvent.time || ''}`;
+    if (venueEl) venueEl.textContent = nextEvent.venue;
+
+    if (registerBtn) {
+      registerBtn.style.display = 'inline-flex';
+      const isSoldOut = Boolean(nextEvent.is_sold_out || (nextEvent.capacity > 0 && nextEvent.registered_count >= nextEvent.capacity));
+      if (isSoldOut) {
+        registerBtn.innerHTML = '<span>Capacity Reached (Sold Out)</span>';
+        registerBtn.style.opacity = '0.6';
+        registerBtn.disabled = true;
+      } else {
+        registerBtn.innerHTML = '<span>Register for ' + (nextEvent.title || 'Event') + '</span> <span aria-hidden="true">→</span>';
+        registerBtn.style.opacity = '1';
+        registerBtn.disabled = false;
+        registerBtn.onclick = () => openEventModal(nextEvent.id);
+      }
+    }
+
+    // Restore timer grid in timerContainer if needed
+    if (timerContainer && !document.getElementById('timer-days')) {
+      timerContainer.innerHTML = `
+        <div class="timer-grid" id="timer-grid">
+          <div class="timer-box">
+            <div id="timer-days" class="timer-digits">00</div>
+            <div class="timer-unit">Days</div>
+          </div>
+          <div class="timer-box">
+            <div id="timer-hours" class="timer-digits">00</div>
+            <div class="timer-unit">Hours</div>
+          </div>
+          <div class="timer-box">
+            <div id="timer-minutes" class="timer-digits">00</div>
+            <div class="timer-unit">Mins</div>
+          </div>
+          <div class="timer-box">
+            <div id="timer-seconds" class="timer-digits">00</div>
+            <div class="timer-unit">Secs</div>
+          </div>
+        </div>
+      `;
+    }
+
+    const targetTime = new Date(nextEvent.dateTimeISO).getTime();
+
+    function updateCountdown() {
+      const curNow = Date.now();
+      const diff = Math.max(0, targetTime - curNow);
+
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+      const minutes = Math.floor((diff / (1000 * 60)) % 60);
+      const seconds = Math.floor((diff / 1000) % 60);
+
+      const dEl = document.getElementById('timer-days');
+      const hEl = document.getElementById('timer-hours');
+      const mEl = document.getElementById('timer-minutes');
+      const sEl = document.getElementById('timer-seconds');
+
+      if (dEl) dEl.textContent = String(days).padStart(2, '0');
+      if (hEl) hEl.textContent = String(hours).padStart(2, '0');
+      if (mEl) mEl.textContent = String(minutes).padStart(2, '0');
+      if (sEl) sEl.textContent = String(seconds).padStart(2, '0');
+
+      if (diff <= 0) {
+        clearInterval(countdownTimerInterval);
+        countdownTimerInterval = null;
+        initUpcomingCountdown(eventsData);
+      }
+    }
+
+    updateCountdown();
+    countdownTimerInterval = setInterval(updateCountdown, 1000);
   }
 
   // Fetch /api/events with fallback to data.js
@@ -1024,7 +1069,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return {
               ...ev,
               dateStr: ev.date,
-              dateTimeISO: staticItem ? staticItem.dateTimeISO : null,
+              dateTimeISO: ev.date_iso || ev.dateTimeISO || (staticItem ? staticItem.dateTimeISO : null),
               badge: ev.badge || (staticItem ? staticItem.badge : 'Official'),
               details: ev.details || (staticItem ? staticItem.details : '')
             };

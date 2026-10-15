@@ -25,7 +25,8 @@ db.exec(`
     description TEXT NOT NULL,
     capacity INTEGER NOT NULL DEFAULT 60,
     status TEXT DEFAULT 'upcoming',
-    badge TEXT DEFAULT ''
+    badge TEXT DEFAULT '',
+    date_iso TEXT DEFAULT ''
   );
 
   CREATE TABLE IF NOT EXISTS registrations (
@@ -171,18 +172,44 @@ if (!regCols.some(c => c.name === 'checked_in_at')) {
   console.log('[DB] Safely migrated registrations table: added checked_in_at column.');
 }
 
-// Seed events if table is empty
-const countStmt = db.prepare('SELECT COUNT(*) as count FROM events');
-const { count } = countStmt.get();
+// Safely migrate events table to ensure date_iso column exists
+try {
+  db.exec("ALTER TABLE events ADD COLUMN date_iso TEXT DEFAULT '';");
+  console.log('[DB] Safely migrated events table: added date_iso column.');
+} catch (e) {
+  // column already exists
+}
 
-if (count === 0) {
-  const seedEvents = [
+function getFreshEvents() {
+  const getRelDate = (days, hours) => {
+    const d = new Date();
+    d.setDate(d.getDate() + days);
+    d.setHours(hours, 0, 0, 0);
+    return d;
+  };
+  const fmtDate = (d) => d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+  const fmtISO = (d) => {
+    const Y = d.getFullYear(), M = String(d.getMonth() + 1).padStart(2, '0'), D = String(d.getDate()).padStart(2, '0');
+    const H = String(d.getHours()).padStart(2, '0');
+    return `${Y}-${M}-${D}T${H}:00:00`;
+  };
+
+  const d1 = getRelDate(6, 10);
+  const d2 = getRelDate(13, 14);
+  const d3 = getRelDate(20, 10);
+  const d7 = getRelDate(34, 14);
+  const d4 = getRelDate(-20, 14);
+  const d5 = getRelDate(-45, 10);
+  const d6 = getRelDate(-80, 14);
+
+  return [
     {
       id: "event-1",
       title: "Euler Quiz Night",
-      date: "March 28, 2026",
-      time: "6:00 PM – 8:30 PM",
-      venue: "Ramanujan Hall 302 & Discord Live",
+      date: fmtDate(d1),
+      date_iso: fmtISO(d1),
+      time: "10:00 AM – 1:00 PM",
+      venue: "Colloquium Hall",
       category: "Competition",
       description: "Our signature seasonal trivia and speed problem contest celebrating Leonhard Euler's masterworks across number theory, graph analysis, and infinite series. Teams of 2 or 3 compete for the coveted Euler Chalice and cash prizes.",
       capacity: 60,
@@ -192,9 +219,10 @@ if (count === 0) {
     {
       id: "event-2",
       title: "Integration Bee",
-      date: "April 11, 2026",
-      time: "5:30 PM – 9:00 PM",
-      venue: "Science Amphitheater A",
+      date: fmtDate(d2),
+      date_iso: fmtISO(d2),
+      time: "2:00 PM – 5:30 PM",
+      venue: "Student Activity Center (SAC)",
       category: "Tournament",
       description: "The ultimate 1-on-1 single-elimination tournament of definite and indefinite integrals. Competitors face off at opposite blackboards with 3-minute timers to solve devilish calculus problems under intense stage lighting.",
       capacity: 48,
@@ -204,9 +232,10 @@ if (count === 0) {
     {
       id: "event-3",
       title: "Fibonacci Fest",
-      date: "April 25, 2026",
-      time: "11:00 AM – 4:00 PM",
-      venue: "Mathematics Quad Lawn",
+      date: fmtDate(d3),
+      date_iso: fmtISO(d3),
+      time: "10:00 AM – 4:00 PM",
+      venue: "SH1",
       category: "Festival",
       description: "A campus-wide carnival celebrating recurrent sequences, the golden ratio, modular origami, fractal generation booths, and interactive algorithmic art installations.",
       capacity: 150,
@@ -214,11 +243,25 @@ if (count === 0) {
       badge: "Open Fair"
     },
     {
+      id: "event-7",
+      title: "Maths Aptitude & Placement Masterclass",
+      date: fmtDate(d7),
+      date_iso: fmtISO(d7),
+      time: "2:00 PM – 5:00 PM",
+      venue: "SH3",
+      category: "Workshop",
+      description: "A comprehensive placement preparation masterclass focusing on high-speed quantitative arithmetic, probability models, logical deduction puzzles, and analytical problem solving for top recruitment tests.",
+      capacity: 80,
+      status: "upcoming",
+      badge: "Career Prep"
+    },
+    {
       id: "event-4",
       title: "Mathematical Modelling Workshop",
-      date: "February 14, 2026",
+      date: fmtDate(d4),
+      date_iso: fmtISO(d4),
       time: "2:00 PM – 5:30 PM",
-      venue: "Turing Computational Lab",
+      venue: "Computer Lab",
       category: "Workshop",
       description: "A hands-on masterclass translating differential equations and Markov chains into Python and MATLAB simulations to forecast epidemiological spreads and financial markets.",
       capacity: 40,
@@ -228,11 +271,12 @@ if (count === 0) {
     {
       id: "event-5",
       title: "Pi Day Carnival 2026",
-      date: "March 14, 2026",
-      time: "1:59 PM – 5:00 PM",
-      venue: "Campus Student Union",
+      date: fmtDate(d5),
+      date_iso: fmtISO(d5),
+      time: "10:00 AM – 3:00 PM",
+      venue: "Seminar Hall 4",
       category: "Celebration",
-      description: "The annual March 14 celebration featuring the 100-digit Pi recitation contest, pie eating championship, and Monte Carlo dartboard estimation of π.",
+      description: "The annual celebration featuring the 100-digit Pi recitation contest, pie eating championship, and Monte Carlo dartboard estimation of π.",
       capacity: 100,
       status: "past",
       badge: "Annual Tradition"
@@ -240,9 +284,10 @@ if (count === 0) {
     {
       id: "event-6",
       title: "Cipher Hunt & Cryptography Night",
-      date: "January 23, 2026",
-      time: "6:00 PM – 11:00 PM",
-      venue: "Cyber Security Wing & Online",
+      date: fmtDate(d6),
+      date_iso: fmtISO(d6),
+      time: "2:00 PM – 8:00 PM",
+      venue: "SH2",
       category: "Hackathon",
       description: "An evening of cryptographic puzzle solving: deciphering classical substitution ciphers, breaking RSA vulnerabilities, and cracking elliptic curve handshakes.",
       capacity: 50,
@@ -250,19 +295,46 @@ if (count === 0) {
       badge: "Security"
     }
   ];
-
-  const insertStmt = db.prepare(`
-    INSERT INTO events (id, title, date, time, venue, category, description, capacity, status, badge)
-    VALUES (@id, @title, @date, @time, @venue, @category, @description, @capacity, @status, @badge)
-  `);
-
-  const insertMany = db.transaction((events) => {
-    for (const ev of events) insertStmt.run(ev);
-  });
-
-  insertMany(seedEvents);
-  console.log('[DB] Initialized and seeded 6 events into MathVerse database.');
 }
+
+function ensureFreshEvents(database) {
+  const existing = database.prepare('SELECT id, venue, date_iso, status FROM events').all();
+  const oldVenues = ['Ramanujan', 'Amphitheater', 'Quad Lawn', 'Turing', 'Student Union', 'Cyber Security'];
+  const hasOldVenue = existing.some(ev => oldVenues.some(ov => ev.venue && ev.venue.includes(ov)));
+  const now = Date.now();
+  const hasExpiredUpcoming = existing.some(ev => ev.status === 'upcoming' && ev.date_iso && new Date(ev.date_iso).getTime() <= now);
+  const isMissingNewEvents = existing.length < 6;
+
+  if (existing.length === 0 || hasOldVenue || hasExpiredUpcoming || isMissingNewEvents) {
+    const fresh = getFreshEvents();
+    const upsertStmt = database.prepare(`
+      INSERT INTO events (id, title, date, time, venue, category, description, capacity, status, badge, date_iso)
+      VALUES (@id, @title, @date, @time, @venue, @category, @description, @capacity, @status, @badge, @date_iso)
+      ON CONFLICT(id) DO UPDATE SET
+        title = excluded.title,
+        date = excluded.date,
+        time = excluded.time,
+        venue = excluded.venue,
+        category = excluded.category,
+        description = excluded.description,
+        capacity = excluded.capacity,
+        status = excluded.status,
+        badge = excluded.badge,
+        date_iso = excluded.date_iso
+    `);
+    const runMany = database.transaction((evs) => {
+      for (const ev of evs) upsertStmt.run(ev);
+    });
+    runMany(fresh);
+    console.log('[DB] Synchronized events: fresh relative dates & MITS-style venues active.');
+  }
+}
+
+// Ensure fresh events on startup
+ensureFreshEvents(db);
+
+db.getFreshEvents = getFreshEvents;
+db.ensureFreshEvents = ensureFreshEvents;
 
 // Seed Demo Quiz "Euler Warm-Up" if quizzes table is empty
 const quizCountStmt = db.prepare('SELECT COUNT(*) as count FROM quizzes');

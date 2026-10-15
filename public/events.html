@@ -101,21 +101,27 @@
 
   <!-- Live Countdown Timer for Next Upcoming Event -->
   <section class="countdown-banner" aria-label="Upcoming Event Countdown">
-    <div class="countdown-card">
+    <div class="countdown-card" id="next-event-card">
       <div>
         <div class="countdown-info-badge">
           <span>⚡</span>
-          <span>Next Major Event</span>
+          <span>Next Event</span>
         </div>
         <h2 id="next-event-title" class="countdown-event-title">Euler Quiz Night</h2>
-        <div class="countdown-meta-row">
-          <span>📅 <strong id="next-event-date">March 28, 2026</strong></span>
-          <span>📍 <span id="next-event-venue">Ramanujan Hall 302</span></span>
+        <div class="countdown-meta-row" id="next-event-meta-row">
+          <span>📅 <strong id="next-event-date">Loading date...</strong></span>
+          <span>📍 <span id="next-event-venue">Colloquium Hall</span></span>
+        </div>
+        <div style="margin-top: 1.25rem;">
+          <button id="btn-next-event-register" type="button" class="btn-primary" style="padding: 0.75rem 1.75rem;">
+            <span>Register for Event</span>
+            <span aria-hidden="true">→</span>
+          </button>
         </div>
       </div>
 
-      <div>
-        <div class="timer-grid">
+      <div id="countdown-timer-container">
+        <div class="timer-grid" id="timer-grid">
           <div class="timer-box">
             <div id="timer-days" class="timer-digits">00</div>
             <div class="timer-unit">Days</div>
@@ -140,9 +146,9 @@
   <!-- Events Controls: Search & Tabs -->
   <section class="events-controls">
     <div class="events-tabs" role="tablist" aria-label="Filter events by status">
-      <button class="filter-tab active" data-filter="all" type="button" role="tab" aria-selected="true">All Events</button>
-      <button class="filter-tab" data-filter="upcoming" type="button" role="tab" aria-selected="false">Upcoming</button>
+      <button class="filter-tab active" data-filter="upcoming" type="button" role="tab" aria-selected="true">Upcoming</button>
       <button class="filter-tab" data-filter="past" type="button" role="tab" aria-selected="false">Past Events</button>
+      <button class="filter-tab" data-filter="all" type="button" role="tab" aria-selected="false">All Events</button>
     </div>
 
     <div class="events-search-box">

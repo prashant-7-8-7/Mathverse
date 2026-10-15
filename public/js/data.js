@@ -14,7 +14,7 @@ const MathVerseData = {
   // 1. BASIC CLUB IDENTITY (EDIT HERE)
   // ------------------------------------------------------------------------
   clubName: "Mathematics Club",
-  collegeName: "Your College Name",
+  collegeName: "MITS Gwalior",
   tagline: "Where abstract mathematics meets real-time competition, cosmic intuition, and collective brilliance.",
   foundingYear: 2018,
   department: "Department of Mathematics & Computer Science",
@@ -323,12 +323,12 @@ const MathVerseData = {
   // 7. CONTACT & LOCATION INFO (EDIT HERE)
   // ------------------------------------------------------------------------
   contact: {
-    email: "mathclub@college.edu",
-    supportEmail: "arena-support@mathverse.edu",
+    email: "mathclub@mitsgwalior.in",
+    supportEmail: "arena-support@mitsgwalior.in",
     phone: "+1 (555) 314-1592",
     altPhone: "+1 (555) 271-8281",
     office: "Room 402, Science Hall, North Campus",
-    address: "Department of Mathematics & Computer Science, Science Hall, 100 University Boulevard",
+    address: "Department of Mathematics & Computer Science, Science Hall, MITS Gwalior",
     hours: "Monday – Friday: 10:00 AM – 6:00 PM (Study lounge open 24/7 for members)",
     socials: {
       github: "https://github.com",
@@ -352,8 +352,8 @@ const MathVerseData = {
       answer: "No! Membership is 100% free. All our regular workshops, guest lectures, problem-solving sessions, and open tournament spectator seats are freely open to the entire college community thanks to departmental sponsorship."
     },
     {
-      question: "How will the live MathVerse Quiz Arena work when launched?",
-      answer: "MathVerse is built with real-time WebSockets. When a tournament round begins, participants join with a 6-digit game code from any device (phone or laptop). Math questions with LaTeX rendering appear synchronously on every screen with speed-weighted countdown scoring and instant leaderboard updates."
+      question: "How will the live Quiz Arena work?",
+      answer: "The Arena is built with real-time WebSockets. When a tournament round begins, participants join with a 6-digit game code from any device (phone or laptop). Math questions with LaTeX rendering appear synchronously on every screen with speed-weighted countdown scoring and instant leaderboard updates."
     },
     {
       question: "How can I register to compete in the upcoming Integration Bee or Euler Quiz?",

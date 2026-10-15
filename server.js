@@ -6,6 +6,7 @@ const express = require('express');
 const { Server } = require('socket.io');
 const qrcode = require('qrcode');
 const PDFDocument = require('pdfkit');
+const helmet = require('helmet');
 const db = require('./db');
 const MathVerseData = require('./public/js/data.js');
 
@@ -13,8 +14,29 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
+// Security Headers via Helmet (configured to allow external CDNs: Google Fonts, KaTeX, GSAP, Html5Qrcode)
+app.use(helmet({
+  contentSecurityPolicy: false,
+  crossOriginEmbedderPolicy: false
+}));
+
 const PORT = process.env.PORT || 3000;
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'mathverse2026';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
+
+if (!ADMIN_PASSWORD) {
+  console.warn('\n⚠️  [SECURITY WARNING] ADMIN_PASSWORD environment variable is not configured!');
+  console.warn('⚠️  Admin authentication (/api/admin/login) will be disabled until ADMIN_PASSWORD is set in .env.\n');
+}
+
+// Auto-seed demo data if requested and database is empty
+if (process.env.SEED_DEMO === 'true') {
+  try {
+    const { autoSeedIfEmpty } = require('./seed');
+    autoSeedIfEmpty();
+  } catch (err) {
+    console.error('⚠️  Failed to check or run auto-seed:', err);
+  }
+}
 
 // Parse JSON and URL-encoded form bodies
 app.use(express.json());
@@ -119,7 +141,7 @@ function requireMember(req, res, next) {
   }
 
   if (!token || !memberTokens.has(token)) {
-    return res.status(401).json({ error: 'Unauthorized: Please log in to your MathVerse member account.' });
+    return res.status(401).json({ error: 'Unauthorized: Please log in to your Mathematics Club member account.' });
   }
 
   req.memberSession = memberTokens.get(token);
@@ -342,6 +364,12 @@ app.get('/api/ticket/:code', async (req, res) => {
 // POST /api/admin/login - Authenticate with ADMIN_PASSWORD and receive memory token
 app.post('/api/admin/login', (req, res) => {
   try {
+    if (!ADMIN_PASSWORD) {
+      return res.status(503).json({
+        error: 'Admin authentication is currently disabled because ADMIN_PASSWORD is not configured on the server. Please define ADMIN_PASSWORD in your .env file.'
+      });
+    }
+
     const { password } = req.body;
     if (!password || String(password) !== ADMIN_PASSWORD) {
       return res.status(401).json({ error: 'Invalid admin credentials.' });
@@ -888,7 +916,7 @@ app.post('/api/members/signup', (req, res) => {
 
     res.status(201).json({
       success: true,
-      message: 'Welcome to MathVerse! Your membership account has been created.',
+      message: 'Welcome to Mathematics Club! Your membership account has been created.',
       token,
       member: memberRecord
     });
@@ -1414,8 +1442,8 @@ async function generateCertificatePdf(cert, hostUrl) {
     margins: { top: 0, bottom: 0, left: 0, right: 0 },
     autoFirstPage: true,
     info: {
-      Title: `MathVerse Certificate - ${cert.cert_code}`,
-      Author: 'MathVerse - Mathematics Club',
+      Title: `Mathematics Club Certificate - ${cert.cert_code}`,
+      Author: 'Mathematics Club • MITS Gwalior',
       Subject: 'Certificate of Mathematical Excellence'
     }
   });
@@ -1535,7 +1563,7 @@ async function generateCertificatePdf(cert, hostUrl) {
      .stroke();
 
   // 8. Event Title & Date Description
-  const eventTitle = cert.event_title || cert.quiz_title || 'MathVerse Tournament';
+  const eventTitle = cert.event_title || cert.quiz_title || 'Mathematics Club Tournament';
   const eventDate = cert.event_date || (new Date(cert.issued_at || Date.now()).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }));
 
   doc.font('Helvetica')
@@ -1551,7 +1579,7 @@ async function generateCertificatePdf(cert, hostUrl) {
   doc.font('Helvetica')
      .fontSize(10)
      .fillColor('#94a3b8')
-     .text(`Conducted under the auspices of MathVerse on ${eventDate}.`, 0, 292, { align: 'center' });
+     .text(`Conducted under the auspices of Mathematics Club, MITS Gwalior on ${eventDate}.`, 0, 292, { align: 'center' });
 
   // 9. Signatures Block
   const sigY = 412;
@@ -1570,7 +1598,7 @@ async function generateCertificatePdf(cert, hostUrl) {
   doc.font('Helvetica')
      .fontSize(8.5)
      .fillColor('#94a3b8')
-     .text('MathVerse Executive Committee', 85, sigY + 22, { width: 170, align: 'center' });
+     .text('Mathematics Club Executive Committee', 85, sigY + 22, { width: 170, align: 'center' });
 
   // Right: Faculty Coordinator
   doc.strokeColor('#64748b')
@@ -2151,10 +2179,10 @@ app.get('/api/certificates/verify/:code', (req, res) => {
         recipient_name: cert.recipient_name,
         type: cert.type,
         issued_at: cert.issued_at,
-        event_title: cert.event_title || cert.quiz_title || 'MathVerse Tournament',
+        event_title: cert.event_title || cert.quiz_title || 'Mathematics Club Tournament',
         event_date: cert.event_date || cert.session_date,
         club_name: (MathVerseData && MathVerseData.clubName) ? MathVerseData.clubName : 'Mathematics Club',
-        college_name: (MathVerseData && MathVerseData.collegeName) ? MathVerseData.collegeName : 'Your College Name'
+        college_name: (MathVerseData && MathVerseData.collegeName) ? MathVerseData.collegeName : 'MITS Gwalior'
       }
     });
   } catch (err) {
@@ -2195,7 +2223,7 @@ app.get('/api/certificates/:code/pdf', async (req, res) => {
     const doc = await generateCertificatePdf(cert, hostUrl);
 
     res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `inline; filename="MathVerse_Certificate_${cert.cert_code}.pdf"`);
+    res.setHeader('Content-Disposition', `inline; filename="Certificate_${cert.cert_code}.pdf"`);
 
     doc.pipe(res);
     doc.end();
@@ -3015,6 +3043,15 @@ io.on('connection', (socket) => {
 });
 
 
+// 404 Catch-All Middleware for unmatched routes
+app.use((req, res) => {
+  if (req.accepts('html')) {
+    res.status(404).sendFile(path.join(__dirname, 'public', '404.html'));
+  } else {
+    res.status(404).json({ error: '404 Not Found' });
+  }
+});
+
 server.listen(PORT, () => {
-  console.log(`MathVerse server listening at http://localhost:${PORT}`);
+  console.log(`Mathematics Club server listening at http://localhost:${PORT}`);
 });

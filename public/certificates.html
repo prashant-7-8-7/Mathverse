@@ -3,8 +3,17 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Certificates & Verifiable Credentials — MathVerse</title>
-  <meta name="description" content="Search, view, and download official verified event certificates and tournament honors from the Mathematics Club.">
+  <title>Certificates & Verifiable Credentials — Mathematics Club</title>
+  <meta name="description" content="Search, view, and download official verified event certificates and tournament honors from Mathematics Club, MITS Gwalior.">
+
+  <!-- Open Graph Meta Tags -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Certificates & Verifiable Credentials — Mathematics Club">
+  <meta property="og:description" content="Search, view, and download official verified event certificates and tournament honors from Mathematics Club, MITS Gwalior.">
+  <meta property="og:image" content="/icons/icon-512.png">
+
+  <!-- Inline SVG Favicon of π -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='g' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' stop-color='%238b5cf6'/><stop offset='100%' stop-color='%2322d3ee'/></linearGradient></defs><rect width='100' height='100' rx='24' fill='%23080c1f'/><text x='50' y='72' font-family='sans-serif' font-size='66' font-weight='bold' fill='url(%23g)' text-anchor='middle'>π</text></svg>">
 
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -91,9 +100,9 @@
   <!-- Sticky Top Navigation -->
   <header class="navbar" role="banner">
     <div class="nav-container">
-      <a href="index.html" class="nav-brand" aria-label="MathVerse Home">
+      <a href="index.html" class="nav-brand" aria-label="Mathematics Club Home">
         <span class="brand-glyph">∫</span>
-        <span class="brand-text">Math<span class="brand-accent">Verse</span></span>
+        <span class="brand-text">Mathematics <span class="brand-accent">Club</span></span>
       </a>
 
       <nav class="nav-menu" aria-label="Primary Navigation">
@@ -105,7 +114,7 @@
           <li><a href="arena.html" class="nav-link">Arena</a></li>
           <li><a href="leaderboard.html" class="nav-link">Leaderboard</a></li>
           <li><a href="members.html" class="nav-link">Members</a></li>
-          <li><a href="certificates.html" class="nav-link active">Certificates</a></li>
+          <li><a href="certificates.html" class="nav-link active" aria-current="page">Certificates</a></li>
           <li><a href="feedback.html" class="nav-link">Feedback</a></li>
           <li><a href="contact.html" class="nav-link">Contact</a></li>
         </ul>
@@ -136,7 +145,7 @@
       <li><a href="arena.html" class="mobile-link">Arena</a></li>
       <li><a href="leaderboard.html" class="mobile-link">Leaderboard</a></li>
       <li><a href="members.html" class="mobile-link">Members</a></li>
-      <li><a href="certificates.html" class="mobile-link active">Certificates</a></li>
+      <li><a href="certificates.html" class="mobile-link active" aria-current="page">Certificates</a></li>
       <li><a href="feedback.html" class="mobile-link">Feedback</a></li>
       <li><a href="contact.html" class="mobile-link">Contact</a></li>
     </ul>
@@ -221,10 +230,10 @@
       <div class="footer-brand">
         <div class="brand-logo">
           <span class="brand-glyph">∫</span>
-          <span class="brand-text">Math<span class="brand-accent">Verse</span></span>
+          <span class="brand-text">Mathematics <span class="brand-accent">Club</span></span>
         </div>
         <p class="footer-tagline">
-          The official digital universe and live competition arena of the College Mathematics Club. Fostering pure rigor, applied mastery, and intellectual camaraderie.
+          The official digital universe and live competition arena of the Mathematics Club, MITS Gwalior. Fostering pure rigor, applied mastery, and intellectual camaraderie.
         </p>
         <div class="footer-socials">
           <a href="#" class="social-icon-btn" aria-label="GitHub">gh</a>
@@ -268,7 +277,7 @@
     </div>
 
     <div class="footer-bottom">
-      <p>&copy; 2026 MathVerse &bull; College Mathematics Club. All mathematical rights reserved.</p>
+      <p>&copy; 2026 Mathematics Club &bull; MITS Gwalior. All mathematical rights reserved.</p>
       <p>Crafted with rigor, curiosity, and code. &bull; <a href="admin.html" class="footer-admin-link">Admin</a></p>
     </div>
   </footer>
@@ -335,7 +344,7 @@
               certsEmailLabel.textContent = cleanEmail;
 
               certsGrid.innerHTML = data.certificates.map(cert => {
-                const eventTitle = cert.event_title || cert.quiz_title || 'MathVerse Tournament';
+                const eventTitle = cert.event_title || cert.quiz_title || 'Mathematics Club Tournament';
                 const issueDate = cert.event_date || (new Date(cert.issued_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }));
 
                 return `
@@ -364,7 +373,7 @@
                     </div>
 
                     <div style="display: flex; gap: 0.6rem;">
-                      <a href="/api/certificates/${encodeURIComponent(cert.cert_code)}/pdf" class="btn-primary" style="flex: 1; justify-content: center; padding: 0.65rem; font-size: 0.88rem;" download="MathVerse_Certificate_${cert.cert_code}.pdf">
+                      <a href="/api/certificates/${encodeURIComponent(cert.cert_code)}/pdf" class="btn-primary" style="flex: 1; justify-content: center; padding: 0.65rem; font-size: 0.88rem;" download="Certificate_${cert.cert_code}.pdf">
                         <span>📥 Download PDF</span>
                       </a>
                       <a href="verify.html?code=${encodeURIComponent(cert.cert_code)}" class="btn-secondary" style="padding: 0.65rem 0.9rem; font-size: 0.88rem;" title="Verify Authenticity">

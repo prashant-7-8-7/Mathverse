@@ -1726,4 +1726,324 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
   }
+
+  /* ========================================================================
+     Phase 7 Signature Touch 1: Back-To-Top Rocket Button
+     ======================================================================== */
+  let btnBackToTop = document.getElementById('btn-back-to-top');
+  if (!btnBackToTop) {
+    btnBackToTop = document.createElement('button');
+    btnBackToTop.id = 'btn-back-to-top';
+    btnBackToTop.type = 'button';
+    btnBackToTop.setAttribute('aria-label', 'Scroll back to top');
+    btnBackToTop.setAttribute('title', 'Launch back to top');
+    btnBackToTop.innerHTML = '<span class="rocket-icon" aria-hidden="true">🚀</span>';
+    document.body.appendChild(btnBackToTop);
+  }
+
+  window.addEventListener('scroll', () => {
+    if (window.scrollY > 300) {
+      btnBackToTop.classList.add('visible');
+    } else {
+      btnBackToTop.classList.remove('visible');
+    }
+  }, { passive: true });
+
+  btnBackToTop.addEventListener('click', () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+
+  /* ========================================================================
+     Nav & Action Button Press / Ripple Feedback (with reduced motion check)
+     ======================================================================== */
+  // Ensure aria-current="page" on all active links
+  document.querySelectorAll('.nav-link.active, .mobile-link.active').forEach(el => {
+    el.setAttribute('aria-current', 'page');
+  });
+
+  const rippleTargets = '.nav-link, .mobile-link, .btn-nav-join, .btn-primary, .btn-secondary, .btn-rotate-equation';
+
+  document.addEventListener('pointerdown', (e) => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const target = e.target.closest(rippleTargets);
+    if (!target) return;
+
+    const rect = target.getBoundingClientRect();
+    const ripple = document.createElement('span');
+    ripple.className = 'button-ripple-effect';
+    const size = Math.max(rect.width, rect.height) * 2.2;
+    ripple.style.width = `${size}px`;
+    ripple.style.height = `${size}px`;
+    ripple.style.left = `${e.clientX - rect.left - size / 2}px`;
+    ripple.style.top = `${e.clientY - rect.top - size / 2}px`;
+    target.appendChild(ripple);
+
+    setTimeout(() => {
+      if (ripple.parentNode) ripple.parentNode.removeChild(ripple);
+    }, 600);
+  });
+
+  /* ========================================================================
+     Phase 7 Signature Touch 2: Animated First-Visit Loading Screen
+     ======================================================================== */
+  try {
+    const hasVisited = sessionStorage.getItem('mathverse_intro_seen');
+    if (!hasVisited) {
+      const loader = document.createElement('div');
+      loader.id = 'first-visit-loader';
+      loader.setAttribute('role', 'status');
+      loader.setAttribute('aria-label', 'Initializing Mathematics Club Universe');
+      loader.innerHTML = `
+        <svg class="loader-curve-svg" viewBox="0 0 200 200" aria-hidden="true">
+          <defs>
+            <linearGradient id="loaderGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#8b5cf6" />
+              <stop offset="50%" stop-color="#22d3ee" />
+              <stop offset="100%" stop-color="#fbbf24" />
+            </linearGradient>
+          </defs>
+          <path class="loader-curve-path" d="M100 100 
+            C 140 40, 180 80, 140 130 
+            C 100 180, 40 160, 40 100 
+            C 40 40, 160 40, 160 100 
+            C 160 160, 40 160, 60 130 
+            C 80 100, 140 60, 100 100 Z" />
+        </svg>
+        <div class="loader-text">
+          <span class="loader-sparkle">✦</span>
+          <span>Mathematics Club &bull; Initializing</span>
+          <span class="loader-sparkle">✦</span>
+        </div>
+      `;
+      document.body.appendChild(loader);
+
+      setTimeout(() => {
+        loader.classList.add('fade-out');
+        setTimeout(() => {
+          if (loader.parentNode) loader.parentNode.removeChild(loader);
+        }, 600);
+      }, 1200);
+
+      sessionStorage.setItem('mathverse_intro_seen', 'true');
+    }
+  } catch (e) {
+    // sessionStorage fallback
+  }
+
+  /* ========================================================================
+     Phase 7 Signature Touch 3: Hidden Easter Egg (Konami or "pi")
+     Opens interactive full-screen Mandelbrot Fractal Explorer
+     ======================================================================== */
+  const konamiSeq = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
+  let keyIndex = 0;
+  let recentKeys = '';
+
+  window.addEventListener('keydown', (e) => {
+    const tag = (e.target.tagName || '').toUpperCase();
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || e.target.isContentEditable) return;
+
+    // Check Konami Code
+    const expected = konamiSeq[keyIndex];
+    if (e.key === expected || (expected && expected.length === 1 && e.key.toLowerCase() === expected.toLowerCase())) {
+      keyIndex++;
+      if (keyIndex === konamiSeq.length) {
+        keyIndex = 0;
+        openMandelbrot();
+        return;
+      }
+    } else {
+      keyIndex = 0;
+      if (e.key === konamiSeq[0]) keyIndex = 1;
+    }
+
+    // Check "pi"
+    if (e.key && e.key.length === 1) {
+      recentKeys = (recentKeys + e.key.toLowerCase()).slice(-2);
+      if (recentKeys === 'pi') {
+        recentKeys = '';
+        openMandelbrot();
+      }
+    }
+  });
+
+  let mandelbrotOverlay = null;
+  let mandelbrotCanvas = null;
+  let mandelbrotCtx = null;
+  let mbCenterX = -0.7;
+  let mbCenterY = 0.0;
+  let mbScale = 2.8;
+  const mbMaxIter = 90;
+
+  function openMandelbrot() {
+    if (!mandelbrotOverlay) {
+      mandelbrotOverlay = document.createElement('div');
+      mandelbrotOverlay.id = 'mandelbrot-overlay';
+      mandelbrotOverlay.innerHTML = `
+        <div class="mandelbrot-hud">
+          <div class="mandelbrot-hud-title">
+            <span style="color: var(--neon-cyan);">✦</span>
+            <span>Mandelbrot Universe Fractal</span>
+          </div>
+          <div class="mandelbrot-hud-stats">
+            <span id="mb-center-label">Center: -0.7000 + 0.0000i</span>
+            <span id="mb-zoom-label">Zoom: 1.0x</span>
+          </div>
+          <div class="mandelbrot-hud-hints">
+            <span>🖱️ Click: Zoom In</span>
+            <span>Right-Click: Zoom Out</span>
+            <span>⌨️ ESC: Exit</span>
+          </div>
+          <button type="button" class="mandelbrot-btn-close" id="btn-close-mb">Close &times;</button>
+        </div>
+        <canvas id="mandelbrot-canvas"></canvas>
+      `;
+      document.body.appendChild(mandelbrotOverlay);
+
+      mandelbrotCanvas = document.getElementById('mandelbrot-canvas');
+      mandelbrotCtx = mandelbrotCanvas.getContext('2d');
+
+      document.getElementById('btn-close-mb').addEventListener('click', closeMandelbrot);
+
+      window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && mandelbrotOverlay && mandelbrotOverlay.classList.contains('open')) {
+          closeMandelbrot();
+        }
+      });
+
+      mandelbrotCanvas.addEventListener('click', (e) => {
+        const rect = mandelbrotCanvas.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
+
+        const w = mandelbrotCanvas.width;
+        const h = mandelbrotCanvas.height;
+        const aspect = w / h;
+
+        const realMin = mbCenterX - (mbScale * aspect) / 2;
+        const imagMin = mbCenterY - mbScale / 2;
+
+        mbCenterX = realMin + (mouseX / w) * (mbScale * aspect);
+        mbCenterY = imagMin + (mouseY / h) * mbScale;
+        mbScale *= 0.45;
+
+        renderMandelbrot();
+      });
+
+      mandelbrotCanvas.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+        mbScale /= 0.45;
+        renderMandelbrot();
+      });
+
+      window.addEventListener('resize', () => {
+        if (mandelbrotOverlay && mandelbrotOverlay.classList.contains('open')) {
+          resizeMandelbrotCanvas();
+          renderMandelbrot();
+        }
+      });
+    }
+
+    mandelbrotOverlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    resizeMandelbrotCanvas();
+    renderMandelbrot();
+  }
+
+  function closeMandelbrot() {
+    if (mandelbrotOverlay) {
+      mandelbrotOverlay.classList.remove('open');
+      document.body.style.overflow = '';
+    }
+  }
+
+  function resizeMandelbrotCanvas() {
+    if (!mandelbrotCanvas) return;
+    mandelbrotCanvas.width = Math.min(window.innerWidth, 1280);
+    mandelbrotCanvas.height = Math.min(window.innerHeight, 800);
+  }
+
+  function renderMandelbrot() {
+    if (!mandelbrotCtx || !mandelbrotCanvas) return;
+    const w = mandelbrotCanvas.width;
+    const h = mandelbrotCanvas.height;
+    if (w <= 0 || h <= 0) return;
+
+    const imgData = mandelbrotCtx.createImageData(w, h);
+    const d = imgData.data;
+
+    const aspect = w / h;
+    const rMin = mbCenterX - (mbScale * aspect) / 2;
+    const rMax = mbCenterX + (mbScale * aspect) / 2;
+    const iMin = mbCenterY - mbScale / 2;
+    const iMax = mbCenterY + mbScale / 2;
+
+    const dr = (rMax - rMin) / w;
+    const di = (iMax - iMin) / h;
+
+    let idx = 0;
+    for (let py = 0; py < h; py++) {
+      const ci = iMin + py * di;
+      for (let px = 0; px < w; px++) {
+        const cr = rMin + px * dr;
+
+        let zr = 0.0;
+        let zi = 0.0;
+        let iter = 0;
+
+        while (zr * zr + zi * zi <= 4.0 && iter < mbMaxIter) {
+          const zrNext = zr * zr - zi * zi + cr;
+          zi = 2.0 * zr * zi + ci;
+          zr = zrNext;
+          iter++;
+        }
+
+        if (iter === mbMaxIter) {
+          d[idx] = 8;
+          d[idx + 1] = 12;
+          d[idx + 2] = 31;
+          d[idx + 3] = 255;
+        } else {
+          const t = iter / mbMaxIter;
+          const hue = (t * 360 + 260) % 360;
+          const rgb = hslToRgb(hue / 360, 0.9, 0.5 + t * 0.3);
+          d[idx] = rgb[0];
+          d[idx + 1] = rgb[1];
+          d[idx + 2] = rgb[2];
+          d[idx + 3] = 255;
+        }
+        idx += 4;
+      }
+    }
+
+    mandelbrotCtx.putImageData(imgData, 0, 0);
+
+    const zoomVal = (2.8 / mbScale).toFixed(1);
+    const lblCenter = document.getElementById('mb-center-label');
+    const lblZoom = document.getElementById('mb-zoom-label');
+    if (lblCenter) lblCenter.textContent = `Center: ${mbCenterX.toFixed(4)} + ${mbCenterY.toFixed(4)}i`;
+    if (lblZoom) lblZoom.textContent = `Zoom: ${zoomVal}x`;
+  }
+
+  function hslToRgb(h, s, l) {
+    let r, g, b;
+    if (s === 0) {
+      r = g = b = l;
+    } else {
+      const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+      const p = 2 * l - q;
+      r = hueToRgb(p, q, h + 1 / 3);
+      g = hueToRgb(p, q, h);
+      b = hueToRgb(p, q, h - 1 / 3);
+    }
+    return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
+  }
+
+  function hueToRgb(p, q, t) {
+    if (t < 0) t += 1;
+    if (t > 1) t -= 1;
+    if (t < 1 / 6) return p + (q - p) * 6 * t;
+    if (t < 1 / 2) return q;
+    if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+    return p;
+  }
 });

@@ -3,8 +3,17 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Member Portal & Sign In — MathVerse</title>
-  <meta name="description" content="Join the MathVerse guild or log in to track season leaderboard points, earn tournament badges, and customize your profile.">
+  <title>Member Portal & Sign In — Mathematics Club</title>
+  <meta name="description" content="Join the Mathematics Club guild or log in to track season leaderboard points, earn tournament badges, and customize your profile at MITS Gwalior.">
+
+  <!-- Open Graph Meta Tags -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Member Portal & Sign In — Mathematics Club">
+  <meta property="og:description" content="Join the Mathematics Club guild or log in to track season leaderboard points, earn tournament badges, and customize your profile at MITS Gwalior.">
+  <meta property="og:image" content="/icons/icon-512.png">
+
+  <!-- Inline SVG Favicon of π -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='g' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' stop-color='%238b5cf6'/><stop offset='100%' stop-color='%2322d3ee'/></linearGradient></defs><rect width='100' height='100' rx='24' fill='%23080c1f'/><text x='50' y='72' font-family='sans-serif' font-size='66' font-weight='bold' fill='url(%23g)' text-anchor='middle'>π</text></svg>">
 
   <!-- Google Fonts: Space Grotesk, Inter, JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -25,9 +34,9 @@
   <!-- Sticky Top Navigation -->
   <header class="navbar" role="banner">
     <div class="nav-container">
-      <a href="index.html" class="nav-brand" aria-label="MathVerse Home">
+      <a href="index.html" class="nav-brand" aria-label="Mathematics Club Home">
         <span class="brand-glyph">∫</span>
-        <span class="brand-text">Math<span class="brand-accent">Verse</span></span>
+        <span class="brand-text">Mathematics <span class="brand-accent">Club</span></span>
       </a>
 
       <!-- Desktop Nav Links -->
@@ -91,7 +100,7 @@
       <div style="text-align: center; margin-bottom: 1.75rem;">
         <div class="subpage-badge" style="margin-bottom: 0.4rem;">Mathematicians Guild</div>
         <h1 id="auth-title" style="font-family: var(--font-heading); font-size: 2.1rem; color: var(--text-pure); margin-bottom: 0.35rem;">
-          Sign In to <span class="gradient-text">MathVerse</span>
+          Sign In to <span class="gradient-text">Mathematics Club</span>
         </h1>
         <p id="auth-subtitle" style="color: var(--text-muted); font-size: 0.9rem; margin: 0;">
           Unlock your seasonal ranking, unlock math badges, and enter live Arena tournaments.
@@ -104,7 +113,7 @@
           Sign In
         </button>
         <button type="button" id="tab-signup" class="auth-tab" role="tab" aria-selected="false" aria-controls="view-signup">
-          Join MathVerse
+          Join the Club
         </button>
       </div>
 
@@ -116,7 +125,7 @@
       <form id="form-login" novalidate>
         <div class="form-group" style="text-align: left; margin-bottom: 1.25rem;">
           <label for="login-email" class="form-label">Email Address *</label>
-          <input type="email" id="login-email" class="form-input" placeholder="e.g. euler@mathverse.edu" required autocomplete="email">
+          <input type="email" id="login-email" class="form-input" placeholder="e.g. euler@mitsgwalior.in" required autocomplete="email">
         </div>
 
         <div class="form-group" style="text-align: left; margin-bottom: 1.75rem;">
@@ -144,7 +153,7 @@
 
         <div class="form-group" style="text-align: left; margin-bottom: 1.1rem;">
           <label for="signup-email" class="form-label">Email Address *</label>
-          <input type="email" id="signup-email" class="form-input" placeholder="e.g. ramanujan@mathverse.edu" required autocomplete="email">
+          <input type="email" id="signup-email" class="form-input" placeholder="e.g. ramanujan@mitsgwalior.in" required autocomplete="email">
         </div>
 
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem; margin-bottom: 1.1rem;">
@@ -214,10 +223,10 @@
       <div class="footer-brand">
         <div class="brand-logo">
           <span class="brand-glyph">∫</span>
-          <span class="brand-text">Math<span class="brand-accent">Verse</span></span>
+          <span class="brand-text">Mathematics <span class="brand-accent">Club</span></span>
         </div>
         <p class="footer-tagline">Where curiosity converges with infinity.</p>
-        <p class="footer-copy">© 2026 MathVerse Mathematics Club. All rights reserved.</p>
+        <p class="footer-copy">© 2026 Mathematics Club • MITS Gwalior. All mathematical rights reserved.</p>
       </div>
 
       <nav class="footer-nav" aria-label="Footer Navigation">
@@ -309,7 +318,7 @@
           tabLogin.setAttribute('aria-selected', 'false');
           formSignup.style.display = 'block';
           formLogin.style.display = 'none';
-          authTitle.innerHTML = 'Join <span class="gradient-text">MathVerse</span>';
+          authTitle.innerHTML = 'Join <span class="gradient-text">Mathematics Club</span>';
           authSubtitle.textContent = 'Create your club membership to compete for season rank and earn badges.';
         } else {
           tabLogin.classList.add('active');
@@ -318,7 +327,7 @@
           tabSignup.setAttribute('aria-selected', 'false');
           formLogin.style.display = 'block';
           formSignup.style.display = 'none';
-          authTitle.innerHTML = 'Sign In to <span class="gradient-text">MathVerse</span>';
+          authTitle.innerHTML = 'Sign In to <span class="gradient-text">Mathematics Club</span>';
           authSubtitle.textContent = 'Unlock your seasonal ranking, unlock math badges, and enter live Arena tournaments.';
         }
       }
@@ -452,7 +461,7 @@
             return;
           }
 
-          showAlert(`✦ Welcome to MathVerse, <strong>${data.member.name}</strong>! Member Code: <strong>${data.member.member_code}</strong>. Initializing profile...`, true);
+          showAlert(`✦ Welcome to Mathematics Club, <strong>${data.member.name}</strong>! Member Code: <strong>${data.member.member_code}</strong>. Initializing profile...`, true);
           localStorage.setItem('mathverse_member_token', data.token);
           localStorage.setItem('mathverse_member_user', JSON.stringify(data.member));
 

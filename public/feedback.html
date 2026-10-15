@@ -3,8 +3,17 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Event Feedback & Experience — MathVerse</title>
-  <meta name="description" content="Share your thoughts, ratings, and suggestions for MathVerse events and tournaments.">
+  <title>Event Feedback & Experience — Mathematics Club</title>
+  <meta name="description" content="Share your thoughts, ratings, and suggestions for Mathematics Club events and tournaments at MITS Gwalior.">
+
+  <!-- Open Graph Meta Tags -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Event Feedback & Experience — Mathematics Club">
+  <meta property="og:description" content="Share your thoughts, ratings, and suggestions for Mathematics Club events and tournaments at MITS Gwalior.">
+  <meta property="og:image" content="/icons/icon-512.png">
+
+  <!-- Inline SVG Favicon of π -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='g' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' stop-color='%238b5cf6'/><stop offset='100%' stop-color='%2322d3ee'/></linearGradient></defs><rect width='100' height='100' rx='24' fill='%23080c1f'/><text x='50' y='72' font-family='sans-serif' font-size='66' font-weight='bold' fill='url(%23g)' text-anchor='middle'>π</text></svg>">
 
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -104,9 +113,9 @@
   <!-- Sticky Top Navigation -->
   <header class="navbar" role="banner">
     <div class="nav-container">
-      <a href="index.html" class="nav-brand" aria-label="MathVerse Home">
+      <a href="index.html" class="nav-brand" aria-label="Mathematics Club Home">
         <span class="brand-glyph">∫</span>
-        <span class="brand-text">Math<span class="brand-accent">Verse</span></span>
+        <span class="brand-text">Mathematics <span class="brand-accent">Club</span></span>
       </a>
 
       <nav class="nav-menu" aria-label="Primary Navigation">
@@ -119,7 +128,7 @@
           <li><a href="leaderboard.html" class="nav-link">Leaderboard</a></li>
           <li><a href="members.html" class="nav-link">Members</a></li>
           <li><a href="certificates.html" class="nav-link">Certificates</a></li>
-          <li><a href="feedback.html" class="nav-link active">Feedback</a></li>
+          <li><a href="feedback.html" class="nav-link active" aria-current="page">Feedback</a></li>
           <li><a href="contact.html" class="nav-link">Contact</a></li>
         </ul>
       </nav>
@@ -150,7 +159,7 @@
       <li><a href="leaderboard.html" class="mobile-link">Leaderboard</a></li>
       <li><a href="members.html" class="mobile-link">Members</a></li>
       <li><a href="certificates.html" class="mobile-link">Certificates</a></li>
-      <li><a href="feedback.html" class="mobile-link active">Feedback</a></li>
+      <li><a href="feedback.html" class="mobile-link active" aria-current="page">Feedback</a></li>
       <li><a href="contact.html" class="mobile-link">Contact</a></li>
     </ul>
     <a href="contact.html" class="btn-nav-join" style="padding: 0.8rem 2rem; font-size: 1rem;">Join the Club</a>
@@ -212,7 +221,7 @@
         <p id="not-attended-msg" style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.6; margin-bottom: 1.5rem;">
           Feedback is exclusively open to verified attendees who attended and checked in at the event. If you were present, please ensure an executive scanned your ticket QR.
         </p>
-        <a href="index.html" class="btn-secondary">← Back to MathVerse</a>
+        <a href="index.html" class="btn-secondary">← Back to Mathematics Club</a>
       </div>
 
       <!-- STAGE 2: Interactive Review Form (Shown when eligible) -->
@@ -291,10 +300,10 @@
       <div class="footer-brand">
         <div class="brand-logo">
           <span class="brand-glyph">∫</span>
-          <span class="brand-text">Math<span class="brand-accent">Verse</span></span>
+          <span class="brand-text">Mathematics <span class="brand-accent">Club</span></span>
         </div>
         <p class="footer-tagline">
-          The official digital universe and live competition arena of the College Mathematics Club. Fostering pure rigor, applied mastery, and intellectual camaraderie.
+          The official digital universe and live competition arena of the Mathematics Club, MITS Gwalior. Fostering pure rigor, applied mastery, and intellectual camaraderie.
         </p>
       </div>
 
@@ -331,7 +340,7 @@
     </div>
 
     <div class="footer-bottom">
-      <p>&copy; 2026 MathVerse &bull; College Mathematics Club. All mathematical rights reserved.</p>
+      <p>&copy; 2026 Mathematics Club &bull; MITS Gwalior. All mathematical rights reserved.</p>
       <p>Crafted with rigor, curiosity, and code. &bull; <a href="admin.html" class="footer-admin-link">Admin</a></p>
     </div>
   </footer>

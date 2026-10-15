@@ -987,14 +987,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (registerBtn) {
       registerBtn.style.display = 'inline-flex';
+      const isPast = Boolean(nextEvent.is_past !== undefined ? nextEvent.is_past : (nextEvent.status === 'past'));
       const isSoldOut = Boolean(nextEvent.is_sold_out || (nextEvent.capacity > 0 && nextEvent.registered_count >= nextEvent.capacity));
-      if (isSoldOut) {
+      if (isPast) {
+        registerBtn.innerHTML = '<span>Registration closed</span>';
+        registerBtn.style.opacity = '0.5';
+        registerBtn.style.cursor = 'not-allowed';
+        registerBtn.disabled = true;
+        registerBtn.onclick = null;
+      } else if (isSoldOut) {
         registerBtn.innerHTML = '<span>Capacity Reached (Sold Out)</span>';
         registerBtn.style.opacity = '0.6';
+        registerBtn.style.cursor = 'not-allowed';
         registerBtn.disabled = true;
+        registerBtn.onclick = null;
       } else {
         registerBtn.innerHTML = '<span>Register for ' + (nextEvent.title || 'Event') + '</span> <span aria-hidden="true">→</span>';
         registerBtn.style.opacity = '1';
+        registerBtn.style.cursor = 'pointer';
         registerBtn.disabled = false;
         registerBtn.onclick = () => openEventModal(nextEvent.id);
       }
@@ -1121,6 +1131,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     eventsGrid.innerHTML = filtered.map(item => {
       const pct = item.capacity > 0 ? Math.round((item.registered_count / item.capacity) * 100) : 0;
+      const isPast = Boolean(item.is_past !== undefined ? item.is_past : (item.status === 'past'));
       const isSoldOut = Boolean(item.is_sold_out || (item.capacity > 0 && item.registered_count >= item.capacity));
 
       return `
@@ -1158,7 +1169,10 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
 
           <div class="event-card-bottom">
-            <span class="btn-view-event">${isSoldOut ? 'View Pass Info' : 'Register Now'} <span class="arrow">→</span></span>
+            ${isPast
+              ? '<span class="event-closed-badge" style="display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.82rem; color: var(--text-muted); font-weight: 600; padding: 0.35rem 0.75rem; background: rgba(255, 255, 255, 0.04); border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.08);"><span style="opacity: 0.7;">🔒</span> Registration closed</span>'
+              : `<span class="btn-view-event">${isSoldOut ? 'View Pass Info' : 'Register Now'} <span class="arrow">→</span></span>`
+            }
             <span style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--neon-gold);">${item.badge || 'Official'}</span>
           </div>
         </div>
@@ -1187,6 +1201,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (regFormError) regFormError.style.display = 'none';
 
     // Populate Details View
+    const isPast = Boolean(item.is_past !== undefined ? item.is_past : (item.status === 'past'));
     const isSoldOut = Boolean(item.is_sold_out || (item.capacity > 0 && item.registered_count >= item.capacity));
     
     document.getElementById('modal-event-title').textContent = item.title;
@@ -1199,13 +1214,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Configure Register button on details view
     if (btnModalOpenForm) {
-      if (isSoldOut) {
+      if (isPast) {
+        btnModalOpenForm.innerHTML = '<span>Registration closed</span>';
+        btnModalOpenForm.style.opacity = '0.5';
+        btnModalOpenForm.style.cursor = 'not-allowed';
+        btnModalOpenForm.disabled = true;
+      } else if (isSoldOut) {
         btnModalOpenForm.innerHTML = '<span>Capacity Reached (Sold Out)</span>';
         btnModalOpenForm.style.opacity = '0.5';
+        btnModalOpenForm.style.cursor = 'not-allowed';
         btnModalOpenForm.disabled = true;
       } else {
         btnModalOpenForm.innerHTML = '<span>Register for Event</span> <span aria-hidden="true">→</span>';
         btnModalOpenForm.style.opacity = '1';
+        btnModalOpenForm.style.cursor = 'pointer';
         btnModalOpenForm.disabled = false;
       }
     }
@@ -1244,6 +1266,12 @@ document.addEventListener('DOMContentLoaded', () => {
   if (btnModalOpenForm) {
     btnModalOpenForm.addEventListener('click', () => {
       if (btnModalOpenForm.disabled) return;
+      const regEventIdInput = document.getElementById('reg-event-id');
+      const currentEventId = regEventIdInput ? regEventIdInput.value : '';
+      const currEvent = Array.isArray(eventsData) ? eventsData.find(e => e.id === currentEventId) : null;
+      if (currEvent && (currEvent.is_past || currEvent.status === 'past')) {
+        return;
+      }
       if (modalViewDetails) modalViewDetails.classList.remove('active');
       if (modalViewForm) modalViewForm.classList.add('active');
     });
@@ -1264,6 +1292,12 @@ document.addEventListener('DOMContentLoaded', () => {
       if (regFormError) regFormError.style.display = 'none';
 
       const eventId = document.getElementById('reg-event-id').value;
+      const currEvent = Array.isArray(eventsData) ? eventsData.find(e => e.id === eventId) : null;
+      if (currEvent && (currEvent.is_past || currEvent.status === 'past')) {
+        showFormError('Registration is closed. This event has already taken place.');
+        return;
+      }
+
       const name = document.getElementById('reg-name').value.trim();
       const email = document.getElementById('reg-email').value.trim();
       const phone = document.getElementById('reg-phone').value.trim();

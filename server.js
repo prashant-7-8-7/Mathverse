@@ -152,6 +152,23 @@ function requireMember(req, res, next) {
    Public APIs: Events, Registration & Tickets
    ========================================================================== */
 
+// Helper to parse event date and time into a Date object
+function getEventDateTime(event) {
+  if (!event) return null;
+  if (event.date_iso) {
+    const d = new Date(event.date_iso);
+    if (!isNaN(d.getTime())) return d;
+  }
+  if (event.date) {
+    const startTime = (event.time || '').split(/[–-]/)[0].trim();
+    const d = new Date(`${event.date} ${startTime}`.trim());
+    if (!isNaN(d.getTime())) return d;
+    const dOnly = new Date(event.date);
+    if (!isNaN(dOnly.getTime())) return dOnly;
+  }
+  return null;
+}
+
 // GET /api/events - List events with live registration counts, seat calculations & feedback ratings
 app.get('/api/events', (req, res) => {
   try {
@@ -170,7 +187,19 @@ app.get('/api/events', (req, res) => {
       ORDER BY e.id ASC
     `);
     const events = stmt.all();
-    res.json({ success: true, events });
+    const now = new Date();
+    const enhancedEvents = events.map(e => {
+      const eventDate = getEventDateTime(e);
+      const isPast = eventDate ? (eventDate.getTime() < now.getTime()) : (e.status === 'past');
+      const isSoldOut = Boolean(e.is_sold_out);
+      const registrationOpen = !isPast && !isSoldOut;
+      return {
+        ...e,
+        is_past: isPast,
+        registration_open: registrationOpen
+      };
+    });
+    res.json({ success: true, events: enhancedEvents });
   } catch (err) {
     console.error('[API /api/events error]', err);
     res.status(500).json({ error: 'Failed to retrieve events.' });
@@ -210,6 +239,13 @@ app.post('/api/register', async (req, res) => {
     const event = db.prepare('SELECT * FROM events WHERE id = ?').get(event_id);
     if (!event) {
       return res.status(404).json({ error: 'Specified event not found.' });
+    }
+
+    // Check if event has already taken place (before duplicate or capacity checks)
+    const eventDate = getEventDateTime(event);
+    const isPast = eventDate ? (eventDate.getTime() < Date.now()) : (event.status === 'past');
+    if (isPast) {
+      return res.status(400).json({ error: 'Registration is closed. This event has already taken place.' });
     }
 
     // Check for duplicate registration (same email + same event)

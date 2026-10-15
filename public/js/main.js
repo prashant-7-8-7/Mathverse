@@ -1839,24 +1839,12 @@ document.addEventListener('DOMContentLoaded', () => {
       loader.setAttribute('role', 'status');
       loader.setAttribute('aria-label', 'Initializing Mathematics Club Universe');
       loader.innerHTML = `
-        <svg class="loader-curve-svg" viewBox="0 0 200 200" aria-hidden="true">
-          <defs>
-            <linearGradient id="loaderGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stop-color="#8b5cf6" />
-              <stop offset="50%" stop-color="#22d3ee" />
-              <stop offset="100%" stop-color="#fbbf24" />
-            </linearGradient>
-          </defs>
-          <path class="loader-curve-path" d="M100 100 
-            C 140 40, 180 80, 140 130 
-            C 100 180, 40 160, 40 100 
-            C 40 40, 160 40, 160 100 
-            C 160 160, 40 160, 60 130 
-            C 80 100, 140 60, 100 100 Z" />
-        </svg>
+        <div class="loader-logo-wrapper">
+          <img src="/images/club-logo.jpeg" alt="Mathematics Club MITS Gwalior logo" class="loader-logo-img">
+        </div>
         <div class="loader-text">
           <span class="loader-sparkle">✦</span>
-          <span>Mathematics Club &bull; Initializing</span>
+          <span>Mathematics Club &bull; MITS Gwalior</span>
           <span class="loader-sparkle">✦</span>
         </div>
       `;

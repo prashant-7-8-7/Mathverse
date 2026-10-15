@@ -229,17 +229,72 @@ body.cursor-hover .custom-cursor-trail {
 
 /* Brand Logo */
 .nav-brand {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 0.55rem;
-  font-family: var(--font-heading);
-  font-size: 1.15rem;
-  font-weight: 800;
-  letter-spacing: -0.01em;
-  color: var(--text-pure);
-  white-space: nowrap;
   flex-shrink: 0;
   text-decoration: none;
+  line-height: 1;
+}
+
+.navbar-logo {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+  flex-shrink: 0;
+  box-shadow: 0 0 10px rgba(139, 92, 246, 0.35);
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease;
+}
+
+.nav-brand:hover .navbar-logo,
+.navbar-logo:hover {
+  transform: scale(1.06);
+  box-shadow: 0 0 18px rgba(139, 92, 246, 0.8), 0 0 32px rgba(139, 92, 246, 0.45);
+}
+
+.footer-brand-logo {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+  flex-shrink: 0;
+  box-shadow: 0 0 12px rgba(139, 92, 246, 0.4);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.footer-brand:hover .footer-brand-logo,
+.brand-logo:hover .footer-brand-logo {
+  transform: scale(1.05);
+  box-shadow: 0 0 20px rgba(139, 92, 246, 0.7);
+}
+
+.loader-logo-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.loader-logo-img {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  box-shadow: 0 0 35px rgba(139, 92, 246, 0.8), 0 0 70px rgba(34, 211, 238, 0.4);
+  animation: pulseLoaderLogo 2s infinite ease-in-out;
+}
+
+@keyframes pulseLoaderLogo {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 35px rgba(139, 92, 246, 0.8), 0 0 70px rgba(34, 211, 238, 0.4);
+  }
+  50% {
+    transform: scale(1.06);
+    box-shadow: 0 0 50px rgba(139, 92, 246, 1), 0 0 90px rgba(34, 211, 238, 0.6);
+  }
 }
 
 .brand-glyph {
@@ -1353,11 +1408,10 @@ body.cursor-hover .custom-cursor-trail {
   }
 }
 
-@media (max-width: 1279.98px) {
+@media (max-width: 1023.98px) {
 
   .nav-menu,
-  .nav-links,
-  .nav-actions .btn-nav-join {
+  .nav-links {
     display: none !important;
   }
 
@@ -4945,44 +4999,45 @@ body.cursor-hover .custom-cursor-trail {
   word-break: break-word;
 }
 
+@media (max-width: 640px) {
+  .navbar-logo {
+    width: 44px;
+    height: 44px;
+  }
+}
+
 @media (max-width: 480px) {
   .nav-container {
-    padding: 0.65rem 0.85rem;
-    gap: 0.5rem;
+    padding: 0.5rem 0.65rem;
+    gap: 0.35rem;
   }
 
-  .nav-brand {
-    font-size: 1rem;
-    gap: 0.45rem;
+  .navbar-logo {
+    width: 44px;
+    height: 44px;
   }
 
-  .brand-glyph {
-    width: 30px;
-    height: 30px;
-    font-size: 1.05rem;
-    border-radius: 8px;
-  }
-
-  .brand-text {
-    display: inline-flex;
-    flex-direction: column;
-    line-height: 1.05;
-    font-size: 0.88rem;
-  }
-
-  .brand-accent {
-    font-size: 0.84rem;
+  .nav-actions {
+    gap: 0.35rem;
   }
 
   .status-badge {
-    padding: 0.22rem 0.5rem;
-    font-size: 0.68rem;
+    padding: 0.22rem 0.45rem;
+    font-size: 0.66rem;
+    gap: 0.3rem;
+  }
+
+  .btn-nav-join {
+    padding: 0.32rem 0.62rem;
+    font-size: 0.74rem;
+    border-radius: 8px;
   }
 
   .nav-toggle {
-    width: 38px;
-    height: 38px;
-    padding: 6px;
+    width: 36px;
+    height: 36px;
+    padding: 5px;
+    border-radius: 8px;
   }
 
   .universe-badge {

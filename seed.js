@@ -51,98 +51,98 @@ async function seedDatabase(force = false) {
   const demoMembers = [
     {
       code: 'MV-M-0001',
-      name: 'Devin V. Patel',
-      email: 'devin.patel@demo.mathverse.org',
+      name: 'Aarav Sharma',
+      email: 'aarav.sharma@mitsgwalior.in',
       branch: 'Mathematics & Computing',
-      year: 'Senior (4th Year)',
+      year: 'B.Tech 4th Year',
       bio: 'Obsessed with algebraic topology, analytic number theory, and speed problem solving. President of the Ramanujan Circle.'
     },
     {
       code: 'MV-M-0002',
-      name: 'Elena Rostova',
-      email: 'elena.rostova@demo.mathverse.org',
-      branch: 'Data Science & AI',
-      year: 'Junior (3rd Year)',
+      name: 'Ananya Verma',
+      email: 'ananya.verma@mitsgwalior.in',
+      branch: 'Computer Science & Engineering',
+      year: 'B.Tech 3rd Year',
       bio: 'Calculus enthusiast, Fourier transform coder, and live arena champion. Always hunting for optimal solutions.'
     },
     {
       code: 'MV-M-0003',
-      name: 'Marcus Aurelius Chen',
-      email: 'marcus.chen@demo.mathverse.org',
-      branch: 'Computer Science',
-      year: 'Senior (4th Year)',
+      name: 'Rohan Gupta',
+      email: 'rohan.gupta@mitsgwalior.in',
+      branch: 'Information Technology',
+      year: 'B.Tech 4th Year',
       bio: 'Algorithmic combinatorics, Ramsey numbers, and competitive programming nerd. Speed integration finalist.'
     },
     {
       code: 'MV-M-0004',
-      name: 'Siddharth N. Menon',
-      email: 'siddharth.menon@demo.mathverse.org',
-      branch: 'Mathematics',
-      year: 'Junior (3rd Year)',
-      bio: 'Researching elliptic curves and modular arithmetic. Co-organizer of the annual Pi Day Carnival recitation.'
+      name: 'Priya Singh',
+      email: 'priya.singh@mitsgwalior.in',
+      branch: 'Artificial Intelligence & Data Science',
+      year: 'B.Tech 3rd Year',
+      bio: 'Researching elliptic curves and modular arithmetic. Co-organizer of the annual Pi Day recitation.'
     },
     {
       code: 'MV-M-0005',
-      name: 'Zoe K. Vance',
-      email: 'zoe.vance@demo.mathverse.org',
-      branch: 'Physics',
-      year: 'Sophomore (2nd Year)',
+      name: 'Aditya Rajput',
+      email: 'aditya.rajput@mitsgwalior.in',
+      branch: 'Mathematics & Computing',
+      year: 'B.Tech 2nd Year',
       bio: 'Differential geometry and tensor calculus explorer. Modeling non-linear dynamical orbital mechanics.'
     },
     {
       code: 'MV-M-0006',
-      name: 'Tariq Al-Mansoor',
-      email: 'tariq.mansoor@demo.mathverse.org',
+      name: 'Kavya Joshi',
+      email: 'kavya.joshi@mitsgwalior.in',
       branch: 'Electrical Engineering',
-      year: 'Senior (4th Year)',
+      year: 'B.Tech 4th Year',
       bio: 'Fast Fourier Transform specialist and cryptographic security challenge competitor.'
     },
     {
       code: 'MV-M-0007',
-      name: 'Aria M. Sterling',
-      email: 'aria.sterling@demo.mathverse.org',
-      branch: 'Mathematics',
-      year: 'Sophomore (2nd Year)',
+      name: 'Harsh Tiwari',
+      email: 'harsh.tiwari@mitsgwalior.in',
+      branch: 'Computer Science & Engineering',
+      year: 'B.Tech 2nd Year',
       bio: 'Complex analysis and fractal dimensions enthusiast. Passionate about procedural mathematical visual art.'
     },
     {
       code: 'MV-M-0008',
-      name: 'Liam J. O\'Connor',
-      email: 'liam.oconnor@demo.mathverse.org',
+      name: 'Sneha Patel',
+      email: 'sneha.patel@mitsgwalior.in',
       branch: 'Mathematics & Computing',
-      year: 'Freshman (1st Year)',
+      year: 'B.Tech 1st Year',
       bio: 'Freshman speed integration challenger, graph theory aficionado, and live arena regular.'
     },
     {
       code: 'MV-M-0009',
-      name: 'Mei-Ling Zhou',
-      email: 'meiling.zhou@demo.mathverse.org',
-      branch: 'Data Science & AI',
-      year: 'Junior (3rd Year)',
+      name: 'Vivek Chouhan',
+      email: 'vivek.chouhan@mitsgwalior.in',
+      branch: 'Artificial Intelligence & Data Science',
+      year: 'B.Tech 3rd Year',
       bio: 'High-dimensional probability, Markov chains, and topological data analysis enthusiast.'
     },
     {
       code: 'MV-M-0010',
-      name: 'Carlos E. Mendoza',
-      email: 'carlos.mendoza@demo.mathverse.org',
-      branch: 'Computer Science',
-      year: 'Sophomore (2nd Year)',
+      name: 'Ishita Mishra',
+      email: 'ishita.mishra@mitsgwalior.in',
+      branch: 'Information Technology',
+      year: 'B.Tech 2nd Year',
       bio: 'Computational algebra, group theory, and cryptography fanatic. Building interactive geometric shaders.'
     },
     {
       code: 'MV-M-0011',
-      name: 'Ananya R. Iyer',
-      email: 'ananya.iyer@demo.mathverse.org',
-      branch: 'Mathematics',
-      year: 'Senior (4th Year)',
+      name: 'Arjun Yadav',
+      email: 'arjun.yadav@mitsgwalior.in',
+      branch: 'Mathematics & Computing',
+      year: 'B.Tech 4th Year',
       bio: 'Abstract algebra, Galois theory, and category theory researcher. Club peer tutor for undergraduate calculus.'
     },
     {
       code: 'MV-M-0012',
-      name: 'Noah B. Thorne',
-      email: 'noah.thorne@demo.mathverse.org',
-      branch: 'Physics',
-      year: 'Junior (3rd Year)',
+      name: 'Riya Jain',
+      email: 'riya.jain@mitsgwalior.in',
+      branch: 'Electronics & Telecommunication',
+      year: 'B.Tech 3rd Year',
       bio: 'Mathematical modelling of quantum states and fluid flow dynamics. Regular attendee at club colloquiums.'
     }
   ];
@@ -209,34 +209,34 @@ async function seedDatabase(force = false) {
   // Event Registrations data set
   const registrationsData = [
     // Past Event 4: Mathematical Modelling Workshop (-20 days) — All checked in
-    { id: 101, code: 'MV-2026-F1A2B3', event_id: 'event-4', name: 'Devin V. Patel', email: 'devin.patel@demo.mathverse.org', phone: '+1 555-0101', enroll: 'EN-2023-101', branch: 'Mathematics & Computing', year: 'Senior (4th Year)', checked_in: 1, created: fmtSql(getRelDate(-25, 10, 15)), checkin_at: fmtSql(getRelDate(-20, 13, 45)) },
-    { id: 102, code: 'MV-2026-F2C3D4', event_id: 'event-4', name: 'Elena Rostova', email: 'elena.rostova@demo.mathverse.org', phone: '+1 555-0102', enroll: 'EN-2024-202', branch: 'Data Science & AI', year: 'Junior (3rd Year)', checked_in: 1, created: fmtSql(getRelDate(-24, 11, 30)), checkin_at: fmtSql(getRelDate(-20, 13, 50)) },
-    { id: 103, code: 'MV-2026-F3E4F5', event_id: 'event-4', name: 'Marcus Aurelius Chen', email: 'marcus.chen@demo.mathverse.org', phone: '+1 555-0103', enroll: 'EN-2023-303', branch: 'Computer Science', year: 'Senior (4th Year)', checked_in: 1, created: fmtSql(getRelDate(-23, 14, 20)), checkin_at: fmtSql(getRelDate(-20, 13, 52)) },
-    { id: 104, code: 'MV-2026-F4G5H6', event_id: 'event-4', name: 'Noah B. Thorne', email: 'noah.thorne@demo.mathverse.org', phone: '+1 555-0104', enroll: 'EN-2024-404', branch: 'Physics', year: 'Junior (3rd Year)', checked_in: 1, created: fmtSql(getRelDate(-22, 9, 10)), checkin_at: fmtSql(getRelDate(-20, 13, 58)) },
+    { id: 101, code: 'MV-2026-F1A2B3', event_id: 'event-4', name: 'Aarav Sharma', email: 'aarav.sharma@mitsgwalior.in', phone: '+91 98260-10001', enroll: '0901MC231001', branch: 'Mathematics & Computing', year: 'B.Tech 4th Year', checked_in: 1, created: fmtSql(getRelDate(-25, 10, 15)), checkin_at: fmtSql(getRelDate(-20, 13, 45)) },
+    { id: 102, code: 'MV-2026-F2C3D4', event_id: 'event-4', name: 'Ananya Verma', email: 'ananya.verma@mitsgwalior.in', phone: '+91 98260-10002', enroll: '0901CS241002', branch: 'Computer Science & Engineering', year: 'B.Tech 3rd Year', checked_in: 1, created: fmtSql(getRelDate(-24, 11, 30)), checkin_at: fmtSql(getRelDate(-20, 13, 50)) },
+    { id: 103, code: 'MV-2026-F3E4F5', event_id: 'event-4', name: 'Rohan Gupta', email: 'rohan.gupta@mitsgwalior.in', phone: '+91 98260-10003', enroll: '0901IT231003', branch: 'Information Technology', year: 'B.Tech 4th Year', checked_in: 1, created: fmtSql(getRelDate(-23, 14, 20)), checkin_at: fmtSql(getRelDate(-20, 13, 52)) },
+    { id: 104, code: 'MV-2026-F4G5H6', event_id: 'event-4', name: 'Riya Jain', email: 'riya.jain@mitsgwalior.in', phone: '+91 98260-10004', enroll: '0901ET241004', branch: 'Electronics & Telecommunication', year: 'B.Tech 3rd Year', checked_in: 1, created: fmtSql(getRelDate(-22, 9, 10)), checkin_at: fmtSql(getRelDate(-20, 13, 58)) },
 
     // Past Event 5: Pi Day Carnival 2026 (-45 days) — Checked in
-    { id: 105, code: 'MV-2026-P1J2K3', event_id: 'event-5', name: 'Siddharth N. Menon', email: 'siddharth.menon@demo.mathverse.org', phone: '+1 555-0105', enroll: 'EN-2024-505', branch: 'Mathematics', year: 'Junior (3rd Year)', checked_in: 1, created: fmtSql(getRelDate(-50, 12, 0)), checkin_at: fmtSql(getRelDate(-45, 13, 30)) },
-    { id: 106, code: 'MV-2026-P2L3M4', event_id: 'event-5', name: 'Aria M. Sterling', email: 'aria.sterling@demo.mathverse.org', phone: '+1 555-0106', enroll: 'EN-2025-606', branch: 'Mathematics', year: 'Sophomore (2nd Year)', checked_in: 1, created: fmtSql(getRelDate(-49, 16, 45)), checkin_at: fmtSql(getRelDate(-45, 13, 35)) },
-    { id: 107, code: 'MV-2026-P3N4P5', event_id: 'event-5', name: 'Zoe K. Vance', email: 'zoe.vance@demo.mathverse.org', phone: '+1 555-0107', enroll: 'EN-2025-707', branch: 'Physics', year: 'Sophomore (2nd Year)', checked_in: 1, created: fmtSql(getRelDate(-48, 18, 20)), checkin_at: fmtSql(getRelDate(-45, 13, 40)) },
-    { id: 108, code: 'MV-2026-P4Q5R6', event_id: 'event-5', name: 'Liam J. O\'Connor', email: 'liam.oconnor@demo.mathverse.org', phone: '+1 555-0108', enroll: 'EN-2026-808', branch: 'Mathematics & Computing', year: 'Freshman (1st Year)', checked_in: 1, created: fmtSql(getRelDate(-47, 10, 15)), checkin_at: fmtSql(getRelDate(-45, 13, 42)) },
+    { id: 105, code: 'MV-2026-P1J2K3', event_id: 'event-5', name: 'Priya Singh', email: 'priya.singh@mitsgwalior.in', phone: '+91 98260-10005', enroll: '0901AI241005', branch: 'Artificial Intelligence & Data Science', year: 'B.Tech 3rd Year', checked_in: 1, created: fmtSql(getRelDate(-50, 12, 0)), checkin_at: fmtSql(getRelDate(-45, 13, 30)) },
+    { id: 106, code: 'MV-2026-P2L3M4', event_id: 'event-5', name: 'Harsh Tiwari', email: 'harsh.tiwari@mitsgwalior.in', phone: '+91 98260-10006', enroll: '0901CS251006', branch: 'Computer Science & Engineering', year: 'B.Tech 2nd Year', checked_in: 1, created: fmtSql(getRelDate(-49, 16, 45)), checkin_at: fmtSql(getRelDate(-45, 13, 35)) },
+    { id: 107, code: 'MV-2026-P3N4P5', event_id: 'event-5', name: 'Aditya Rajput', email: 'aditya.rajput@mitsgwalior.in', phone: '+91 98260-10007', enroll: '0901MC251007', branch: 'Mathematics & Computing', year: 'B.Tech 2nd Year', checked_in: 1, created: fmtSql(getRelDate(-48, 18, 20)), checkin_at: fmtSql(getRelDate(-45, 13, 40)) },
+    { id: 108, code: 'MV-2026-P4Q5R6', event_id: 'event-5', name: 'Sneha Patel', email: 'sneha.patel@mitsgwalior.in', phone: '+91 98260-10008', enroll: '0901MC261008', branch: 'Mathematics & Computing', year: 'B.Tech 1st Year', checked_in: 1, created: fmtSql(getRelDate(-47, 10, 15)), checkin_at: fmtSql(getRelDate(-45, 13, 42)) },
 
     // Past Event 6: Cipher Hunt & Cryptography Night (-80 days) — Checked in
-    { id: 109, code: 'MV-2026-C1S2T3', event_id: 'event-6', name: 'Tariq Al-Mansoor', email: 'tariq.mansoor@demo.mathverse.org', phone: '+1 555-0109', enroll: 'EN-2023-909', branch: 'Electrical Engineering', year: 'Senior (4th Year)', checked_in: 1, created: fmtSql(getRelDate(-90, 14, 0)), checkin_at: fmtSql(getRelDate(-80, 17, 45)) },
-    { id: 110, code: 'MV-2026-C2U3V4', event_id: 'event-6', name: 'Carlos E. Mendoza', email: 'carlos.mendoza@demo.mathverse.org', phone: '+1 555-0110', enroll: 'EN-2025-010', branch: 'Computer Science', year: 'Sophomore (2nd Year)', checked_in: 1, created: fmtSql(getRelDate(-89, 11, 20)), checkin_at: fmtSql(getRelDate(-80, 17, 50)) },
-    { id: 111, code: 'MV-2026-C3W4X5', event_id: 'event-6', name: 'Mei-Ling Zhou', email: 'meiling.zhou@demo.mathverse.org', phone: '+1 555-0111', enroll: 'EN-2024-011', branch: 'Data Science & AI', year: 'Junior (3rd Year)', checked_in: 1, created: fmtSql(getRelDate(-88, 15, 30)), checkin_at: fmtSql(getRelDate(-80, 17, 55)) },
-    { id: 112, code: 'MV-2026-C4Y5Z6', event_id: 'event-6', name: 'Ananya R. Iyer', email: 'ananya.iyer@demo.mathverse.org', phone: '+1 555-0112', enroll: 'EN-2023-012', branch: 'Mathematics', year: 'Senior (4th Year)', checked_in: 1, created: fmtSql(getRelDate(-87, 9, 40)), checkin_at: fmtSql(getRelDate(-80, 17, 58)) },
+    { id: 109, code: 'MV-2026-C1S2T3', event_id: 'event-6', name: 'Kavya Joshi', email: 'kavya.joshi@mitsgwalior.in', phone: '+91 98260-10009', enroll: '0901EE231009', branch: 'Electrical Engineering', year: 'B.Tech 4th Year', checked_in: 1, created: fmtSql(getRelDate(-90, 14, 0)), checkin_at: fmtSql(getRelDate(-80, 17, 45)) },
+    { id: 110, code: 'MV-2026-C2U3V4', event_id: 'event-6', name: 'Ishita Mishra', email: 'ishita.mishra@mitsgwalior.in', phone: '+91 98260-10010', enroll: '0901IT251010', branch: 'Information Technology', year: 'B.Tech 2nd Year', checked_in: 1, created: fmtSql(getRelDate(-89, 11, 20)), checkin_at: fmtSql(getRelDate(-80, 17, 50)) },
+    { id: 111, code: 'MV-2026-C3W4X5', event_id: 'event-6', name: 'Vivek Chouhan', email: 'vivek.chouhan@mitsgwalior.in', phone: '+91 98260-10011', enroll: '0901AI241011', branch: 'Artificial Intelligence & Data Science', year: 'B.Tech 3rd Year', checked_in: 1, created: fmtSql(getRelDate(-88, 15, 30)), checkin_at: fmtSql(getRelDate(-80, 17, 55)) },
+    { id: 112, code: 'MV-2026-C4Y5Z6', event_id: 'event-6', name: 'Arjun Yadav', email: 'arjun.yadav@mitsgwalior.in', phone: '+91 98260-10012', enroll: '0901MC231012', branch: 'Mathematics & Computing', year: 'B.Tech 4th Year', checked_in: 1, created: fmtSql(getRelDate(-87, 9, 40)), checkin_at: fmtSql(getRelDate(-80, 17, 58)) },
 
     // Upcoming Event 1: Euler Quiz Night (+6 days) — Pending
-    { id: 113, code: 'MV-2026-E1A2B3', event_id: 'event-1', name: 'Devin V. Patel', email: 'devin.patel@demo.mathverse.org', phone: '+1 555-0101', enroll: 'EN-2023-101', branch: 'Mathematics & Computing', year: 'Senior (4th Year)', checked_in: 0, created: fmtSql(getRelDate(-2, 10, 0)), checkin_at: null },
-    { id: 114, code: 'MV-2026-E2C3D4', event_id: 'event-1', name: 'Elena Rostova', email: 'elena.rostova@demo.mathverse.org', phone: '+1 555-0102', enroll: 'EN-2024-202', branch: 'Data Science & AI', year: 'Junior (3rd Year)', checked_in: 0, created: fmtSql(getRelDate(-2, 11, 30)), checkin_at: null },
-    { id: 115, code: 'MV-2026-E3E4F5', event_id: 'event-1', name: 'Marcus Aurelius Chen', email: 'marcus.chen@demo.mathverse.org', phone: '+1 555-0103', enroll: 'EN-2023-303', branch: 'Computer Science', year: 'Senior (4th Year)', checked_in: 0, created: fmtSql(getRelDate(-1, 15, 40)), checkin_at: null },
+    { id: 113, code: 'MV-2026-E1A2B3', event_id: 'event-1', name: 'Aarav Sharma', email: 'aarav.sharma@mitsgwalior.in', phone: '+91 98260-10001', enroll: '0901MC231001', branch: 'Mathematics & Computing', year: 'B.Tech 4th Year', checked_in: 0, created: fmtSql(getRelDate(-2, 10, 0)), checkin_at: null },
+    { id: 114, code: 'MV-2026-E2C3D4', event_id: 'event-1', name: 'Ananya Verma', email: 'ananya.verma@mitsgwalior.in', phone: '+91 98260-10002', enroll: '0901CS241002', branch: 'Computer Science & Engineering', year: 'B.Tech 3rd Year', checked_in: 0, created: fmtSql(getRelDate(-2, 11, 30)), checkin_at: null },
+    { id: 115, code: 'MV-2026-E3E4F5', event_id: 'event-1', name: 'Rohan Gupta', email: 'rohan.gupta@mitsgwalior.in', phone: '+91 98260-10003', enroll: '0901IT231003', branch: 'Information Technology', year: 'B.Tech 4th Year', checked_in: 0, created: fmtSql(getRelDate(-1, 15, 40)), checkin_at: null },
 
     // Upcoming Event 2: Integration Bee (+13 days) — Pending
-    { id: 116, code: 'MV-2026-I1G2H3', event_id: 'event-2', name: 'Siddharth N. Menon', email: 'siddharth.menon@demo.mathverse.org', phone: '+1 555-0105', enroll: 'EN-2024-505', branch: 'Mathematics', year: 'Junior (3rd Year)', checked_in: 0, created: fmtSql(getRelDate(-2, 14, 10)), checkin_at: null },
-    { id: 117, code: 'MV-2026-I2J3K4', event_id: 'event-2', name: 'Liam J. O\'Connor', email: 'liam.oconnor@demo.mathverse.org', phone: '+1 555-0108', enroll: 'EN-2026-808', branch: 'Mathematics & Computing', year: 'Freshman (1st Year)', checked_in: 0, created: fmtSql(getRelDate(-1, 9, 30)), checkin_at: null },
+    { id: 116, code: 'MV-2026-I1G2H3', event_id: 'event-2', name: 'Priya Singh', email: 'priya.singh@mitsgwalior.in', phone: '+91 98260-10005', enroll: '0901AI241005', branch: 'Artificial Intelligence & Data Science', year: 'B.Tech 3rd Year', checked_in: 0, created: fmtSql(getRelDate(-2, 14, 10)), checkin_at: null },
+    { id: 117, code: 'MV-2026-I2J3K4', event_id: 'event-2', name: 'Sneha Patel', email: 'sneha.patel@mitsgwalior.in', phone: '+91 98260-10008', enroll: '0901MC261008', branch: 'Mathematics & Computing', year: 'B.Tech 1st Year', checked_in: 0, created: fmtSql(getRelDate(-1, 9, 30)), checkin_at: null },
 
     // Upcoming Event 3: Fibonacci Fest (+20 days) — Pending
-    { id: 118, code: 'MV-2026-B1L2M3', event_id: 'event-3', name: 'Aria M. Sterling', email: 'aria.sterling@demo.mathverse.org', phone: '+1 555-0106', enroll: 'EN-2025-606', branch: 'Mathematics', year: 'Sophomore (2nd Year)', checked_in: 0, created: fmtSql(getRelDate(-1, 16, 0)), checkin_at: null }
+    { id: 118, code: 'MV-2026-B1L2M3', event_id: 'event-3', name: 'Harsh Tiwari', email: 'harsh.tiwari@mitsgwalior.in', phone: '+91 98260-10006', enroll: '0901CS251006', branch: 'Computer Science & Engineering', year: 'B.Tech 2nd Year', checked_in: 0, created: fmtSql(getRelDate(-1, 16, 0)), checkin_at: null }
   ];
 
   for (const reg of registrationsData) {
@@ -268,13 +268,13 @@ async function seedDatabase(force = false) {
 
   // Session 1: Euler Warm-Up Championship
   insertSession.run(1, 1, 'EULER1', 'event-1', fmtSql(getRelDate(-60, 18, 0)), fmtSql(getRelDate(-60, 18, 22)));
-  insertPlayer.run(1, 1, 'Devin V. Patel', memberIds['MV-M-0001'], 4890, 1, fmtSql(getRelDate(-60, 17, 58)));
-  insertPlayer.run(2, 1, 'Elena Rostova', memberIds['MV-M-0002'], 4450, 2, fmtSql(getRelDate(-60, 17, 59)));
-  insertPlayer.run(3, 1, 'Marcus Aurelius Chen', memberIds['MV-M-0003'], 3980, 3, fmtSql(getRelDate(-60, 17, 59)));
-  insertPlayer.run(4, 1, 'Siddharth N. Menon', memberIds['MV-M-0004'], 3200, 4, fmtSql(getRelDate(-60, 18, 0)));
-  insertPlayer.run(5, 1, 'Zoe K. Vance', memberIds['MV-M-0005'], 2850, 5, fmtSql(getRelDate(-60, 18, 0)));
+  insertPlayer.run(1, 1, 'Aarav Sharma', memberIds['MV-M-0001'], 4890, 1, fmtSql(getRelDate(-60, 17, 58)));
+  insertPlayer.run(2, 1, 'Ananya Verma', memberIds['MV-M-0002'], 4450, 2, fmtSql(getRelDate(-60, 17, 59)));
+  insertPlayer.run(3, 1, 'Rohan Gupta', memberIds['MV-M-0003'], 3980, 3, fmtSql(getRelDate(-60, 17, 59)));
+  insertPlayer.run(4, 1, 'Priya Singh', memberIds['MV-M-0004'], 3200, 4, fmtSql(getRelDate(-60, 18, 0)));
+  insertPlayer.run(5, 1, 'Aditya Rajput', memberIds['MV-M-0005'], 2850, 5, fmtSql(getRelDate(-60, 18, 0)));
 
-  // Answers for Session 1 (Devin: 5 streak; Elena: 5 streak)
+  // Answers for Session 1 (Aarav: 5 streak; Ananya: 5 streak)
   for (let q = 1; q <= 5; q++) {
     insertAnswer.run(1, q, 1, 0, 1, 1400 + q * 100, 980 - q * 10);
     insertAnswer.run(1, q, 2, 0, 1, 1800 + q * 120, 890 - q * 10);
@@ -285,11 +285,11 @@ async function seedDatabase(force = false) {
 
   // Session 2: Midnight Integral Sprint
   insertSession.run(2, 2, 'CALC02', 'event-2', fmtSql(getRelDate(-40, 19, 0)), fmtSql(getRelDate(-40, 19, 24)));
-  insertPlayer.run(6, 2, 'Elena Rostova', memberIds['MV-M-0002'], 4940, 1, fmtSql(getRelDate(-40, 18, 57)));
-  insertPlayer.run(7, 2, 'Devin V. Patel', memberIds['MV-M-0001'], 4620, 2, fmtSql(getRelDate(-40, 18, 58)));
-  insertPlayer.run(8, 2, 'Tariq Al-Mansoor', memberIds['MV-M-0006'], 4120, 3, fmtSql(getRelDate(-40, 18, 58)));
-  insertPlayer.run(9, 2, 'Liam J. O\'Connor', memberIds['MV-M-0008'], 3380, 4, fmtSql(getRelDate(-40, 18, 59)));
-  insertPlayer.run(10, 2, 'Carlos E. Mendoza', memberIds['MV-M-0010'], 2950, 5, fmtSql(getRelDate(-40, 18, 59)));
+  insertPlayer.run(6, 2, 'Ananya Verma', memberIds['MV-M-0002'], 4940, 1, fmtSql(getRelDate(-40, 18, 57)));
+  insertPlayer.run(7, 2, 'Aarav Sharma', memberIds['MV-M-0001'], 4620, 2, fmtSql(getRelDate(-40, 18, 58)));
+  insertPlayer.run(8, 2, 'Kavya Joshi', memberIds['MV-M-0006'], 4120, 3, fmtSql(getRelDate(-40, 18, 58)));
+  insertPlayer.run(9, 2, 'Sneha Patel', memberIds['MV-M-0008'], 3380, 4, fmtSql(getRelDate(-40, 18, 59)));
+  insertPlayer.run(10, 2, 'Ishita Mishra', memberIds['MV-M-0010'], 2950, 5, fmtSql(getRelDate(-40, 18, 59)));
 
   for (let q = 1; q <= 5; q++) {
     insertAnswer.run(2, q, 6, 0, 1, 1300 + q * 80, 990 - q * 8);
@@ -301,11 +301,11 @@ async function seedDatabase(force = false) {
 
   // Session 3: Euler Masters Round 2
   insertSession.run(3, 1, 'EULER3', 'event-1', fmtSql(getRelDate(-25, 20, 0)), fmtSql(getRelDate(-25, 20, 25)));
-  insertPlayer.run(11, 3, 'Marcus Aurelius Chen', memberIds['MV-M-0003'], 4810, 1, fmtSql(getRelDate(-25, 19, 55)));
-  insertPlayer.run(12, 3, 'Devin V. Patel', memberIds['MV-M-0001'], 4510, 2, fmtSql(getRelDate(-25, 19, 56)));
-  insertPlayer.run(13, 3, 'Siddharth N. Menon', memberIds['MV-M-0004'], 4090, 3, fmtSql(getRelDate(-25, 19, 57)));
-  insertPlayer.run(14, 3, 'Elena Rostova', memberIds['MV-M-0002'], 3870, 4, fmtSql(getRelDate(-25, 19, 57)));
-  insertPlayer.run(15, 3, 'Ananya R. Iyer', memberIds['MV-M-0011'], 3150, 5, fmtSql(getRelDate(-25, 19, 58)));
+  insertPlayer.run(11, 3, 'Rohan Gupta', memberIds['MV-M-0003'], 4810, 1, fmtSql(getRelDate(-25, 19, 55)));
+  insertPlayer.run(12, 3, 'Aarav Sharma', memberIds['MV-M-0001'], 4510, 2, fmtSql(getRelDate(-25, 19, 56)));
+  insertPlayer.run(13, 3, 'Priya Singh', memberIds['MV-M-0004'], 4090, 3, fmtSql(getRelDate(-25, 19, 57)));
+  insertPlayer.run(14, 3, 'Ananya Verma', memberIds['MV-M-0002'], 3870, 4, fmtSql(getRelDate(-25, 19, 57)));
+  insertPlayer.run(15, 3, 'Arjun Yadav', memberIds['MV-M-0011'], 3150, 5, fmtSql(getRelDate(-25, 19, 58)));
 
   for (let q = 1; q <= 5; q++) {
     insertAnswer.run(3, q, 11, 0, 1, 1450, 970);
@@ -317,11 +317,11 @@ async function seedDatabase(force = false) {
 
   // Session 4: Grand Integration Grand Prix
   insertSession.run(4, 2, 'FINALS', 'event-2', fmtSql(getRelDate(-10, 17, 30)), fmtSql(getRelDate(-10, 17, 55)));
-  insertPlayer.run(16, 4, 'Devin V. Patel', memberIds['MV-M-0001'], 4960, 1, fmtSql(getRelDate(-10, 17, 25)));
-  insertPlayer.run(17, 4, 'Marcus Aurelius Chen', memberIds['MV-M-0003'], 4600, 2, fmtSql(getRelDate(-10, 17, 26)));
-  insertPlayer.run(18, 4, 'Elena Rostova', memberIds['MV-M-0002'], 4250, 3, fmtSql(getRelDate(-10, 17, 26)));
-  insertPlayer.run(19, 4, 'Aria M. Sterling', memberIds['MV-M-0007'], 3680, 4, fmtSql(getRelDate(-10, 17, 27)));
-  insertPlayer.run(20, 4, 'Mei-Ling Zhou', memberIds['MV-M-0009'], 3050, 5, fmtSql(getRelDate(-10, 17, 27)));
+  insertPlayer.run(16, 4, 'Aarav Sharma', memberIds['MV-M-0001'], 4960, 1, fmtSql(getRelDate(-10, 17, 25)));
+  insertPlayer.run(17, 4, 'Rohan Gupta', memberIds['MV-M-0003'], 4600, 2, fmtSql(getRelDate(-10, 17, 26)));
+  insertPlayer.run(18, 4, 'Ananya Verma', memberIds['MV-M-0002'], 4250, 3, fmtSql(getRelDate(-10, 17, 26)));
+  insertPlayer.run(19, 4, 'Harsh Tiwari', memberIds['MV-M-0007'], 3680, 4, fmtSql(getRelDate(-10, 17, 27)));
+  insertPlayer.run(20, 4, 'Vivek Chouhan', memberIds['MV-M-0009'], 3050, 5, fmtSql(getRelDate(-10, 17, 27)));
 
   for (let q = 1; q <= 5; q++) {
     insertAnswer.run(4, q, 16, 0, 1, 1320, 995);
@@ -343,35 +343,35 @@ async function seedDatabase(force = false) {
 
   const demoCerts = [
     // Session Winner Honors (Podium)
-    { code: 'MV-CERT-WIN0001', name: 'Devin V. Patel', email: 'devin.patel@demo.mathverse.org', event_id: 'event-1', session_id: 1, type: 'winner', date: fmtSql(getRelDate(-60, 18, 23)) },
-    { code: 'MV-CERT-RUN0002', name: 'Elena Rostova', email: 'elena.rostova@demo.mathverse.org', event_id: 'event-1', session_id: 1, type: 'runner_up', date: fmtSql(getRelDate(-60, 18, 23)) },
-    { code: 'MV-CERT-THD0003', name: 'Marcus Aurelius Chen', email: 'marcus.chen@demo.mathverse.org', event_id: 'event-1', session_id: 1, type: 'third_place', date: fmtSql(getRelDate(-60, 18, 23)) },
+    { code: 'MV-CERT-WIN0001', name: 'Aarav Sharma', email: 'aarav.sharma@mitsgwalior.in', event_id: 'event-1', session_id: 1, type: 'winner', date: fmtSql(getRelDate(-60, 18, 23)) },
+    { code: 'MV-CERT-RUN0002', name: 'Ananya Verma', email: 'ananya.verma@mitsgwalior.in', event_id: 'event-1', session_id: 1, type: 'runner_up', date: fmtSql(getRelDate(-60, 18, 23)) },
+    { code: 'MV-CERT-THD0003', name: 'Rohan Gupta', email: 'rohan.gupta@mitsgwalior.in', event_id: 'event-1', session_id: 1, type: 'third_place', date: fmtSql(getRelDate(-60, 18, 23)) },
 
-    { code: 'MV-CERT-WIN0004', name: 'Elena Rostova', email: 'elena.rostova@demo.mathverse.org', event_id: 'event-2', session_id: 2, type: 'winner', date: fmtSql(getRelDate(-40, 19, 25)) },
-    { code: 'MV-CERT-RUN0005', name: 'Devin V. Patel', email: 'devin.patel@demo.mathverse.org', event_id: 'event-2', session_id: 2, type: 'runner_up', date: fmtSql(getRelDate(-40, 19, 25)) },
-    { code: 'MV-CERT-THD0006', name: 'Tariq Al-Mansoor', email: 'tariq.mansoor@demo.mathverse.org', event_id: 'event-2', session_id: 2, type: 'third_place', date: fmtSql(getRelDate(-40, 19, 25)) },
+    { code: 'MV-CERT-WIN0004', name: 'Ananya Verma', email: 'ananya.verma@mitsgwalior.in', event_id: 'event-2', session_id: 2, type: 'winner', date: fmtSql(getRelDate(-40, 19, 25)) },
+    { code: 'MV-CERT-RUN0005', name: 'Aarav Sharma', email: 'aarav.sharma@mitsgwalior.in', event_id: 'event-2', session_id: 2, type: 'runner_up', date: fmtSql(getRelDate(-40, 19, 25)) },
+    { code: 'MV-CERT-THD0006', name: 'Kavya Joshi', email: 'kavya.joshi@mitsgwalior.in', event_id: 'event-2', session_id: 2, type: 'third_place', date: fmtSql(getRelDate(-40, 19, 25)) },
 
-    { code: 'MV-CERT-WIN0007', name: 'Marcus Aurelius Chen', email: 'marcus.chen@demo.mathverse.org', event_id: 'event-1', session_id: 3, type: 'winner', date: fmtSql(getRelDate(-25, 20, 26)) },
-    { code: 'MV-CERT-RUN0008', name: 'Devin V. Patel', email: 'devin.patel@demo.mathverse.org', event_id: 'event-1', session_id: 3, type: 'runner_up', date: fmtSql(getRelDate(-25, 20, 26)) },
-    { code: 'MV-CERT-THD0009', name: 'Siddharth N. Menon', email: 'siddharth.menon@demo.mathverse.org', event_id: 'event-1', session_id: 3, type: 'third_place', date: fmtSql(getRelDate(-25, 20, 26)) },
+    { code: 'MV-CERT-WIN0007', name: 'Rohan Gupta', email: 'rohan.gupta@mitsgwalior.in', event_id: 'event-1', session_id: 3, type: 'winner', date: fmtSql(getRelDate(-25, 20, 26)) },
+    { code: 'MV-CERT-RUN0008', name: 'Aarav Sharma', email: 'aarav.sharma@mitsgwalior.in', event_id: 'event-1', session_id: 3, type: 'runner_up', date: fmtSql(getRelDate(-25, 20, 26)) },
+    { code: 'MV-CERT-THD0009', name: 'Priya Singh', email: 'priya.singh@mitsgwalior.in', event_id: 'event-1', session_id: 3, type: 'third_place', date: fmtSql(getRelDate(-25, 20, 26)) },
 
-    { code: 'MV-CERT-WIN0010', name: 'Devin V. Patel', email: 'devin.patel@demo.mathverse.org', event_id: 'event-2', session_id: 4, type: 'winner', date: fmtSql(getRelDate(-10, 17, 56)) },
-    { code: 'MV-CERT-RUN0011', name: 'Marcus Aurelius Chen', email: 'marcus.chen@demo.mathverse.org', event_id: 'event-2', session_id: 4, type: 'runner_up', date: fmtSql(getRelDate(-10, 17, 56)) },
-    { code: 'MV-CERT-THD0012', name: 'Elena Rostova', email: 'elena.rostova@demo.mathverse.org', event_id: 'event-2', session_id: 4, type: 'third_place', date: fmtSql(getRelDate(-10, 17, 56)) },
+    { code: 'MV-CERT-WIN0010', name: 'Aarav Sharma', email: 'aarav.sharma@mitsgwalior.in', event_id: 'event-2', session_id: 4, type: 'winner', date: fmtSql(getRelDate(-10, 17, 56)) },
+    { code: 'MV-CERT-RUN0011', name: 'Rohan Gupta', email: 'rohan.gupta@mitsgwalior.in', event_id: 'event-2', session_id: 4, type: 'runner_up', date: fmtSql(getRelDate(-10, 17, 56)) },
+    { code: 'MV-CERT-THD0012', name: 'Ananya Verma', email: 'ananya.verma@mitsgwalior.in', event_id: 'event-2', session_id: 4, type: 'third_place', date: fmtSql(getRelDate(-10, 17, 56)) },
 
     // Event Participation Certificates for Past Checked-In Attendees
-    { code: 'MV-CERT-PART001', name: 'Devin V. Patel', email: 'devin.patel@demo.mathverse.org', event_id: 'event-4', session_id: null, type: 'participation', date: fmtSql(getRelDate(-20, 18, 0)) },
-    { code: 'MV-CERT-PART002', name: 'Elena Rostova', email: 'elena.rostova@demo.mathverse.org', event_id: 'event-4', session_id: null, type: 'participation', date: fmtSql(getRelDate(-20, 18, 0)) },
-    { code: 'MV-CERT-PART003', name: 'Marcus Aurelius Chen', email: 'marcus.chen@demo.mathverse.org', event_id: 'event-4', session_id: null, type: 'participation', date: fmtSql(getRelDate(-20, 18, 0)) },
-    { code: 'MV-CERT-PART004', name: 'Noah B. Thorne', email: 'noah.thorne@demo.mathverse.org', event_id: 'event-4', session_id: null, type: 'participation', date: fmtSql(getRelDate(-20, 18, 0)) },
+    { code: 'MV-CERT-PART001', name: 'Aarav Sharma', email: 'aarav.sharma@mitsgwalior.in', event_id: 'event-4', session_id: null, type: 'participation', date: fmtSql(getRelDate(-20, 18, 0)) },
+    { code: 'MV-CERT-PART002', name: 'Ananya Verma', email: 'ananya.verma@mitsgwalior.in', event_id: 'event-4', session_id: null, type: 'participation', date: fmtSql(getRelDate(-20, 18, 0)) },
+    { code: 'MV-CERT-PART003', name: 'Rohan Gupta', email: 'rohan.gupta@mitsgwalior.in', event_id: 'event-4', session_id: null, type: 'participation', date: fmtSql(getRelDate(-20, 18, 0)) },
+    { code: 'MV-CERT-PART004', name: 'Riya Jain', email: 'riya.jain@mitsgwalior.in', event_id: 'event-4', session_id: null, type: 'participation', date: fmtSql(getRelDate(-20, 18, 0)) },
 
-    { code: 'MV-CERT-PART005', name: 'Siddharth N. Menon', email: 'siddharth.menon@demo.mathverse.org', event_id: 'event-5', session_id: null, type: 'participation', date: fmtSql(getRelDate(-45, 17, 30)) },
-    { code: 'MV-CERT-PART006', name: 'Aria M. Sterling', email: 'aria.sterling@demo.mathverse.org', event_id: 'event-5', session_id: null, type: 'participation', date: fmtSql(getRelDate(-45, 17, 30)) },
-    { code: 'MV-CERT-PART007', name: 'Zoe K. Vance', email: 'zoe.vance@demo.mathverse.org', event_id: 'event-5', session_id: null, type: 'participation', date: fmtSql(getRelDate(-45, 17, 30)) },
+    { code: 'MV-CERT-PART005', name: 'Priya Singh', email: 'priya.singh@mitsgwalior.in', event_id: 'event-5', session_id: null, type: 'participation', date: fmtSql(getRelDate(-45, 17, 30)) },
+    { code: 'MV-CERT-PART006', name: 'Harsh Tiwari', email: 'harsh.tiwari@mitsgwalior.in', event_id: 'event-5', session_id: null, type: 'participation', date: fmtSql(getRelDate(-45, 17, 30)) },
+    { code: 'MV-CERT-PART007', name: 'Aditya Rajput', email: 'aditya.rajput@mitsgwalior.in', event_id: 'event-5', session_id: null, type: 'participation', date: fmtSql(getRelDate(-45, 17, 30)) },
 
-    { code: 'MV-CERT-PART008', name: 'Tariq Al-Mansoor', email: 'tariq.mansoor@demo.mathverse.org', event_id: 'event-6', session_id: null, type: 'participation', date: fmtSql(getRelDate(-80, 23, 0)) },
-    { code: 'MV-CERT-PART009', name: 'Carlos E. Mendoza', email: 'carlos.mendoza@demo.mathverse.org', event_id: 'event-6', session_id: null, type: 'participation', date: fmtSql(getRelDate(-80, 23, 0)) },
-    { code: 'MV-CERT-PART010', name: 'Mei-Ling Zhou', email: 'meiling.zhou@demo.mathverse.org', event_id: 'event-6', session_id: null, type: 'participation', date: fmtSql(getRelDate(-80, 23, 0)) }
+    { code: 'MV-CERT-PART008', name: 'Kavya Joshi', email: 'kavya.joshi@mitsgwalior.in', event_id: 'event-6', session_id: null, type: 'participation', date: fmtSql(getRelDate(-80, 23, 0)) },
+    { code: 'MV-CERT-PART009', name: 'Ishita Mishra', email: 'ishita.mishra@mitsgwalior.in', event_id: 'event-6', session_id: null, type: 'participation', date: fmtSql(getRelDate(-80, 23, 0)) },
+    { code: 'MV-CERT-PART010', name: 'Vivek Chouhan', email: 'vivek.chouhan@mitsgwalior.in', event_id: 'event-6', session_id: null, type: 'participation', date: fmtSql(getRelDate(-80, 23, 0)) }
   ];
 
   for (const c of demoCerts) {

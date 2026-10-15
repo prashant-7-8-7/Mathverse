@@ -67,65 +67,65 @@ const MathVerseData = {
   team: [
     {
       id: "member-1",
-      name: "Alex Rivera",
+      name: "Aarav Sharma",
       role: "Club President & Research Lead",
-      bio: "Senior Pure Math & Physics major. Researches algebraic topology and organizes our weekly advanced problem seminars.",
-      initials: "AR",
+      bio: "Senior Mathematics & Computing student. Researches algebraic topology and organizes our weekly advanced problem seminars.",
+      initials: "AS",
       gradient: "linear-gradient(135deg, #8b5cf6, #ec4899)"
     },
     {
       id: "member-2",
-      name: "Sophia Chen",
+      name: "Ananya Verma",
       role: "Vice President & Competition Director",
-      bio: "Junior Applied Math & CS major. Former Putnam top-50 scorer and chief architect of our annual Integration Bee.",
-      initials: "SC",
+      bio: "Junior Computer Science student. Olympiad math enthusiast and chief architect of our annual Integration Bee.",
+      initials: "AV",
       gradient: "linear-gradient(135deg, #22d3ee, #3b82f6)"
     },
     {
       id: "member-3",
-      name: "Marcus Vance",
-      role: "Technical Lead & MathVerse Architect",
-      bio: "Junior Computer Science & Data Science specialist. Built the real-time WebSockets synchronization engine for MathVerse.",
-      initials: "MV",
+      name: "Rohan Gupta",
+      role: "Technical Lead & Platform Architect",
+      bio: "Junior Information Technology specialist. Built the real-time WebSockets synchronization engine for the Mathematics Club platform.",
+      initials: "RG",
       gradient: "linear-gradient(135deg, #10b981, #06b6d4)"
     },
     {
       id: "member-4",
       name: "Priya Sharma",
       role: "Head of Workshops & Colloquiums",
-      bio: "Senior Statistics & Economics double major. Organizes guest faculty lectures and industry quantitative finance panels.",
+      bio: "Senior Data Science student. Organizes guest faculty lectures and industry quantitative analytics panels.",
       initials: "PS",
       gradient: "linear-gradient(135deg, #fbbf24, #f97316)"
     },
     {
       id: "member-5",
-      name: "Liam O'Connor",
+      name: "Aditya Rajput",
       role: "Treasurer & Industry Relations",
-      bio: "Sophomore Mathematics & Finance major. Manages club endowments, sponsorship budgets, and competition prize pools.",
-      initials: "LO",
+      bio: "Sophomore Mathematics & Computing student. Manages club finances, sponsorship budgets, and competition prize pools.",
+      initials: "AR",
       gradient: "linear-gradient(135deg, #a855f7, #6366f1)"
     },
     {
       id: "member-6",
-      name: "Elena Rostova",
+      name: "Kavya Joshi",
       role: "Creative Director & Mathematical Art",
-      bio: "Sophomore Math & Digital Media major. Generates generative fractal geometry and curates the MathVerse visual universe.",
-      initials: "ER",
+      bio: "Sophomore Electrical Engineering student. Generates fractal geometry and curates the club's visual universe.",
+      initials: "KJ",
       gradient: "linear-gradient(135deg, #f43f5e, #fb7185)"
     },
     {
       id: "member-7",
-      name: "David Kim",
-      role: "Head of Outreach & High School Mentorship",
-      bio: "Junior Mathematics Education major. Directs our local high school olympiad training clinics and community math circles.",
-      initials: "DK",
+      name: "Harsh Tiwari",
+      role: "Head of Outreach & Student Mentorship",
+      bio: "Junior Computer Science student. Directs our school olympiad training clinics and community math circles.",
+      initials: "HT",
       gradient: "linear-gradient(135deg, #06b6d4, #14b8a6)"
     },
     {
       id: "member-8",
       name: "Maya Patel",
       role: "Community Manager & Problem Setter",
-      bio: "Sophomore Pure Math enthusiast. Authors original challenge problems for our weekly Equation of the Day and speed drills.",
+      bio: "Sophomore Mathematics enthusiast. Authors original challenge problems for our weekly Equation of the Day and speed drills.",
       initials: "MP",
       gradient: "linear-gradient(135deg, #eab308, #84cc16)"
     }

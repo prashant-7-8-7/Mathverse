@@ -10,10 +10,10 @@
   <meta property="og:type" content="website">
   <meta property="og:title" content="404 — Mathematical Singularity | Mathematics Club">
   <meta property="og:description" content="The manifold you are trying to traverse does not exist or has collapsed past the event horizon.">
-  <meta property="og:image" content="/icons/icon-512.png">
+  <meta property="og:image" content="/images/club-logo.jpeg">
 
   <!-- Inline SVG Favicon of π -->
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='g' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' stop-color='%238b5cf6'/><stop offset='100%' stop-color='%2322d3ee'/></linearGradient></defs><rect width='100' height='100' rx='24' fill='%23080c1f'/><text x='50' y='72' font-family='sans-serif' font-size='66' font-weight='bold' fill='url(%23g)' text-anchor='middle'>π</text></svg>">
+  <link rel="icon" href="/images/club-logo.jpeg">
 
   <!-- Google Fonts: Space Grotesk, Inter, JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -35,8 +35,7 @@
   <header class="navbar" role="banner">
     <div class="nav-container">
       <a href="index.html" class="nav-brand" aria-label="Mathematics Club Home">
-        <span class="brand-glyph">∫</span>
-        <span class="brand-text">Mathematics <span class="brand-accent">Club</span></span>
+        <img src="/images/club-logo.jpeg" alt="Mathematics Club MITS Gwalior logo" class="navbar-logo">
       </a>
 
       <!-- Desktop Nav Links -->
@@ -100,8 +99,9 @@
       <!-- Glowing accretion disk rings -->
       <div class="singularity-disk disk-outer" style="position: absolute; inset: 0; border-radius: 50%; border: 2px dashed rgba(139, 92, 246, 0.4); animation: spinAccretion 25s linear infinite;"></div>
       <div class="singularity-disk disk-mid" style="position: absolute; inset: 20px; border-radius: 50%; border: 2px solid rgba(34, 211, 238, 0.5); box-shadow: 0 0 35px rgba(34, 211, 238, 0.3), inset 0 0 25px rgba(139, 92, 246, 0.4); animation: spinReverse 15s linear infinite;"></div>
-      <div class="singularity-core" style="position: relative; width: 110px; height: 110px; border-radius: 50%; background: radial-gradient(circle, #050711 60%, rgba(139, 92, 246, 0.8) 100%); box-shadow: 0 0 50px rgba(139, 92, 246, 0.8), 0 0 80px rgba(34, 211, 238, 0.4); display: flex; align-items: center; justify-content: center; z-index: 2;">
-        <span style="font-family: var(--font-heading); font-size: 2.2rem; font-weight: 800; color: #ffffff; text-shadow: 0 0 15px var(--neon-cyan);">404</span>
+      <div class="singularity-core" style="position: relative; width: 110px; height: 110px; border-radius: 50%; background: radial-gradient(circle, #050711 60%, rgba(139, 92, 246, 0.8) 100%); box-shadow: 0 0 50px rgba(139, 92, 246, 0.8), 0 0 80px rgba(34, 211, 238, 0.4); display: flex; align-items: center; justify-content: center; z-index: 2; overflow: hidden;">
+        <img src="/images/club-logo.jpeg" alt="Mathematics Club MITS Gwalior logo" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.88; filter: contrast(1.1);">
+        <span style="position: absolute; font-family: var(--font-heading); font-size: 1.8rem; font-weight: 800; color: #ffffff; text-shadow: 0 0 15px var(--neon-cyan), 0 0 25px #000; background: rgba(5, 7, 17, 0.65); padding: 0.15rem 0.6rem; border-radius: 999px;">404</span>
       </div>
       <!-- Orbiting KaTeX Symbol Badges -->
       <div class="orbit-symbol symbol-1" style="position: absolute; top: 0; left: 50%; transform: translateX(-50%); font-family: var(--font-mono); font-size: 0.85rem; color: var(--neon-gold); background: rgba(8, 12, 31, 0.85); padding: 0.2rem 0.6rem; border-radius: 999px; border: 1px solid rgba(251, 191, 36, 0.4); animation: floatPulse 4s ease-in-out infinite;">$\lim_{x \to 0} \frac{1}{x} = \pm\infty$</div>
@@ -149,7 +149,7 @@
     <div class="footer-grid">
       <div class="footer-col footer-brand-col">
         <a href="index.html" class="footer-brand" aria-label="Mathematics Club Home">
-          <span class="brand-glyph">∫</span>
+          <img src="/images/club-logo.jpeg" alt="Mathematics Club logo" class="footer-brand-logo">
           <span class="brand-text">Mathematics <span class="brand-accent">Club</span></span>
         </a>
         <p class="footer-tagline">
